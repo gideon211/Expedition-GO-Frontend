@@ -1,7 +1,6 @@
 
 import { MapPin, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -20,16 +19,15 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSearchBarSticky, setIsSearchBarSticky] = useState(false);
   const [searchBarHeight, setSearchBarHeight] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const scrollContainerRef = useRef(null);
-  const desktopContainerRef = useRef(null);
+  const desktopScrollRef = useRef(null);
   const searchBarRef = useRef(null);
   const searchInputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const searchBarInitialTop = useRef(null);
-  const controls = useAnimation();
+  const isScrollingRef = useRef(false);
   const { recentlyViewed } = useRecentlyViewed();
   
   // Get search results
@@ -44,19 +42,101 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
 
   const cardWidth = 280; // Horizontal card width (matches GetYourGuide)
   const gap = 12;
+  const singleSetWidth = carouselItems.length * (cardWidth + gap);
 
-  // Track container width for dynamic centering
-  useEffect(() => {
-    const updateWidth = () => {
-      if (desktopContainerRef.current) {
-        setContainerWidth(desktopContainerRef.current.offsetWidth);
+  // Desktop infinite scroll nudge (same as TourCarouselSection)
+  const nudgeInfiniteLoop = useCallback(() => {
+    const container = desktopScrollRef.current;
+    if (!container || carouselItems.length === 0 || isScrollingRef.current) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const maxScroll = scrollWidth - clientWidth;
+
+    if (maxScroll <= 0) return;
+
+    const threshold = cardWidth * 0.5;
+
+    if (scrollLeft <= threshold) {
+      isScrollingRef.current = true;
+      container.scrollLeft = scrollLeft + singleSetWidth;
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 100);
+    } else if (scrollLeft >= maxScroll - threshold) {
+      isScrollingRef.current = true;
+      container.scrollLeft = scrollLeft - singleSetWidth;
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 100);
+    }
+  }, [carouselItems.length, singleSetWidth, cardWidth]);
+
+  // Desktop arrow scroll (same as TourCarouselSection)
+  const scroll = (direction) => {
+    const container = desktopScrollRef.current;
+    if (!container) return;
+
+    const scrollAmount = 320;
+    const currentScroll = container.scrollLeft;
+
+    let newScrollPosition;
+
+    if (direction === "left") {
+      newScrollPosition = currentScroll - scrollAmount;
+      if (newScrollPosition < scrollAmount) {
+        container.scrollLeft = singleSetWidth + newScrollPosition;
+        return;
       }
+    } else {
+      newScrollPosition = currentScroll + scrollAmount;
+      if (newScrollPosition > singleSetWidth * 2 - scrollAmount) {
+        container.scrollLeft =
+          singleSetWidth + (newScrollPosition - singleSetWidth * 2);
+        return;
+      }
+    }
+
+    container.scrollTo({
+      left: newScrollPosition,
+      behavior: "smooth",
+    });
+  };
+
+  // Initialize desktop scroll position
+  useLayoutEffect(() => {
+    const el = desktopScrollRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 0) return;
+    el.scrollLeft = Math.min(singleSetWidth, maxScroll);
+  }, [singleSetWidth]);
+
+  // Desktop scroll listener
+  useEffect(() => {
+    const el = desktopScrollRef.current;
+    if (!el) return;
+
+    let rafId = null;
+
+    const onScroll = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      
+      rafId = requestAnimationFrame(() => {
+        nudgeInfiniteLoop();
+        rafId = null;
+      });
     };
-    
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
-  }, []);
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, [nudgeInfiniteLoop]);
 
   // Mobile infinite scroll handler
   useEffect(() => {
@@ -89,16 +169,12 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
           const middleSetIndex = carouselItems.length + cardInSet;
           
           // Instant jump to middle set
-          container.style.scrollBehavior = 'auto';
           container.scrollLeft = middleSetIndex * itemWidth;
           
-          // Re-enable smooth scrolling after a brief delay
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              container.style.scrollBehavior = 'smooth';
-              isResetting = false;
-            }, 100);
-          });
+          // Re-enable after a brief delay
+          setTimeout(() => {
+            isResetting = false;
+          }, 100);
         }
       }, 150); // Wait for scroll to settle
     };
@@ -158,18 +234,6 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
   };
 
   useEffect(() => {
-    if (carouselItems.length > 0 && containerWidth > 0) {
-      // Desktop only: Start at the middle set for seamless infinite scroll
-      const middleSetStart = carouselItems.length;
-      const centerOffset = (containerWidth - cardWidth) / 2;
-      const startX = -(middleSetStart * (cardWidth + gap)) + centerOffset;
-      
-      controls.set({ x: startX });
-      setCurrentIndex(middleSetStart);
-    }
-  }, [carouselItems.length, controls, cardWidth, gap, containerWidth]);
-
-  useEffect(() => {
     const handleScroll = () => {
       if (!searchBarRef.current) return;
       
@@ -206,76 +270,16 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
     };
   }, [onSearchBarVisibilityChange]);
 
-  const handlePrevious = () => {
-    if (carouselItems.length === 0 || containerWidth === 0) return;
-
-    // Move 2 cards at a time
-    const newIndex = currentIndex - 2;
-    const centerOffset = (containerWidth - cardWidth) / 2;
-    const targetX = -(newIndex * (cardWidth + gap)) + centerOffset;
-
-    // Smooth animation with ease-out for natural feel
-    controls.start({
-      x: targetX,
-      transition: { 
-        type: "tween",
-        duration: 0.6,
-        ease: [0.16, 1, 0.3, 1] // Smooth ease-out
-      },
-    });
-    setCurrentIndex(newIndex);
-
-    // Reset to middle set if we've scrolled to the first item of the first set
-    if (newIndex <= 0) {
-      setTimeout(() => {
-        const middleIndex = carouselItems.length + (newIndex % carouselItems.length);
-        const resetX = -(middleIndex * (cardWidth + gap)) + centerOffset;
-        controls.set({ x: resetX });
-        setCurrentIndex(middleIndex);
-      }, 600);
-    }
-  };
-
-  const handleNext = () => {
-    if (carouselItems.length === 0 || containerWidth === 0) return;
-
-    // Move 2 cards at a time
-    const newIndex = currentIndex + 2;
-    const centerOffset = (containerWidth - cardWidth) / 2;
-    const targetX = -(newIndex * (cardWidth + gap)) + centerOffset;
-
-    // Smooth animation with ease-out for natural feel
-    controls.start({
-      x: targetX,
-      transition: { 
-        type: "tween",
-        duration: 0.6,
-        ease: [0.16, 1, 0.3, 1] // Smooth ease-out
-      },
-    });
-    setCurrentIndex(newIndex);
-
-    // Reset to middle set if we've scrolled to the last item of the last set
-    if (newIndex >= carouselItems.length * 2) {
-      setTimeout(() => {
-        const middleIndex = carouselItems.length + (newIndex % carouselItems.length);
-        const resetX = -(middleIndex * (cardWidth + gap)) + centerOffset;
-        controls.set({ x: resetX });
-        setCurrentIndex(middleIndex);
-      }, 600);
-    }
-  };
-
   return (
     <section
       id="home"
-      className="relative min-h-[80vh] lg:min-h-screen flex items-start pt-[12vh] overflow-visible bg-(--brand-green) text-white pb-8"
+      className="relative min-h-[50vh] sm:min-h-[52vh] md:min-h-[50vh] lg:min-h-[52vh] xl:min-h-[60vh] flex items-start pt-[12vh] overflow-visible bg-(--brand-green) text-white pb-8"
     >
       <div className="absolute inset-0">
         <img
           src={heroPic}
           alt="African safari landscape at sunset"
-          className="h-full w-full object-cover object-center opacity-80"
+          className="h-full w-full object-cover object-[center_bottom] lg:object-[center_80%] xl:object-center opacity-80"
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.5),rgba(0,0,0,0.18)_25%,rgba(122,69,11,0.14)_60%,rgba(0,0,0,0.2)),radial-gradient(circle_at_center,rgba(255,174,58,0.28),transparent_42%)]" />
       </div>
@@ -302,8 +306,8 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
               style={{
                 fontFamily: 'var(--font-hero)',
                 fontWeight: 700,
-                fontSize: 'clamp(1.75rem, 6vw, 4rem)',
-                lineHeight: 'clamp(2rem, 6.5vw, 4.25rem)',
+                fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)',
+                lineHeight: 'clamp(2rem, 5vw, 3rem)',
                 letterSpacing: '0px'
               }}
             >
@@ -428,7 +432,7 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
               {carouselItems.length > 1 && (
                 <>
                   <button
-                    onClick={handlePrevious}
+                    onClick={() => scroll("left")}
                     className="hidden md:grid absolute left-0 top-1/2 z-20 -translate-y-1/2 size-10 place-items-center rounded-full bg-white/95 text-slate-900 shadow-lg backdrop-blur-sm transition hover:bg-white hover:scale-110"
                     aria-label="Previous"
                   >
@@ -436,7 +440,7 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
                   </button>
 
                   <button
-                    onClick={handleNext}
+                    onClick={() => scroll("right")}
                     className="hidden md:grid absolute right-0 top-1/2 z-20 -translate-y-1/2 size-10 place-items-center rounded-full bg-white/95 text-slate-900 shadow-lg backdrop-blur-sm transition hover:bg-white hover:scale-110"
                     aria-label="Next"
                   >
@@ -445,49 +449,39 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
                 </>
               )}
 
-              {/* Desktop carousel */}
-              <div ref={desktopContainerRef} className="hidden md:flex justify-center overflow-visible pb-6">
-                <div className="overflow-hidden w-full">
-                  <motion.div
-                    animate={controls}
-                    className="flex gap-3"
-                    style={{ width: "fit-content" }}
+              {/* Desktop carousel - native scroll like TourCarouselSection */}
+              <div
+                ref={desktopScrollRef}
+                className="hidden md:flex gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide pb-6"
+                style={{
+                  WebkitOverflowScrolling: "touch",
+                  scrollSnapType: "x mandatory"
+                }}
+              >
+                {infiniteItems.map((item, index) => (
+                  <div
+                    key={`${item.title}-${index}`}
+                    className="w-[280px] min-w-[280px] shrink-0"
+                    style={{ scrollSnapAlign: "start" }}
                   >
-                    {infiniteItems.map((item, index) => (
-                      <motion.div
-                        key={`${item.title}-${index}`}
-                        className="w-[280px] shrink-0"
-                        whileHover={{
-                          scale: 1.01,
-                          y: -2,
-                          zIndex: 50,
-                          transition: { duration: 0.15 },
-                        }}
-                        whileTap={{ scale: 0.99 }}
-                      >
-                        <HeroTourCard {...item} disableTracking={true} />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
+                    <HeroTourCard {...item} disableTracking={true} />
+                  </div>
+                ))}
               </div>
 
               {/* Mobile carousel - infinite scroll with native snap */}
               <div
                 ref={scrollContainerRef}
-                className="md:hidden overflow-x-auto scrollbar-hide pb-4"
+                className="md:hidden overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory"
                 style={{
-                  scrollSnapType: 'x mandatory',
-                  WebkitOverflowScrolling: 'touch',
-                  scrollBehavior: 'smooth'
+                  WebkitOverflowScrolling: 'touch'
                 }}
               >
                 <div className="flex gap-3 px-4">
                   {infiniteItems.map((item, index) => (
                     <div
                       key={`${item.title}-${index}`}
-                      className="w-[280px] shrink-0"
-                      style={{ scrollSnapAlign: 'center' }}
+                      className="w-[280px] shrink-0 snap-start"
                     >
                       <HeroTourCard {...item} disableTracking={true} />
                     </div>

@@ -596,8 +596,8 @@ function AllToursPageContent() {
   return (
     <>
       <div className="flex min-h-screen flex-col">
-        {/* Navbar - hidden on mobile, visible on desktop */}
-        <div className="hidden lg:block bg-white text-slate-900">
+        {/* Navbar - visible on all screens */}
+        <div className="bg-white text-slate-900">
           <Navbar
             forceShowCompactSearch={true}
             externalSearchQuery={searchQuery}
@@ -605,36 +605,8 @@ function AllToursPageContent() {
           />
         </div>
         
-        {/* Navbar spacer - only on desktop */}
-        <div className="hidden lg:block h-[104px]" />
-        
-        {/* Mobile search bar - fixed at top on mobile, hidden on desktop */}
-        <div className="fixed top-0 left-0 right-0 z-60 px-3 py-2 bg-white border-b border-slate-200 lg:hidden">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-            className="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 shadow-sm"
-          >
-            <Search className="size-3.5 text-(--brand-green)" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Where are you going?"
-              className="w-full bg-transparent text-xs text-slate-900 outline-none placeholder:text-slate-400"
-              style={{ caretColor: '#01311a' }}
-            />
-            <button
-              type="submit"
-              className="rounded-md bg-(--brand-green) px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-(--brand-green-2)"
-            >
-              Search
-            </button>
-          </form>
-        </div>
-        
-        {/* Mobile spacer for fixed search bar */}
-        <div className="lg:hidden h-[52px]" />
+        {/* Navbar spacer */}
+        <div className="h-[68px] sm:h-[88px] lg:h-[104px]" />
 
         <main className="mx-auto flex-1 w-full max-w-[1520px] overflow-x-hidden bg-white px-4 pt-2 pb-6 sm:px-6 lg:px-8 lg:py-6">
           <div className="mb-8 mt-4">
