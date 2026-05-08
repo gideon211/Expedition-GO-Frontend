@@ -22,6 +22,7 @@ function HomePageContent() {
   const { t } = useTranslation();
   const { isLoading } = useHomePageData();
   const [sharedHeroDateRange, setSharedHeroDateRange] = useState({ from: null, to: null });
+  const [sharedSearchQuery, setSharedSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showCompactSearch, setShowCompactSearch] = useState(false);
 
@@ -60,6 +61,8 @@ function HomePageContent() {
           sharedDateRange={sharedHeroDateRange}
           onSharedDateRangeChange={setSharedHeroDateRange}
           forceShowCompactSearch={showCompactSearch}
+          externalSearchQuery={sharedSearchQuery}
+          onExternalSearchChange={setSharedSearchQuery}
         />
         {/* Navbar spacer - only on desktop where search moves to navbar */}
         <div className={`hidden lg:block lg:h-[104px]`} />
@@ -69,6 +72,8 @@ function HomePageContent() {
           sharedDateRange={sharedHeroDateRange}
           onSharedDateRangeChange={setSharedHeroDateRange}
           onSearchBarVisibilityChange={setShowCompactSearch}
+          externalSearchQuery={sharedSearchQuery}
+          onExternalSearchChange={setSharedSearchQuery}
         />
 
         <main className="mx-auto max-w-[1520px] px-4 pb-[3.4rem] sm:px-6 sm:pb-14 overflow-hidden">

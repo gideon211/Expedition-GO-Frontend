@@ -78,8 +78,8 @@ export function Navbar({
     e.preventDefault();
     setShowNavAutocomplete(false);
     setUserIsTyping(false); // User stopped typing
-    if (onExternalSearchChange) return;
-    const query = compactSearchQuery.trim();
+    const query = activeSearchQuery.trim();
+    if (isExternalSearchMode && location.pathname !== "/") return;
     if (!query) {
       navigate("/tours");
       return;
@@ -99,7 +99,6 @@ export function Navbar({
   const handleNavAutocompleteSelect = () => {
     setShowNavAutocomplete(false);
     setUserIsTyping(false); // User stopped typing
-    setCompactSearchQuery("");
   };
 
   // Handle click outside for navbar autocomplete

@@ -444,7 +444,7 @@ function TourDetailContent() {
       {/* Navbar spacer */}
       <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
-      <main className="mx-auto max-w-[1520px] px-3 pb-4 pt-24 sm:px-5 sm:pb-6 sm:pt-28 lg:px-6 lg:pb-8 lg:pt-32">
+      <main className="mx-auto max-w-[1520px] px-3 pb-4 pt-2 sm:px-5 sm:pb-6 sm:pt-3 lg:px-6 lg:pb-8 lg:pt-4">
         <button
           onClick={() => navigate(-1)}
           className="mb-4 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-[color:var(--brand-green)]"

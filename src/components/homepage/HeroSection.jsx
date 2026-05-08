@@ -13,7 +13,13 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useSearchAutocomplete } from "@/hooks/useSearchAutocomplete";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 
-export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearchBarVisibilityChange }) {
+export function HeroSection({
+  sharedDateRange,
+  onSharedDateRangeChange,
+  onSearchBarVisibilityChange,
+  externalSearchQuery,
+  onExternalSearchChange,
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -29,9 +35,11 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
   const searchBarInitialTop = useRef(null);
   const isScrollingRef = useRef(false);
   const { recentlyViewed } = useRecentlyViewed();
+  const isExternalSearchMode = typeof onExternalSearchChange === "function";
+  const activeSearchQuery = isExternalSearchMode ? (externalSearchQuery ?? "") : searchQuery;
   
   // Get search results
-  const searchResults = useSearchAutocomplete(searchQuery);
+  const searchResults = useSearchAutocomplete(activeSearchQuery);
 
   // Carousel setup - Simple finite scroll
   const carouselItems = recentlyViewed.length > 0 ? recentlyViewed : [];
@@ -92,28 +100,32 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
 
   // Show autocomplete when there are results
   useEffect(() => {
-    if (searchQuery.trim().length >= 2 && searchResults.total > 0) {
+    if (activeSearchQuery.trim().length >= 2 && searchResults.total > 0) {
       setShowAutocomplete(true);
     } else {
       setShowAutocomplete(false);
     }
-  }, [searchQuery, searchResults.total]);
+  }, [activeSearchQuery, searchResults.total]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/tours?search=${encodeURIComponent(searchQuery.trim())}`);
+    if (activeSearchQuery.trim()) {
+      navigate(`/tours?search=${encodeURIComponent(activeSearchQuery.trim())}`);
       setShowAutocomplete(false);
     }
   };
 
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+    const value = e.target.value;
+    if (isExternalSearchMode) {
+      onExternalSearchChange(value);
+      return;
+    }
+    setSearchQuery(value);
   };
 
   const handleAutocompleteSelect = () => {
     setShowAutocomplete(false);
-    setSearchQuery("");
   };
 
   useEffect(() => {
@@ -246,9 +258,9 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
                       </p>
                       <Input
                         ref={searchInputRef}
-                        value={searchQuery}
+                        value={activeSearchQuery}
                         onChange={handleSearchChange}
-                        onFocus={() => searchQuery.trim().length >= 2 && searchResults.total > 0 && setShowAutocomplete(true)}
+                        onFocus={() => activeSearchQuery.trim().length >= 2 && searchResults.total > 0 && setShowAutocomplete(true)}
                         className="h-auto border-0 px-1 py-0 text-[11px] sm:text-[11px] text-slate-900 placeholder:text-slate-400 shadow-none ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                         style={{ 
                           caretColor: '#01311a',
@@ -279,7 +291,7 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
                     results={searchResults}
                     onSelect={handleAutocompleteSelect}
                     isVisible={showAutocomplete}
-                    searchQuery={searchQuery}
+                    searchQuery={activeSearchQuery}
                   />
                 </div>
               </form>
