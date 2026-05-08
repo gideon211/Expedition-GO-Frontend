@@ -444,7 +444,6 @@ function TourDetailContent() {
       {/* Navbar spacer */}
       <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
-<<<<<<< HEAD
       <main className="mx-auto max-w-[1520px] px-3 pb-4 pt-24 sm:px-5 sm:pb-6 sm:pt-28 lg:px-6 lg:pb-8 lg:pt-32">
         <button
           onClick={() => navigate(-1)}
@@ -453,16 +452,6 @@ function TourDetailContent() {
           <ArrowLeft className="size-4" />
           {t("common.back")}
         </button>
-=======
-      <main className="mx-auto max-w-[1520px] px-3 py-4 sm:px-5 sm:py-6 lg:px-6 lg:py-8">
-<button
-  onClick={() => navigate(-1)}
-  className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-[color:var(--brand-green)]"
->
-  <ArrowLeft className="size-4" />
-  {t("common.back")}
-</button>
->>>>>>> c9a21e7b02addfc2c5a7d8d8046ad7194f7f894b
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
           <article className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:p-5">
