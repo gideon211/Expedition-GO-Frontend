@@ -6,7 +6,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
  * Search Autocomplete Dropdown
  * Shows matching tours and destinations as user types
  */
-export function SearchAutocomplete({ results, onSelect, isVisible }) {
+export function SearchAutocomplete({ results, onSelect, isVisible, searchQuery }) {
   const navigate = useNavigate();
   const { convertPrice } = useCurrency();
 
@@ -21,6 +21,12 @@ export function SearchAutocomplete({ results, onSelect, isVisible }) {
 
   const handleDestinationClick = (destination) => {
     navigate(`/tours?search=${encodeURIComponent(destination.title)}`);
+    onSelect();
+  };
+
+  const handleViewAllClick = () => {
+    // Use the actual search query instead of a specific result
+    navigate(`/tours?search=${encodeURIComponent(searchQuery || "")}`);
     onSelect();
   };
 
@@ -107,10 +113,7 @@ export function SearchAutocomplete({ results, onSelect, isVisible }) {
 
       {/* View All Results */}
       <button
-        onClick={() => {
-          navigate(`/tours?search=${encodeURIComponent(results.tours[0]?.title || results.destinations[0]?.title || "")}`);
-          onSelect();
-        }}
+        onClick={handleViewAllClick}
         className="w-full px-3 py-2.5 text-sm font-medium text-(--brand-green) hover:bg-slate-50 transition border-t border-slate-100"
       >
         View all results ({results.total})
