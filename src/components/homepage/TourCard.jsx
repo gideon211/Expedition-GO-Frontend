@@ -64,8 +64,13 @@ export function TourCard({ title, duration, price, rating, reviews, image, disco
       onPointerMove={handlePointerMove}
       className="group overflow-hidden rounded-b-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-0.5 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] cursor-pointer"
     >
-      <div className={`relative ${imageHeightClass} overflow-hidden`}>
-        <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 xl:group-hover:scale-105" />
+      <div className={`relative ${imageHeightClass} overflow-hidden bg-slate-100`}>
+        <img 
+          src={image} 
+          alt={title} 
+          className="h-full w-full object-cover object-center transition duration-500 xl:group-hover:scale-105" 
+          style={{ minHeight: '100%' }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 to-transparent pointer-events-none" />
         <span className="absolute left-2 top-2 rounded-md bg-slate-900/75 px-2 py-1 text-[11px] font-bold text-white shadow-sm pointer-events-none xl:text-[10px]">
           {duration}

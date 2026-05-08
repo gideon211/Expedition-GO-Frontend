@@ -1,61 +1,55 @@
 import { Heart, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useRef } from "react";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
-export function CompactTourCard({ title, duration, price, rating, reviews, image }) {
+/**
+ * Compact Tour Card - Vertical layout for sidebar sections
+ * Used in "New Experiences" and other sidebar sections
+ */
+export function CompactTourCard({ title, duration, price, rating, reviews, image, discount, disableTracking = false }) {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
   const isFavorited = isInWishlist(title);
-  const touchStartRef = useRef({ x: 0, y: 0 });
 
-  // Convert price
   const convertedPrice = convertPrice(price);
 
   const handleHeartClick = (e) => {
     e.stopPropagation();
-    toggleWishlist({ title, duration, price, rating, reviews, image });
+    toggleWishlist({ title, duration, price, rating, reviews, image, discount });
   };
 
-  const handleTouchStart = (e) => {
-    touchStartRef.current = {
-      x: e.touches?.[0].clientX || 0,
-      y: e.touches?.[0].clientY || 0
-    };
-  };
-
-  const handleCardClick = (e) => {
-    // On mobile, check if this was a scroll or a tap
-    if (touchStartRef.current.x !== 0 || touchStartRef.current.y !== 0) {
-      const moveX = Math.abs((e.clientX || 0) - touchStartRef.current.x);
-      const moveY = Math.abs((e.clientY || 0) - touchStartRef.current.y);
-      // If movement > 10px, treat as scroll, not tap
-      if (moveX > 10 || moveY > 10) {
-        touchStartRef.current = { x: 0, y: 0 };
-        return;
-      }
-      touchStartRef.current = { x: 0, y: 0 };
-    }
-    // Navigate to tour detail page
-    // Tracking will happen on the detail page when user actually views it
+  const handleCardClick = () => {
+    navigate(`/tour/${encodeURIComponent(title)}`);
   };
 
   return (
-    <Card 
+    <div 
       onClick={handleCardClick}
-      onTouchStart={handleTouchStart}
-      className="flex h-full min-h-[260px] flex-col overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-1 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] cursor-pointer"
+      className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition duration-300 hover:shadow-md cursor-pointer"
     >
-      <div className="relative h-40 overflow-hidden">
-        <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 xl:hover:scale-105" />
-        <span className="absolute left-2 top-2 rounded-md bg-slate-900/80 px-2 py-1 text-[11px] font-bold text-white pointer-events-none xl:text-[10px]">{duration}</span>
+      {/* Vertical Image */}
+      <div className="relative h-32 overflow-hidden bg-slate-100">
+        <img 
+          src={image} 
+          alt={title} 
+          className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+        
+        {/* Duration badge */}
+        <span className="absolute left-2 top-2 rounded bg-white/95 px-1.5 py-0.5 text-[10px] font-semibold text-slate-900 shadow-sm backdrop-blur-sm">
+          {duration}
+        </span>
+        
+        {/* Heart button */}
         <button 
           onClick={handleHeartClick}
-          className="absolute right-2 top-2 grid size-6 place-items-center rounded-full bg-white/88 text-slate-700 shadow-sm backdrop-blur transition xl:hover:bg-white xl:hover:scale-110 z-10"
+          className="absolute right-2 top-2 grid size-6 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm backdrop-blur-sm transition hover:bg-white hover:scale-110 z-10"
         >
           <Heart 
             className={`size-3 transition-colors ${
@@ -64,15 +58,37 @@ export function CompactTourCard({ title, duration, price, rating, reviews, image
           />
         </button>
       </div>
-      <CardContent className="flex flex-1 flex-col p-4 xl:p-3.5">
-        <p className="min-h-[38px] line-clamp-2 text-[15px] font-semibold leading-tight text-slate-900 xl:text-[14px]">{title}</p>
-        <div className="mt-2 min-h-[20px] flex items-center gap-1 text-[13px] xl:text-[12px]">
-          <Star className="size-3.5 fill-orange-400 text-orange-400" />
-          <span className="font-semibold text-orange-500">{rating}</span>
-          <span className="text-slate-400">({reviews})</span>
+
+      {/* Vertical Content */}
+      <div className="p-2.5">
+        {/* Title - 2 lines max, matching TourCard font size */}
+        <h3 
+          className="line-clamp-2 font-bold leading-tight tracking-tight text-slate-900 min-h-[2.4em]"
+          style={{ fontSize: 'clamp(0.875rem, 0.7vw + 0.5rem, 0.9375rem)' }}
+        >
+          {title}
+        </h3>
+        
+        {/* Rating & Price Row */}
+        <div className="mt-2 flex items-center justify-between gap-2">
+          {/* Rating */}
+          <div className="flex items-center gap-0.5 text-amber-500">
+            <Star className="size-3 fill-current" />
+            <span className="text-[12px] font-semibold text-slate-900">{rating}</span>
+            <span className="text-[11px] text-slate-500">({reviews})</span>
+          </div>
+          
+          {/* Price */}
+          <div className="text-right">
+            <p className="text-[11px] text-slate-500 leading-none">
+              {t('common.from')}
+            </p>
+            <p className="text-[14px] font-bold text-slate-900 leading-tight">
+              {convertedPrice.formatted}
+            </p>
+          </div>
         </div>
-        <p className="mt-auto pt-1.5 text-base font-semibold text-slate-900 xl:text-sm">{t('common.from')} {convertedPrice.formatted}</p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import { SectionHeading } from "./SectionHeading";
 
 export function TourCarouselSection({ id, title, subtitle, items }) {
   const scrollContainerRef = useRef(null);
+  const isScrollingRef = useRef(false);
 
   const infiniteItems = [...items, ...items, ...items];
   const cardWidth = 280;

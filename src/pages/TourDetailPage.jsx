@@ -34,6 +34,7 @@ import { RecentlyViewedProvider, useRecentlyViewed } from "@/contexts/RecentlyVi
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useCart } from "@/contexts/CartContext";
+import { getTourByTitle } from "@/lib/tourData";
 import fallbackTourImage from "@/assets/images/hero_pic.jpg";
 
 const EXTERNAL_FALLBACK_IMAGES = [
@@ -246,22 +247,41 @@ function TourDetailContent() {
   }, [id]);
 
   useEffect(() => {
-    addToRecentlyViewed({
-      title: selectedTourTitle,
-      duration: selectedTourDuration,
-      price: selectedTourPriceNumber,
-      rating: String(selectedTourRatingNumber),
-      reviews: String(selectedTourReviewsNumber),
-      image: mergedImages[0] || tourData.imageCover,
-    });
-  }, [
-    addToRecentlyViewed,
-    mergedImages,
-    selectedTourTitle,
-    selectedTourDuration,
-    selectedTourRatingNumber,
-    selectedTourReviewsNumber,
-  ]);
+    // Only add to recently viewed once when the page loads
+    // Try to get the actual tour data from homepage
+    const actualTour = getTourByTitle(selectedTourTitle);
+    const tourImage = actualTour?.image || mergedImages[0] || tourData.imageCover;
+    
+    const recentTourData = {
+      title: selectedTourTitle, // This is the actual tour title from URL
+      duration: actualTour?.duration || selectedTourDuration,
+      price: actualTour?.price || selectedTourPriceNumber,
+      rating: actualTour?.rating || String(selectedTourRatingNumber),
+      reviews: actualTour?.reviews || String(selectedTourReviewsNumber),
+      image: tourImage,
+    };
+    
+    console.log('=== ADDING TO RECENTLY VIEWED ===');
+    console.log('Tour ID from URL:', id);
+    console.log('Decoded Title:', selectedTourTitle);
+    console.log('Found actual tour:', actualTour);
+    console.log('Tour Data:', recentTourData);
+    console.log('Image URL:', tourImage);
+    
+    addToRecentlyViewed(recentTourData);
+    
+    // Check what's in localStorage after adding
+    setTimeout(() => {
+      const stored = localStorage.getItem('recentlyViewed_guest');
+      console.log('LocalStorage after add:', stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        console.log('Parsed recently viewed:', parsed);
+        console.log('Number of items:', parsed.length);
+      }
+    }, 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Only re-run when the tour ID changes
 
   const isFavorited = isInWishlist(selectedTourTitle);
 
@@ -420,7 +440,11 @@ function TourDetailContent() {
   return (
     <div className="min-h-screen bg-[color:var(--page-bg)]">
       <Navbar />
+      
+      {/* Navbar spacer */}
+      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
+<<<<<<< HEAD
       <main className="mx-auto max-w-[1520px] px-3 pb-4 pt-24 sm:px-5 sm:pb-6 sm:pt-28 lg:px-6 lg:pb-8 lg:pt-32">
         <button
           onClick={() => navigate(-1)}
@@ -429,6 +453,16 @@ function TourDetailContent() {
           <ArrowLeft className="size-4" />
           {t("common.back")}
         </button>
+=======
+      <main className="mx-auto max-w-[1520px] px-3 py-4 sm:px-5 sm:py-6 lg:px-6 lg:py-8">
+<button
+  onClick={() => navigate(-1)}
+  className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-[color:var(--brand-green)]"
+>
+  <ArrowLeft className="size-4" />
+  {t("common.back")}
+</button>
+>>>>>>> c9a21e7b02addfc2c5a7d8d8046ad7194f7f894b
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
           <article className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:p-5">

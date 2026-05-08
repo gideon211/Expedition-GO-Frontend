@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useSearchAutocomplete } from "@/hooks/useSearchAutocomplete";
+import { SearchAutocomplete } from "./SearchAutocomplete";
 import { navItems } from "./data";
 
 export function Navbar({
@@ -23,10 +25,13 @@ export function Navbar({
   const [activeTab, setActiveTab] = useState("language");
   const [showCompactSearch, setShowCompactSearch] = useState(false);
   const [compactSearchQuery, setCompactSearchQuery] = useState("");
+  const [showNavAutocomplete, setShowNavAutocomplete] = useState(false);
   const [mobileDateRange, setMobileDateRange] = useState({ from: null, to: null });
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
   const mobileCalendarRef = useRef(null);
   const mobileDateButtonRef = useRef(null);
+  const navSearchInputRef = useRef(null);
+  const navAutocompleteRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -34,6 +39,9 @@ export function Navbar({
   const { currency, setCurrency, availableCurrencies } = useCurrency();
   const activeMobileDateRange = sharedDateRange ?? mobileDateRange;
   const setActiveMobileDateRange = onSharedDateRangeChange ?? setMobileDateRange;
+  
+  // Get search results for navbar
+  const navSearchResults = useSearchAutocomplete(compactSearchQuery);
 
   const handleBrandClick = (e) => {
     e.preventDefault();
@@ -65,10 +73,51 @@ export function Navbar({
     const query = compactSearchQuery.trim();
     if (!query) {
       navigate("/tours");
+      setShowNavAutocomplete(false);
       return;
     }
     navigate(`/tours?search=${encodeURIComponent(query)}`);
+    setShowNavAutocomplete(false);
   };
+
+  const handleNavSearchChange = (e) => {
+    const value = e.target.value;
+    setCompactSearchQuery(value);
+    if (onExternalSearchChange) {
+      onExternalSearchChange(value);
+    }
+  };
+
+  const handleNavAutocompleteSelect = () => {
+    setShowNavAutocomplete(false);
+    setCompactSearchQuery("");
+  };
+
+  // Handle click outside for navbar autocomplete
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        navSearchInputRef.current &&
+        !navSearchInputRef.current.contains(event.target) &&
+        navAutocompleteRef.current &&
+        !navAutocompleteRef.current.contains(event.target)
+      ) {
+        setShowNavAutocomplete(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Show autocomplete when there are results
+  useEffect(() => {
+    if (compactSearchQuery.trim().length >= 2 && navSearchResults.total > 0) {
+      setShowNavAutocomplete(true);
+    } else {
+      setShowNavAutocomplete(false);
+    }
+  }, [compactSearchQuery, navSearchResults.total]);
 
   const getCurrentLanguageLabel = () => {
     const langMap = {
@@ -171,21 +220,24 @@ export function Navbar({
           <div className="flex-1 justify-center hidden lg:flex">
             <form
               onSubmit={handleCompactSearchSubmit}
-              className="flex w-full max-w-[600px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm hover:shadow-md"
+              className="relative flex w-full max-w-[600px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm hover:shadow-md"
             >
               <Search className="size-4 text-(--brand-green)" />
               <input
+                ref={navSearchInputRef}
                 value={compactSearchValue}
                 onChange={(e) => {
                   if (isExternalSearchMode) {
                     onExternalSearchChange(e.target.value);
                   } else {
-                    setCompactSearchQuery(e.target.value);
+                    handleNavSearchChange(e);
                   }
                 }}
+                onFocus={() => compactSearchQuery.trim().length >= 2 && navSearchResults.total > 0 && setShowNavAutocomplete(true)}
                 placeholder="Where are you going?"
                 className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
                 style={{ caretColor: '#01311a' }}
+                autoComplete="off"
               />
               <button
                 type="submit"
@@ -193,6 +245,16 @@ export function Navbar({
               >
                 Search
               </button>
+              
+              {/* Autocomplete Dropdown */}
+              <div ref={navAutocompleteRef} className="absolute top-full left-0 right-0 mt-1">
+                <SearchAutocomplete
+                  results={navSearchResults}
+                  onSelect={handleNavAutocompleteSelect}
+                  isVisible={showNavAutocomplete && !isExternalSearchMode}
+                  searchQuery={compactSearchQuery}
+                />
+              </div>
             </form>
           </div>
         )}

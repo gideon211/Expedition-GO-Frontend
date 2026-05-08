@@ -15,23 +15,15 @@ import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { AuthModal } from "@/components/ui/auth-modal";
 import { useAuthModal } from "@/contexts/AuthModalContext";
+import { useHomePageData } from "@/hooks/useHomePageData";
 
 function HomePageContent() {
   const { isAuthModalOpen, closeAuthModal } = useAuthModal();
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoading } = useHomePageData();
   const [sharedHeroDateRange, setSharedHeroDateRange] = useState({ from: null, to: null });
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showCompactSearch, setShowCompactSearch] = useState(false);
-
-  useEffect(() => {
-    // Simulate loading time for initial page load
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     let ticking = false;
