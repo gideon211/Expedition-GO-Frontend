@@ -26,6 +26,7 @@ export function Navbar({
   const [showCompactSearch, setShowCompactSearch] = useState(false);
   const [compactSearchQuery, setCompactSearchQuery] = useState("");
   const [showNavAutocomplete, setShowNavAutocomplete] = useState(false);
+  const [userIsTyping, setUserIsTyping] = useState(false);
   const [mobileDateRange, setMobileDateRange] = useState({ from: null, to: null });
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
   const mobileCalendarRef = useRef(null);
@@ -40,8 +41,14 @@ export function Navbar({
   const activeMobileDateRange = sharedDateRange ?? mobileDateRange;
   const setActiveMobileDateRange = onSharedDateRangeChange ?? setMobileDateRange;
   
+  // Determine if we're in external search mode
+  const isExternalSearchMode = typeof onExternalSearchChange === "function";
+  
+  // Determine the active search query for autocomplete
+  const activeSearchQuery = isExternalSearchMode ? (externalSearchQuery ?? "") : compactSearchQuery;
+  
   // Get search results for navbar
-  const navSearchResults = useSearchAutocomplete(compactSearchQuery);
+  const navSearchResults = useSearchAutocomplete(activeSearchQuery);
 
   const handleBrandClick = (e) => {
     e.preventDefault();
@@ -69,20 +76,21 @@ export function Navbar({
   };
   const handleCompactSearchSubmit = (e) => {
     e.preventDefault();
+    setShowNavAutocomplete(false);
+    setUserIsTyping(false); // User stopped typing
     if (onExternalSearchChange) return;
     const query = compactSearchQuery.trim();
     if (!query) {
       navigate("/tours");
-      setShowNavAutocomplete(false);
       return;
     }
     navigate(`/tours?search=${encodeURIComponent(query)}`);
-    setShowNavAutocomplete(false);
   };
 
   const handleNavSearchChange = (e) => {
     const value = e.target.value;
     setCompactSearchQuery(value);
+    setUserIsTyping(true); // User is actively typing
     if (onExternalSearchChange) {
       onExternalSearchChange(value);
     }
@@ -90,6 +98,7 @@ export function Navbar({
 
   const handleNavAutocompleteSelect = () => {
     setShowNavAutocomplete(false);
+    setUserIsTyping(false); // User stopped typing
     setCompactSearchQuery("");
   };
 
@@ -110,14 +119,28 @@ export function Navbar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Show autocomplete when there are results
+  // Close autocomplete when route changes
   useEffect(() => {
-    if (compactSearchQuery.trim().length >= 2 && navSearchResults.total > 0) {
+    setShowNavAutocomplete(false);
+  }, [location.pathname, location.search]);
+
+  // Show autocomplete when there are results AND user is actively typing
+  useEffect(() => {
+    if (!userIsTyping) return;
+    
+    const query = isExternalSearchMode ? (externalSearchQuery ?? "") : compactSearchQuery;
+    if (query.trim().length >= 2 && navSearchResults.total > 0) {
       setShowNavAutocomplete(true);
     } else {
       setShowNavAutocomplete(false);
     }
-  }, [compactSearchQuery, navSearchResults.total]);
+  }, [compactSearchQuery, externalSearchQuery, isExternalSearchMode, navSearchResults.total, userIsTyping]);
+
+  // Close autocomplete and reset typing state when route changes
+  useEffect(() => {
+    setShowNavAutocomplete(false);
+    setUserIsTyping(false);
+  }, [location.pathname, location.search]);
 
   const getCurrentLanguageLabel = () => {
     const langMap = {
@@ -148,7 +171,6 @@ export function Navbar({
       ? `${formatDate(activeMobileDateRange.from)} - ${formatDate(activeMobileDateRange.to)}`
       : `${formatDate(activeMobileDateRange.from)}`
     : "";
-  const isExternalSearchMode = typeof onExternalSearchChange === "function";
   const compactSearchValue = isExternalSearchMode ? (externalSearchQuery ?? "") : compactSearchQuery;
   const compactSearchMaxWidthClass = forceShowCompactSearch ? "max-w-[460px]" : "max-w-[360px]";
 
@@ -229,11 +251,25 @@ export function Navbar({
                 onChange={(e) => {
                   if (isExternalSearchMode) {
                     onExternalSearchChange(e.target.value);
+                    setUserIsTyping(true);
                   } else {
                     handleNavSearchChange(e);
                   }
                 }}
-                onFocus={() => compactSearchQuery.trim().length >= 2 && navSearchResults.total > 0 && setShowNavAutocomplete(true)}
+                onFocus={() => {
+                  setUserIsTyping(true);
+                  const query = isExternalSearchMode ? (externalSearchQuery ?? "") : compactSearchQuery;
+                  if (query.trim().length >= 2 && navSearchResults.total > 0) {
+                    setShowNavAutocomplete(true);
+                  }
+                }}
+                onBlur={() => {
+                  // Delay closing to allow click events on autocomplete items to fire
+                  setTimeout(() => {
+                    setShowNavAutocomplete(false);
+                    setUserIsTyping(false);
+                  }, 200);
+                }}
                 placeholder="Where are you going?"
                 className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
                 style={{ caretColor: '#01311a' }}
@@ -241,18 +277,18 @@ export function Navbar({
               />
               <button
                 type="submit"
-                className="rounded-md bg-(--brand-green) px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-(--brand-green-2)"
+                className="rounded-md bg-(--brand-green) px-3 py-1 sm:px-4 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-white transition hover:bg-(--brand-green-2)"
               >
                 Search
               </button>
               
               {/* Autocomplete Dropdown */}
-              <div ref={navAutocompleteRef} className="absolute top-full left-0 right-0 mt-1">
+              <div ref={navAutocompleteRef} className="absolute top-full left-0 right-0 mt-1 z-50">
                 <SearchAutocomplete
                   results={navSearchResults}
                   onSelect={handleNavAutocompleteSelect}
-                  isVisible={showNavAutocomplete && !isExternalSearchMode}
-                  searchQuery={compactSearchQuery}
+                  isVisible={showNavAutocomplete}
+                  searchQuery={activeSearchQuery}
                 />
               </div>
             </form>

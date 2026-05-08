@@ -1,7 +1,6 @@
 
 import { MapPin, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -20,99 +19,59 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSearchBarSticky, setIsSearchBarSticky] = useState(false);
   const [searchBarHeight, setSearchBarHeight] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const scrollContainerRef = useRef(null);
-  const desktopContainerRef = useRef(null);
+  const desktopScrollRef = useRef(null);
   const searchBarRef = useRef(null);
   const searchInputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const searchBarInitialTop = useRef(null);
-  const controls = useAnimation();
+  const isScrollingRef = useRef(false);
   const { recentlyViewed } = useRecentlyViewed();
   
   // Get search results
   const searchResults = useSearchAutocomplete(searchQuery);
 
-  // Carousel setup
+  // Carousel setup - Simple finite scroll
   const carouselItems = recentlyViewed.length > 0 ? recentlyViewed : [];
-  // Triple items for infinite loop
-  const infiniteItems = carouselItems.length > 0
-    ? [...carouselItems, ...carouselItems, ...carouselItems]
-    : [];
 
-  const cardWidth = 280; // Horizontal card width (matches GetYourGuide)
+  const cardWidth = 280; // Horizontal card width
   const gap = 12;
 
-  // Track container width for dynamic centering
+  // Simple scroll function for finite carousel
+  const scroll = (direction) => {
+    const container = desktopScrollRef.current;
+    if (!container) return;
+
+    const scrollAmount = 320;
+    const currentScroll = container.scrollLeft;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+
+    if (direction === "left") {
+      const newScrollPosition = Math.max(0, currentScroll - scrollAmount);
+      container.scrollTo({
+        left: newScrollPosition,
+        behavior: "smooth",
+      });
+    } else {
+      const newScrollPosition = Math.min(maxScroll, currentScroll + scrollAmount);
+      container.scrollTo({
+        left: newScrollPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // Remove infinite scroll initialization and listeners
   useEffect(() => {
-    const updateWidth = () => {
-      if (desktopContainerRef.current) {
-        setContainerWidth(desktopContainerRef.current.offsetWidth);
-      }
-    };
-    
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
+    // No special initialization needed for finite scroll
   }, []);
 
-  // Mobile infinite scroll handler
+  // Simple mobile scroll (no infinite loop)
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || carouselItems.length === 0) return;
-
-    let isResetting = false;
-    let scrollTimeout = null;
-
-    const handleScroll = () => {
-      if (isResetting) return;
-
-      // Clear previous timeout
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
-
-      // Debounce the reset check
-      scrollTimeout = setTimeout(() => {
-        const scrollLeft = container.scrollLeft;
-        const itemWidth = cardWidth + gap;
-        const currentIdx = Math.round(scrollLeft / itemWidth);
-        
-        // Reset to middle set if at boundaries
-        if (currentIdx <= 1 || currentIdx >= carouselItems.length * 2 - 1) {
-          isResetting = true;
-          
-          // Calculate which card we're on in the original set
-          const cardInSet = currentIdx % carouselItems.length;
-          const middleSetIndex = carouselItems.length + cardInSet;
-          
-          // Instant jump to middle set
-          container.style.scrollBehavior = 'auto';
-          container.scrollLeft = middleSetIndex * itemWidth;
-          
-          // Re-enable smooth scrolling after a brief delay
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              container.style.scrollBehavior = 'smooth';
-              isResetting = false;
-            }, 100);
-          });
-        }
-      }, 150); // Wait for scroll to settle
-    };
-
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Set initial scroll position to middle set
-    container.scrollLeft = carouselItems.length * (cardWidth + gap);
-
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-      if (scrollTimeout) clearTimeout(scrollTimeout);
-    };
-  }, [carouselItems.length, cardWidth, gap]);
+    // No special mobile infinite scroll logic needed
+  }, []);
 
   // Handle click outside to close autocomplete
   useEffect(() => {
@@ -158,18 +117,6 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
   };
 
   useEffect(() => {
-    if (carouselItems.length > 0 && containerWidth > 0) {
-      // Desktop only: Start at the middle set for seamless infinite scroll
-      const middleSetStart = carouselItems.length;
-      const centerOffset = (containerWidth - cardWidth) / 2;
-      const startX = -(middleSetStart * (cardWidth + gap)) + centerOffset;
-      
-      controls.set({ x: startX });
-      setCurrentIndex(middleSetStart);
-    }
-  }, [carouselItems.length, controls, cardWidth, gap, containerWidth]);
-
-  useEffect(() => {
     const handleScroll = () => {
       if (!searchBarRef.current) return;
       
@@ -206,76 +153,16 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
     };
   }, [onSearchBarVisibilityChange]);
 
-  const handlePrevious = () => {
-    if (carouselItems.length === 0 || containerWidth === 0) return;
-
-    // Move 2 cards at a time
-    const newIndex = currentIndex - 2;
-    const centerOffset = (containerWidth - cardWidth) / 2;
-    const targetX = -(newIndex * (cardWidth + gap)) + centerOffset;
-
-    // Smooth animation with ease-out for natural feel
-    controls.start({
-      x: targetX,
-      transition: { 
-        type: "tween",
-        duration: 0.6,
-        ease: [0.16, 1, 0.3, 1] // Smooth ease-out
-      },
-    });
-    setCurrentIndex(newIndex);
-
-    // Reset to middle set if we've scrolled to the first item of the first set
-    if (newIndex <= 0) {
-      setTimeout(() => {
-        const middleIndex = carouselItems.length + (newIndex % carouselItems.length);
-        const resetX = -(middleIndex * (cardWidth + gap)) + centerOffset;
-        controls.set({ x: resetX });
-        setCurrentIndex(middleIndex);
-      }, 600);
-    }
-  };
-
-  const handleNext = () => {
-    if (carouselItems.length === 0 || containerWidth === 0) return;
-
-    // Move 2 cards at a time
-    const newIndex = currentIndex + 2;
-    const centerOffset = (containerWidth - cardWidth) / 2;
-    const targetX = -(newIndex * (cardWidth + gap)) + centerOffset;
-
-    // Smooth animation with ease-out for natural feel
-    controls.start({
-      x: targetX,
-      transition: { 
-        type: "tween",
-        duration: 0.6,
-        ease: [0.16, 1, 0.3, 1] // Smooth ease-out
-      },
-    });
-    setCurrentIndex(newIndex);
-
-    // Reset to middle set if we've scrolled to the last item of the last set
-    if (newIndex >= carouselItems.length * 2) {
-      setTimeout(() => {
-        const middleIndex = carouselItems.length + (newIndex % carouselItems.length);
-        const resetX = -(middleIndex * (cardWidth + gap)) + centerOffset;
-        controls.set({ x: resetX });
-        setCurrentIndex(middleIndex);
-      }, 600);
-    }
-  };
-
   return (
     <section
       id="home"
-      className="relative min-h-[80vh] lg:min-h-screen flex items-start pt-[12vh] overflow-visible bg-(--brand-green) text-white pb-8"
+      className="relative min-h-[50vh] sm:min-h-[52vh] md:min-h-[50vh] lg:min-h-[52vh] xl:min-h-[60vh] flex items-start pt-[12vh] overflow-visible bg-(--brand-green) text-white pb-4"
     >
       <div className="absolute inset-0">
         <img
           src={heroPic}
           alt="African safari landscape at sunset"
-          className="h-full w-full object-cover object-center opacity-80"
+          className="h-full w-full object-cover object-[center_bottom] lg:object-[center_80%] xl:object-center opacity-80"
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.5),rgba(0,0,0,0.18)_25%,rgba(122,69,11,0.14)_60%,rgba(0,0,0,0.2)),radial-gradient(circle_at_center,rgba(255,174,58,0.28),transparent_42%)]" />
       </div>
@@ -302,8 +189,8 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
               style={{
                 fontFamily: 'var(--font-hero)',
                 fontWeight: 700,
-                fontSize: 'clamp(1.75rem, 6vw, 4rem)',
-                lineHeight: 'clamp(2rem, 6.5vw, 4.25rem)',
+                fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)',
+                lineHeight: 'clamp(2rem, 5vw, 3rem)',
                 letterSpacing: '0px'
               }}
             >
@@ -428,7 +315,7 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
               {carouselItems.length > 1 && (
                 <>
                   <button
-                    onClick={handlePrevious}
+                    onClick={() => scroll("left")}
                     className="hidden md:grid absolute left-0 top-1/2 z-20 -translate-y-1/2 size-10 place-items-center rounded-full bg-white/95 text-slate-900 shadow-lg backdrop-blur-sm transition hover:bg-white hover:scale-110"
                     aria-label="Previous"
                   >
@@ -436,7 +323,7 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
                   </button>
 
                   <button
-                    onClick={handleNext}
+                    onClick={() => scroll("right")}
                     className="hidden md:grid absolute right-0 top-1/2 z-20 -translate-y-1/2 size-10 place-items-center rounded-full bg-white/95 text-slate-900 shadow-lg backdrop-blur-sm transition hover:bg-white hover:scale-110"
                     aria-label="Next"
                   >
@@ -445,49 +332,41 @@ export function HeroSection({ sharedDateRange, onSharedDateRangeChange, onSearch
                 </>
               )}
 
-              {/* Desktop carousel */}
-              <div ref={desktopContainerRef} className="hidden md:flex justify-center overflow-visible pb-6">
-                <div className="overflow-hidden w-full">
-                  <motion.div
-                    animate={controls}
-                    className="flex gap-3"
-                    style={{ width: "fit-content" }}
-                  >
-                    {infiniteItems.map((item, index) => (
-                      <motion.div
-                        key={`${item.title}-${index}`}
-                        className="w-[280px] shrink-0"
-                        whileHover={{
-                          scale: 1.01,
-                          y: -2,
-                          zIndex: 50,
-                          transition: { duration: 0.15 },
-                        }}
-                        whileTap={{ scale: 0.99 }}
-                      >
-                        <HeroTourCard {...item} disableTracking={true} />
-                      </motion.div>
-                    ))}
-                  </motion.div>
+              {/* Desktop carousel - finite scroll with centering */}
+              <div className="hidden md:flex justify-center">
+                <div
+                  ref={desktopScrollRef}
+                  className="flex gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide pb-6 max-w-full"
+                  style={{
+                    WebkitOverflowScrolling: "touch",
+                    scrollSnapType: "x mandatory"
+                  }}
+                >
+                  {carouselItems.map((item, index) => (
+                    <div
+                      key={`${item.title}-${index}`}
+                      className="w-[280px] min-w-[280px] shrink-0"
+                      style={{ scrollSnapAlign: "start" }}
+                    >
+                      <HeroTourCard {...item} disableTracking={true} />
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Mobile carousel - infinite scroll with native snap */}
+              {/* Mobile carousel - finite scroll */}
               <div
                 ref={scrollContainerRef}
-                className="md:hidden overflow-x-auto scrollbar-hide pb-4"
+                className="md:hidden overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory"
                 style={{
-                  scrollSnapType: 'x mandatory',
-                  WebkitOverflowScrolling: 'touch',
-                  scrollBehavior: 'smooth'
+                  WebkitOverflowScrolling: 'touch'
                 }}
               >
                 <div className="flex gap-3 px-4">
-                  {infiniteItems.map((item, index) => (
+                  {carouselItems.map((item, index) => (
                     <div
                       key={`${item.title}-${index}`}
-                      className="w-[280px] shrink-0"
-                      style={{ scrollSnapAlign: 'center' }}
+                      className="w-[280px] shrink-0 snap-start"
                     >
                       <HeroTourCard {...item} disableTracking={true} />
                     </div>
