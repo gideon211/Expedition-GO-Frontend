@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { 
   ArrowLeft, 
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
   CircleAlert,
@@ -18,12 +20,15 @@ import {
   Plus,
   Truck,
   Users,
-  MapPin
+  MapPin,
+  Grid3X3
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { RecentlyViewedProvider, useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -216,10 +221,16 @@ function TourDetailContent() {
     return dedupeImages([...tourData.images, ...EXTERNAL_FALLBACK_IMAGES, fallbackTourImage]);
   }, []);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isGalleryDialogOpen, setIsGalleryDialogOpen] = useState(false);
+  const [galleryPreviewIndex, setGalleryPreviewIndex] = useState(0);
+  const [gallerySlideDirection, setGallerySlideDirection] = useState(0);
+  const [galleryModalView, setGalleryModalView] = useState("grid");
+  const [mainImageTouchStartX, setMainImageTouchStartX] = useState(null);
   const thumbnailImages = useMemo(
     () => mergedImages.map((image, index) => ({ image, index })).filter((item) => item.index !== selectedImage),
     [mergedImages, selectedImage]
   );
+  const sideGalleryImages = useMemo(() => thumbnailImages.slice(0, 4), [thumbnailImages]);
   const selectedTourDuration = tourData.duration;
   const selectedTourPriceNumber = tourData.price;
   const selectedTourRatingNumber = tourData.ratingsAverage;
@@ -343,6 +354,89 @@ function TourDetailContent() {
     event.currentTarget.src = fallbackTourImage;
   };
 
+  const handleOpenGallery = (index = selectedImage, view = "viewer") => {
+    setGalleryPreviewIndex(index);
+    setGallerySlideDirection(0);
+    setGalleryModalView(view);
+    setIsGalleryDialogOpen(true);
+  };
+
+  const handleCloseGallery = () => {
+    setIsGalleryDialogOpen(false);
+    setGalleryModalView("grid");
+  };
+
+  const handleGalleryDialogChange = (open) => {
+    setIsGalleryDialogOpen(open);
+    if (!open) {
+      setGalleryModalView("grid");
+    }
+  };
+
+  const handleOpenGalleryViewer = (index) => {
+    setGallerySlideDirection(index > galleryPreviewIndex ? 1 : -1);
+    setSelectedImage(index);
+    setGalleryPreviewIndex(index);
+    setGalleryModalView("viewer");
+  };
+
+  const showPreviousGalleryImage = () => {
+    if (mergedImages.length === 0) return;
+    const previousIndex = (galleryPreviewIndex - 1 + mergedImages.length) % mergedImages.length;
+    setGallerySlideDirection(-1);
+    setSelectedImage(previousIndex);
+    setGalleryPreviewIndex(previousIndex);
+  };
+
+  const showNextGalleryImage = () => {
+    if (mergedImages.length === 0) return;
+    const nextIndex = (galleryPreviewIndex + 1) % mergedImages.length;
+    setGallerySlideDirection(1);
+    setSelectedImage(nextIndex);
+    setGalleryPreviewIndex(nextIndex);
+  };
+
+  const showNextMainImage = () => {
+    if (mergedImages.length === 0) return;
+    setSelectedImage((prev) => Math.min(prev + 1, mergedImages.length - 1));
+  };
+
+  const showPreviousMainImage = () => {
+    if (mergedImages.length === 0) return;
+    setSelectedImage((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleMainImageTouchStart = (event) => {
+    setMainImageTouchStartX(event.touches[0]?.clientX ?? null);
+  };
+
+  const handleMainImageTouchEnd = (event) => {
+    if (mainImageTouchStartX === null) return;
+    const endX = event.changedTouches[0]?.clientX ?? mainImageTouchStartX;
+    const deltaX = endX - mainImageTouchStartX;
+    if (deltaX < -35) showNextMainImage();
+    if (deltaX > 35) showPreviousMainImage();
+    setMainImageTouchStartX(null);
+  };
+
+  const viewerSlideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 70 : -70,
+      opacity: 0,
+      scale: 0.985,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (direction) => ({
+      x: direction > 0 ? -70 : 70,
+      opacity: 0,
+      scale: 0.985,
+    }),
+  };
+
   return (
     <div className="min-h-screen bg-[color:var(--page-bg)]">
       <Navbar />
@@ -350,19 +444,19 @@ function TourDetailContent() {
       {/* Navbar spacer */}
       <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
-      <main className="mx-auto max-w-[1520px] px-3 py-4 sm:px-5 sm:py-6 lg:px-6 lg:py-8">
-<button
-  onClick={() => navigate(-1)}
-  className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-[color:var(--brand-green)]"
->
-  <ArrowLeft className="size-4" />
-  {t("common.back")}
-</button>
+      <main className="mx-auto max-w-[1520px] px-3 pb-4 pt-24 sm:px-5 sm:pb-6 sm:pt-28 lg:px-6 lg:pb-8 lg:pt-32">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-4 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-[color:var(--brand-green)]"
+        >
+          <ArrowLeft className="size-4" />
+          {t("common.back")}
+        </button>
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
           <article className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:p-5">
             <div className="mb-3 flex items-start justify-between gap-3">
-              <h1 className="max-w-[85%] font-bold leading-tight text-slate-900" style={{ fontSize: "clamp(1.35rem, 1.8vw + 0.8rem, 2.2rem)" }}>
+              <h1 className="ml-1 max-w-[85%] font-bold leading-tight text-slate-900" style={{ fontSize: "clamp(1.35rem, 1.8vw + 0.8rem, 2.2rem)" }}>
                 {selectedTourTitle}
               </h1>
               <button
@@ -373,29 +467,81 @@ function TourDetailContent() {
               </button>
             </div>
 
-            <div className="mb-4 flex flex-wrap gap-2">
+            {/* <div className="mb-4 flex flex-wrap gap-2">
               {tourData.summaryTags.map((tag) => (
-                <span key={tag} className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700 sm:text-xs">
-                  {tag}
-                </span>
-              ))}
-            </div>
+                // <span key={tag} className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700 sm:text-xs">
+                //   {tag}
+                // </span>
+              // ))}
+            </div> */}
 
-            <div className="rounded-2xl bg-slate-100 p-2 sm:p-2.5">
-              <img
-                src={mergedImages[selectedImage] || fallbackTourImage}
-                alt={`Tour gallery featured image ${selectedImage + 1}`}
-                data-fallback-offset={selectedImage}
-                onError={handleImageError}
-                className="h-[320px] w-full rounded-xl object-cover sm:h-[420px] lg:h-[520px]"
-              />
+            <div className="mt-3 grid gap-2 md:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+              <div
+                className="relative overflow-hidden rounded-2xl bg-slate-100 p-1.5 sm:p-2"
+                onTouchStart={handleMainImageTouchStart}
+                onTouchEnd={handleMainImageTouchEnd}
+              >
+                <div className="flex h-[320px] w-full transition-transform duration-300 ease-out sm:h-[420px] lg:h-[520px]" style={{ transform: `translateX(-${selectedImage * 100}%)` }}>
+                  {mergedImages.map((image, index) => (
+                    <img
+                      key={`featured-slide-${index}`}
+                      src={image || fallbackTourImage}
+                      alt={`Tour gallery featured image ${index + 1}`}
+                      data-fallback-offset={index}
+                      onError={handleImageError}
+                      className="h-full w-full shrink-0 rounded-xl object-cover"
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenGallery(selectedImage, "grid")}
+                  className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold text-slate-900 shadow-sm transition hover:bg-white md:hidden"
+                >
+                  View all
+                </button>
+              </div>
+
+              {sideGalleryImages.length > 0 && (
+                <div className="hidden grid-cols-2 grid-rows-2 gap-2 md:grid">
+                  {sideGalleryImages.map(({ image, index }, cardIndex) => {
+                    const isLastCard = cardIndex === sideGalleryImages.length - 1;
+                    return (
+                      <div key={`gallery-side-${index}`} className="relative h-[130px] overflow-hidden rounded-xl sm:h-[160px] lg:h-[254px]">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedImage(index)}
+                          className="h-full w-full"
+                        >
+                          <img
+                            src={image || fallbackTourImage}
+                            alt={`Tour gallery thumbnail ${index + 1}`}
+                            data-fallback-offset={index}
+                            onError={handleImageError}
+                            className="h-full w-full object-cover transition hover:scale-[1.02]"
+                          />
+                        </button>
+                        {isLastCard && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenGallery(selectedImage, "grid")}
+                            className="absolute bottom-2 right-2 rounded-full bg-white/95 px-3 py-1.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-white"
+                          >
+                            View all
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {thumbnailImages.length > 0 && (
-              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-                {thumbnailImages.map(({ image, index }) => (
+              <div className="mt-2 grid grid-cols-3 gap-2 md:hidden">
+                {thumbnailImages.slice(0, 3).map(({ image, index }) => (
                   <button
-                    key={`gallery-thumb-${index}`}
+                    key={`gallery-mobile-thumb-${index}`}
                     onClick={() => setSelectedImage(index)}
                     className="h-20 overflow-hidden rounded-lg border-2 border-transparent transition hover:border-[color:var(--brand-green)] sm:h-24"
                   >
@@ -412,15 +558,17 @@ function TourDetailContent() {
             )}
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-[color:var(--brand-mist)] p-3">
-                <p className="text-sm font-semibold text-slate-900">{tourData.groupType}</p>
-                <p className="text-sm text-slate-600">Travel expert, private car service, customizable itinerary</p>
+              <div className="flex items-start gap-2 rounded-xl border border-slate-200 p-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{tourData.groupType}</p>
+                  <p className="text-sm text-slate-600">Travel expert, private car service, customizable itinerary</p>
+                </div>
               </div>
               <div className="rounded-xl border border-slate-200 p-3">
                 <p className="text-sm font-semibold text-slate-900">Group size</p>
                 <p className="text-sm text-slate-600">Flexible (travel independently)</p>
               </div>
-              <div className="flex items-start gap-2 rounded-xl border border-slate-200 p-3">
+              <div className="mt-2 flex items-start gap-2 rounded-xl border border-slate-200 p-3">
                 <Gem className="mt-0.5 size-5 text-[color:var(--brand-green)]" />
                 <div>
                   <p className="text-sm font-semibold text-slate-900">4 diamonds: High-end</p>
@@ -441,7 +589,7 @@ function TourDetailContent() {
                   <p className="text-sm text-slate-600">{tourData.location}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-2 rounded-xl border border-slate-200 p-3 sm:col-span-2">
+              <div className="flex items-start gap-2 rounded-xl border border-slate-200 p-3">
                 <Truck className="mt-0.5 size-5 text-[color:var(--brand-green)]" />
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Pick-up & drop-off methods</p>
@@ -451,24 +599,137 @@ function TourDetailContent() {
             </div>
           </article>
 
-          <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-4 lg:sticky lg:top-24">
+          <Dialog open={isGalleryDialogOpen} onOpenChange={handleGalleryDialogChange}>
+            <DialogContent
+              hideCloseButton
+              className="left-0 top-0 h-[100dvh] max-h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none border-0 bg-slate-200 p-0 shadow-none"
+            >
+              <DialogTitle className="sr-only">Tour image gallery</DialogTitle>
+              <button
+                type="button"
+                onClick={handleCloseGallery}
+                className="absolute left-3 top-3 z-20 grid size-9 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm transition hover:bg-white sm:left-4 sm:top-4"
+                aria-label="Close gallery"
+              >
+                <X className="size-4" />
+              </button>
+
+              <AnimatePresence mode="wait">
+                {galleryModalView === "grid" ? (
+                  <motion.div
+                    key="gallery-grid-view"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                    className="mx-auto h-[100dvh] max-w-[690px] overflow-y-auto px-3 pb-6 pt-14 sm:px-4 sm:pt-16"
+                  >
+                    <div className="columns-2 gap-2.5 sm:columns-3 sm:gap-3">
+                      {mergedImages.map((image, index) => (
+                        <button
+                          key={`dialog-gallery-grid-${index}`}
+                          type="button"
+                          onClick={() => handleOpenGalleryViewer(index)}
+                          className="mb-2.5 block w-full break-inside-avoid overflow-hidden rounded-md bg-slate-100 sm:mb-3"
+                        >
+                          <img
+                            src={image || fallbackTourImage}
+                            alt={`Tour gallery grid image ${index + 1}`}
+                            data-fallback-offset={index}
+                            onError={handleImageError}
+                            className="w-full object-cover transition hover:scale-[1.01] active:scale-100"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="gallery-viewer-mode"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="relative h-[100dvh] bg-white px-3 pb-4 pt-12 sm:px-4 sm:pt-14"
+                  >
+                  <p className="absolute left-1/2 top-5 z-10 -translate-x-1/2 text-xs font-semibold text-slate-700 sm:top-6">
+                    {galleryPreviewIndex + 1} / {mergedImages.length}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => setGalleryModalView("grid")}
+                    className="absolute right-5 top-5 z-10 grid size-9 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm transition hover:bg-white sm:right-6 sm:top-6"
+                    aria-label="Back to gallery grid"
+                  >
+                    <Grid3X3 className="size-4" />
+                  </button>
+
+                  <div className="relative mx-auto h-full w-full max-w-[1000px] overflow-hidden px-9 sm:px-12">
+                    <button
+                      type="button"
+                      onClick={showPreviousGalleryImage}
+                      className="absolute -left-2 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm transition hover:bg-white sm:grid sm:-left-3"
+                      aria-label="Show previous image"
+                    >
+                      <ChevronLeft className="size-5" />
+                    </button>
+                    <AnimatePresence custom={gallerySlideDirection} initial={false} mode="wait">
+                      <motion.div
+                        key={`modal-image-${galleryPreviewIndex}`}
+                        custom={gallerySlideDirection}
+                        variants={viewerSlideVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.18}
+                        onDragEnd={(_, info) => {
+                          if (info.offset.x < -70) showNextGalleryImage();
+                          if (info.offset.x > 70) showPreviousGalleryImage();
+                        }}
+                        className="absolute inset-0 flex items-center justify-center"
+                      >
+                        <img
+                          src={mergedImages[galleryPreviewIndex] || fallbackTourImage}
+                          alt={`Tour gallery image ${galleryPreviewIndex + 1}`}
+                          data-fallback-offset={galleryPreviewIndex}
+                          onError={handleImageError}
+                          className="max-h-[80vh] max-w-full rounded-sm object-contain"
+                        />
+                      </motion.div>
+                    </AnimatePresence>
+                    <button
+                      type="button"
+                      onClick={showNextGalleryImage}
+                      className="absolute -right-2 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm transition hover:bg-white sm:grid sm:-right-3"
+                      aria-label="Show next image"
+                    >
+                      <ChevronRight className="size-5" />
+                    </button>
+                  </div>
+                </motion.div>
+                )}
+              </AnimatePresence>
+            </DialogContent>
+          </Dialog>
+
+          <aside className="h-fit rounded-2xl border border-slate-200 bg-white py-3.5 pl-3.5 pr-0.5 shadow-sm sm:py-4 sm:pl-4 sm:pr-3 lg:sticky lg:top-24 lg:self-start">
             <h2 className="text-[1.45rem] font-bold text-slate-900 sm:text-[1.75rem]">Itinerary options</h2>
 
-            <div className="mt-4 rounded-xl border border-slate-200 p-2">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => !availableDateKeys.has(date.toISOString().slice(0, 10))}
-                className="w-full"
-              />
-              <div className="mt-2 border-t border-slate-200 pt-2 text-xs text-slate-500">
-                <p className="inline-flex items-center gap-1">
-                  <CircleAlert className="size-3.5" />
-                  Currency USD | Booking notices
-                </p>
-              </div>
-            </div>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              disabled={(date) => !availableDateKeys.has(date.toISOString().slice(0, 10))}
+              className="mt-4 ml-2 w-[97%] sm:ml-0 sm:w-full"
+            />
+            <p className="mt-2 flex w-full items-center justify-center gap-1 border-t border-slate-200 pt-2 text-center text-xs text-slate-500">
+              <CircleAlert className="size-3.5" />
+              Currency USD | Booking notices
+            </p>
 
             <div className="mt-4 space-y-3 border-t border-slate-200 pt-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -528,20 +789,14 @@ function TourDetailContent() {
             <Button
               onClick={handleCheckAvailability}
               disabled={!selectedDate}
-              className="mt-4 h-12 w-full bg-[color:var(--brand-green)] text-base font-semibold !text-white hover:bg-[color:var(--brand-green)]/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mx-auto mt-4 h-12 w-[92%] bg-[color:var(--brand-green)] text-base font-semibold !text-white hover:bg-[color:var(--brand-green)]/90 disabled:cursor-not-allowed disabled:opacity-60 sm:mx-0 sm:w-full"
             >
               Check availability
-            </Button>
-            <Button
-              variant="outline"
-              className="mt-3 h-12 w-full border-[color:var(--brand-green)] text-[color:var(--brand-green)] hover:bg-[color:var(--brand-mist)]"
-            >
-              Customize trip
             </Button>
           </aside>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section className="mt-6 w-full lg:w-[calc(100%-356px)] xl:w-[calc(100%-376px)] rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-5">
           <h2 className="text-[1.45rem] font-bold text-slate-900 sm:text-[1.9rem]">Highlights</h2>
           <div className="mt-4 flex items-start gap-3">
             <Gem className="mt-0.5 size-5 shrink-0 text-[color:var(--brand-green)]" />
@@ -549,7 +804,7 @@ function TourDetailContent() {
           </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section className="mt-6 w-full lg:w-[calc(100%-356px)] xl:w-[calc(100%-376px)] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <h2 className="text-[1.45rem] font-bold text-slate-900 sm:text-[1.9rem]">7-day itinerary</h2>
           <div className="mt-4 divide-y divide-slate-200">
             {tourData.itinerary.map((item, index) => {
@@ -579,7 +834,7 @@ function TourDetailContent() {
           </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section className="mt-6 w-full lg:w-[calc(100%-356px)] xl:w-[calc(100%-376px)] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <h2 className="text-[1.45rem] font-bold text-slate-900 sm:text-[1.9rem]">What's included</h2>
 
           <div className="mt-4 grid max-w-[420px] grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
@@ -607,7 +862,7 @@ function TourDetailContent() {
             </button>
           </div>
 
-          <div className="mt-4 rounded-md bg-slate-100 px-3 py-2.5 text-sm text-slate-700 sm:px-4">
+          <div className="mt-4 max-w-[540px] rounded-md bg-slate-100 px-3 py-2.5 text-sm text-slate-700 sm:px-4">
             {selectedTravelerMeta.notice}
           </div>
 
