@@ -122,7 +122,7 @@ export function DestinationsSection() {
       <div className="mb-[0.6375rem] md:mb-2.5 xl:mb-3 flex items-center justify-between gap-3">
 <h2
   className="font-bold tracking-tight text-slate-900 leading-[1.15] whitespace-nowrap"
-  style={{ fontSize: 'clamp(1.5rem, 1.2vw + 0.5rem, 1.375rem)' }}
+  style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
 >
   {t('sections.destinations')}
 </h2>

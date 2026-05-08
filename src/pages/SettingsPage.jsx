@@ -80,6 +80,9 @@ export default function SettingsPage() {
       <div className="bg-white">
         <Navbar />
       </div>
+      
+      {/* Navbar spacer */}
+      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
       <main className="flex-1 bg-white">
         <div className="mx-auto max-w-[1520px] px-4 py-8 sm:px-6 lg:px-8">

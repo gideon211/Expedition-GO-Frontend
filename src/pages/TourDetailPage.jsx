@@ -137,12 +137,15 @@ function TourDetailContent() {
   return (
     <div className="min-h-screen bg-[color:var(--page-bg)]">
       <Navbar />
+      
+      {/* Navbar spacer */}
+      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
       <main className="mx-auto max-w-[1520px] px-4 py-6 sm:px-6">
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[color:var(--brand-green)] transition mb-4 cursor-pointer hover:opacity-80"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-[color:var(--brand-green)] transition mb-4 cursor-pointer hover:opacity-80"
         >
           <ArrowLeft className="size-4" />
           {t('common.back')}

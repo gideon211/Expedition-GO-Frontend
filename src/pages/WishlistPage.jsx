@@ -15,6 +15,9 @@ function WishlistPageContent() {
   return (
     <div className="min-h-screen bg-[color:var(--page-bg)] text-slate-900">
       <Navbar />
+      
+      {/* Navbar spacer */}
+      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
       <main className="mx-auto max-w-[1520px] px-4 py-6 sm:px-6 sm:py-8">
         {/* Header */}
