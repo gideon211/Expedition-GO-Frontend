@@ -205,13 +205,13 @@ export function Navbar({
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
           </Link>
-          <button className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer">
+          <Link to="/cart" className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer">
             <ShoppingCart className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
             <span className="text-xs font-semibold  relative">
               {t('nav.cart')}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
-          </button>
+          </Link>
           <button className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer">
             <svg className="size-5 transition group-hover:text-[color:var(--brand-green)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -474,15 +474,19 @@ export function Navbar({
                 <Globe className="size-4" />
                 <span className="text-sm">English (US) • USD</span>
               </button>
-              <button className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950">
+              <Link
+                to="/wishlist"
+                onClick={closeMobileMenu}
+                className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950"
+              >
                 <Heart className="size-4" />
                 <span className="text-sm">{t('nav.wishlist')}</span>
-              </button>
-              <button className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950">
+              </Link>
+              <Link to="/cart" onClick={closeMobileMenu} className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950">
                 <ShoppingCart className="size-4" />
                 <span className="text-sm">{t('nav.cart')}</span>
-              </button>
-              <Link to="/support" className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950">
+              </Link>
+              <Link to="/support" onClick={closeMobileMenu} className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950">
                 <Headset className="size-4" />
                 <span className="text-sm">{t('nav.support')}</span>
               </Link>

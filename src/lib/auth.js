@@ -69,6 +69,33 @@ export function getAuthProvider() {
   return AUTH_PROVIDER;
 }
 
+/**
+ * Returns the API base URL used by the authenticated app code.
+ */
+export function getApiBaseUrl() {
+  return API_BASE;
+}
+
+/**
+ * Returns a usable bearer token for API requests, or null when unavailable.
+ * Prefers a fresh Firebase ID token when running with the firebase provider,
+ * and falls back to the stored mock-user identifier so requests still carry
+ * an Authorization header during local development.
+ */
+export async function getAuthToken({ forceRefresh = false } = {}) {
+  if (AUTH_PROVIDER === "firebase" && auth?.currentUser) {
+    try {
+      return await auth.currentUser.getIdToken(forceRefresh);
+    } catch (error) {
+      console.error("Failed to retrieve auth token:", error);
+      return null;
+    }
+  }
+
+  const stored = getStoredAuthUser();
+  return stored?.token || stored?.firebaseUid || stored?._id || null;
+}
+
 function storeAuthUser(user) {
   try {
     if (user) localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));

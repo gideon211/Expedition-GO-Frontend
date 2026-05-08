@@ -259,16 +259,16 @@ export function Calendar({ selected, onSelect, onClose, mode = "single" }) {
       <div className="mb-4 flex items-center justify-between">
         <button
           onClick={handlePrevMonth}
-          className="grid size-8 place-items-center rounded-lg text-slate-600 transition hover:bg-slate-100"
+          className="grid size-8 place-items-center rounded-lg text-black transition hover:bg-slate-100"
         >
           <ChevronLeft className="size-5" />
         </button>
-        <div className="text-sm font-semibold text-slate-900">
+        <div className="text-sm font-semibold text-black">
           {MONTHS[month]} {year}
         </div>
         <button
           onClick={handleNextMonth}
-          className="grid size-8 place-items-center rounded-lg text-slate-600 transition hover:bg-slate-100"
+          className="grid size-8 place-items-center rounded-lg text-black transition hover:bg-slate-100"
         >
           <ChevronRight className="size-5" />
         </button>
@@ -279,7 +279,7 @@ export function Calendar({ selected, onSelect, onClose, mode = "single" }) {
         {DAYS.map((day) => (
           <div
             key={day}
-            className="text-center text-xs font-medium text-slate-500"
+            className="text-center text-xs font-medium text-black"
           >
             {day}
           </div>
@@ -316,12 +316,12 @@ export function Calendar({ selected, onSelect, onClose, mode = "single" }) {
               className={`
                 grid size-9 place-items-center rounded-lg text-sm transition select-none
                 ${!isCurrentMonth ? "text-slate-300" : ""}
-                ${isPast && isCurrentMonth ? "text-slate-400 opacity-40 cursor-not-allowed" : ""}
-                ${!isPast && isCurrentMonth ? "hover:bg-[#edf6f0] cursor-pointer" : ""}
-                ${todayDate && !selectedDate && !inDragRange && !rangeStart && !rangeEnd ? "border-2 border-[#0b4f2b] text-[#01311a] font-semibold" : ""}
-                ${selectedDate && mode === "single" ? "bg-[#01311a] text-white font-semibold hover:bg-[#0b4f2b]" : ""}
-                ${inDragRange && mode === "range" && !rangeStart && !rangeEnd ? "bg-[#d4e8dc]" : ""}
-                ${(rangeStart || rangeEnd) && mode === "range" ? "bg-[#01311a] text-white font-semibold hover:bg-[#0b4f2b]" : ""}
+                ${isPast && isCurrentMonth ? "text-black/35 cursor-not-allowed" : ""}
+                ${!isPast && isCurrentMonth ? "text-black hover:bg-[color:var(--brand-mist)] cursor-pointer" : ""}
+                ${todayDate && !selectedDate && !inDragRange && !rangeStart && !rangeEnd ? "border-2 border-[color:var(--brand-green)] text-black font-semibold" : ""}
+                ${selectedDate && mode === "single" ? "bg-[color:var(--brand-green)] text-white font-semibold hover:bg-[color:var(--brand-green)]/90" : ""}
+                ${inDragRange && mode === "range" && !rangeStart && !rangeEnd ? "bg-[color:var(--brand-mist)]/70 text-black" : ""}
+                ${(rangeStart || rangeEnd) && mode === "range" ? "bg-[color:var(--brand-green)] text-white font-semibold hover:bg-[color:var(--brand-green)]/90" : ""}
                 ${rangeStart && mode === "range" ? "rounded-r-none" : ""}
                 ${rangeEnd && mode === "range" && dragStart && dragEnd && dragStart.getTime() !== dragEnd.getTime() ? "rounded-l-none" : ""}
               `}

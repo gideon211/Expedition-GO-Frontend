@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export function NewsletterSection() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+
+  useEffect(() => {
+    setEmail(user?.email || "");
+  }, [user?.email]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -15,7 +21,7 @@ export function NewsletterSection() {
       console.log("Subscribing email:", email);
       setIsSubscribed(true);
       setTimeout(() => {
-        setEmail("");
+        setEmail(user?.email || "");
         setIsSubscribed(false);
       }, 3000);
     }

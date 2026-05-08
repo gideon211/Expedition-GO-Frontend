@@ -19,9 +19,9 @@ function WishlistPageContent() {
       {/* Navbar spacer */}
       <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
-      <main className="mx-auto max-w-[1520px] px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto w-full max-w-[1520px] px-3 py-5 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-5 sm:mb-7">
           <Link
             to="/"
             className="mb-3 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-[color:var(--brand-green)] sm:mb-4"
@@ -29,7 +29,7 @@ function WishlistPageContent() {
             <ArrowLeft className="size-4" />
             {t('common.backToHome')}
           </Link>
-          <div className="flex items-start gap-3 sm:items-center">
+          <div className="flex items-start gap-2.5 sm:items-center sm:gap-3">
             <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] sm:size-12">
               <Heart className="size-5 fill-current sm:size-6" />
             </div>
@@ -44,7 +44,7 @@ function WishlistPageContent() {
 
         {/* Wishlist Content */}
         {wishlist.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-14 text-center sm:py-20">
+          <div className="flex flex-col items-center justify-center py-12 text-center sm:py-16 lg:py-20">
             <div className="mb-5 grid size-20 place-items-center rounded-full bg-slate-100 text-slate-400 sm:mb-6 sm:size-24">
               <Heart className="size-10 sm:size-12" />
             </div>
@@ -60,7 +60,7 @@ function WishlistPageContent() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {wishlist.map((item, index) => (
               <TourCard key={`${item.title}-${index}`} {...item} />
             ))}
