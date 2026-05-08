@@ -22,10 +22,10 @@ export function HeroTourCard({ title, duration, price, rating, reviews, image, d
   return (
     <div 
       onClick={handleCardClick}
-      className="group flex h-[130px] overflow-hidden rounded-xl bg-white shadow-md transition duration-200 hover:shadow-lg cursor-pointer p-2"
+      className="group flex h-[133px] overflow-hidden rounded-xl bg-white shadow-md transition duration-200 hover:shadow-lg cursor-pointer p-2"
     >
-      {/* Image - Left side, square */}
-      <div className="relative w-[110px] shrink-0 overflow-hidden bg-slate-100 rounded-lg">
+      {/* Image - Left side, adjusted for new height */}
+      <div className="relative w-[100px] shrink-0 overflow-hidden bg-slate-100 rounded-lg">
         <img 
           src={image} 
           alt={title} 
@@ -35,10 +35,10 @@ export function HeroTourCard({ title, duration, price, rating, reviews, image, d
 
       {/* Content - Right side */}
       <div className="flex flex-1 flex-col pl-2 min-w-0">
-        {/* Title - 2 lines, tight spacing, responsive */}
+        {/* Title - single line with ellipsis, full width */}
         <h3 
-          className="line-clamp-2 font-bold leading-[1.1] text-slate-900 mb-1"
-          style={{ fontSize: 'clamp(10px, 1.8vw, 12px)' }}
+          className="truncate font-semibold leading-[1.1] text-slate-900 mb-1 w-full"
+          style={{ fontSize: 'clamp(13px, 2.2vw, 14px)' }}
         >
           {title}
         </h3>
@@ -46,7 +46,7 @@ export function HeroTourCard({ title, duration, price, rating, reviews, image, d
         {/* Duration - Very small */}
         <p 
           className="text-slate-600 leading-tight mb-1.5"
-          style={{ fontSize: 'clamp(8px, 1.5vw, 9px)' }}
+          style={{ fontSize: 'clamp(11px, 1.8vw, 11px)' }}
         >
           {duration}
         </p>
@@ -54,19 +54,19 @@ export function HeroTourCard({ title, duration, price, rating, reviews, image, d
         {/* Features - Free Cancellation & Pickup */}
         <div className="mb-auto space-y-0.5">
           <div className="flex items-center gap-1">
-            <CircleCheck className="size-2.5 text-emerald-500" />
+            <CircleCheck className="size-6 text-emerald-500" />
             <span 
-              className="text-slate-700 font-medium"
-              style={{ fontSize: 'clamp(7px, 1.4vw, 8px)' }}
+              className="text-slate-700 font-semibold"
+              style={{ fontSize: 'clamp(11px, 1.6vw, 10px)' }}
             >
               {t("features.freeCancellation")}
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <CircleCheck className="size-2.5 text-emerald-500" />
+            <CircleCheck className="size-6 text-emerald-500" />
             <span 
-              className="text-slate-700 font-medium"
-              style={{ fontSize: 'clamp(7px, 1.4vw, 8px)' }}
+              className="text-slate-700 font-semibold"
+              style={{ fontSize: 'clamp(11px, 1.6vw, 10px)' }}
             >
               {t("tourDetail.pickupIncluded")}
             </span>
@@ -77,16 +77,16 @@ export function HeroTourCard({ title, duration, price, rating, reviews, image, d
         <div className="flex items-center justify-between gap-2">
           {/* Rating */}
           <div className="flex items-center gap-0.5">
-            <Star className="size-2.5 fill-amber-400 text-amber-400" />
+            <Star className="size-3 fill-amber-400 text-amber-400" />
             <span 
-              className="font-bold text-slate-900"
-              style={{ fontSize: 'clamp(8px, 1.6vw, 10px)' }}
+              className="font-semibold text-slate-900"
+              style={{ fontSize: 'clamp(10px, 1.9vw, 12px)' }}
             >
               {rating}
             </span>
             <span 
               className="text-slate-600"
-              style={{ fontSize: 'clamp(7px, 1.5vw, 9px)' }}
+              style={{ fontSize: 'clamp(8px, 1.7vw, 10px)' }}
             >
               ({reviews})
             </span>
@@ -96,13 +96,13 @@ export function HeroTourCard({ title, duration, price, rating, reviews, image, d
           <div className="text-right leading-none">
             <p 
               className="text-slate-600 mb-0.5"
-              style={{ fontSize: 'clamp(6px, 1.3vw, 8px)' }}
+              style={{ fontSize: 'clamp(7px, 1.5vw, 9px)' }}
             >
               {t('common.from')}
             </p>
             <p 
-              className="font-bold text-slate-900"
-              style={{ fontSize: 'clamp(10px, 1.9vw, 13px)' }}
+              className="font-semibold text-slate-900"
+              style={{ fontSize: 'clamp(12px, 2.3vw, 15px)' }}
             >
               {convertedPrice.formatted}
             </p>
