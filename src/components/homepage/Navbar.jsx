@@ -162,11 +162,12 @@ export function Navbar({
       setShowNavAutocomplete(false);
       return;
     }
+    if (location.pathname !== "/") return;
     if (!isCompactSearchVisible) return;
     if (activeSearchQuery.trim().length >= 2 && navSearchResults.total > 0) {
       setShowNavAutocomplete(true);
     }
-  }, [isCompactSearchVisible, activeSearchQuery, navSearchResults.total, isDesktopViewport]);
+  }, [isCompactSearchVisible, activeSearchQuery, navSearchResults.total, isDesktopViewport, location.pathname]);
 
   // Keep viewport mode in sync so mobile/tablet never mount desktop autocomplete.
   useEffect(() => {

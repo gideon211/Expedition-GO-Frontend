@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, Clock3, ShoppingCart, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock3, ShoppingCart, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Navbar } from "@/components/homepage/Navbar";
@@ -45,28 +45,40 @@ function CartPage() {
     <div className="min-h-screen bg-[color:var(--page-bg)] text-slate-900">
       <Navbar />
 
+      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
+
       <main className="mx-auto w-full max-w-[1520px] px-3 py-5 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
-        <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] sm:size-12">
-              <ShoppingCart className="size-5 sm:size-6" />
+        <div className="mb-6 sm:mb-8">
+          <Link
+            to="/"
+            className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[color:var(--brand-green)] sm:mb-4"
+          >
+            <ArrowLeft className="size-4" />
+            Back to Home
+          </Link>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] sm:size-12">
+                <ShoppingCart className="size-5 sm:size-6" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="leading-tight text-slate-900" style={{ fontSize: "clamp(1.4rem, 2.2vw + 0.4rem, 2rem)" }}>
+                  {t("nav.cart")}
+                </h1>
+                <p className="text-sm text-slate-600 sm:text-base">{cart.length} item(s)</p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <h1 className="leading-tight text-slate-900" style={{ fontSize: "clamp(1.4rem, 2.2vw + 0.4rem, 2rem)" }}>
-                {t("nav.cart")}
-              </h1>
-              <p className="text-sm text-slate-600 sm:text-base">{cart.length} item(s)</p>
-            </div>
+            {cart.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={clearCart}
+                className="w-full border-slate-300 text-slate-700 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 sm:w-auto"
+              >
+                Clear cart
+              </Button>
+            )}
           </div>
-          {cart.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={clearCart}
-              className="border-slate-300 text-slate-700 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
-            >
-              Clear cart
-            </Button>
-          )}
         </div>
 
         {cart.length === 0 ? (

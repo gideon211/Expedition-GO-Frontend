@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import BrandLoader from "@/components/ui/BrandLoader";
 import { getAuthProvider, signInWithGoogle } from "@/lib/auth";
 
 function GoogleIcon() {
@@ -67,6 +68,7 @@ export function AuthForm({
 
   const provider = getAuthProvider();
   const isRegister = mode === "register";
+  const isSubmitting = loading || googleLoading;
 
   function updateField(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -90,7 +92,7 @@ export function AuthForm({
     setLoading(true);
 
     try {
-      const result = await onSubmit({
+      await onSubmit({
         name: form.name,
         email: form.email,
         password: form.password,
@@ -103,9 +105,7 @@ export function AuthForm({
           : t('auth.successWelcomeBack')
       );
 
-      window.setTimeout(() => {
-        navigate("/");
-      }, 900);
+      navigate("/", { state: { skipHomeSkeletonDelay: true, showQuickHomeSkeleton: true } });
     } catch (submissionError) {
       setError(submissionError.message || t('auth.errorRequest'));
     } finally {
@@ -119,18 +119,20 @@ export function AuthForm({
     setGoogleLoading(true);
 
     try {
-      const result = await signInWithGoogle();
+      await signInWithGoogle();
       // Simple success message without Firebase details
       setSuccess(t('auth.successGoogleSignIn'));
 
-      window.setTimeout(() => {
-        navigate("/");
-      }, 900);
+      navigate("/", { state: { skipHomeSkeletonDelay: true, showQuickHomeSkeleton: true } });
     } catch (submissionError) {
       setError(submissionError.message || "We couldn't complete Google sign-in.");
     } finally {
       setGoogleLoading(false);
     }
+  }
+
+  if (isSubmitting) {
+    return <BrandLoader fullScreen label={isRegister ? "Creating account" : "Signing in"} />;
   }
 
   return (

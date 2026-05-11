@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronUp } from "lucide-react";
+import { toast } from "sonner";
 import { DestinationsSection } from "@/components/homepage/DestinationsSection";
 import { Footer } from "@/components/homepage/Footer";
 import { HeroSection } from "@/components/homepage/HeroSection";
@@ -18,13 +20,76 @@ import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useHomePageData } from "@/hooks/useHomePageData";
 
 function HomePageContent() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthModalOpen, closeAuthModal } = useAuthModal();
   const { t } = useTranslation();
-  const { isLoading } = useHomePageData();
+  const [skipInitialHomeDelay] = useState(
+    Boolean(location.state?.skipHomeSkeletonDelay || location.state?.showQuickHomeSkeleton)
+  );
+  const { isLoading } = useHomePageData({ skipInitialDelay: skipInitialHomeDelay });
+  const showLogoutToast = Boolean(location.state?.showLogoutToast);
+  const [showQuickPostSignInSkeleton, setShowQuickPostSignInSkeleton] = useState(
+    Boolean(location.state?.showQuickHomeSkeleton)
+  );
   const [sharedHeroDateRange, setSharedHeroDateRange] = useState({ from: null, to: null });
   const [sharedSearchQuery, setSharedSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showCompactSearch, setShowCompactSearch] = useState(false);
+
+  useEffect(() => {
+    if (!location.state?.skipHomeSkeletonDelay && !location.state?.showQuickHomeSkeleton) {
+      return;
+    }
+
+    navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
+  }, [
+    location.state?.skipHomeSkeletonDelay,
+    location.state?.showQuickHomeSkeleton,
+    navigate,
+    location.pathname,
+    location.search,
+    location.hash,
+  ]);
+
+  useEffect(() => {
+    if (!showQuickPostSignInSkeleton) {
+      return;
+    }
+
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        setShowQuickPostSignInSkeleton(false);
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [showQuickPostSignInSkeleton]);
+
+  useEffect(() => {
+    if (!showLogoutToast || isLoading || showQuickPostSignInSkeleton) {
+      return;
+    }
+
+    toast.success("successfully logged out", {
+      id: "logout-success-toast",
+      position: "top-center",
+      duration: 3500,
+    });
+    navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
+  }, [
+    showLogoutToast,
+    isLoading,
+    showQuickPostSignInSkeleton,
+    navigate,
+    location.pathname,
+    location.search,
+    location.hash,
+  ]);
 
   useEffect(() => {
     let ticking = false;
@@ -50,7 +115,7 @@ function HomePageContent() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (isLoading) {
+  if (isLoading || showQuickPostSignInSkeleton) {
     return <HomePageSkeleton />;
   }
 

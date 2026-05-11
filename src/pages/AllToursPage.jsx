@@ -1,8 +1,7 @@
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, SlidersHorizontal, X, CircleCheck, Star, Heart, Search } from "lucide-react";
+import { ArrowLeft, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, SlidersHorizontal, X, CircleCheck, Star, Heart, Search } from "lucide-react";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
 import { TourCard } from "@/components/homepage/TourCard";
@@ -606,10 +605,17 @@ function AllToursPageContent() {
         </div>
         
         {/* Navbar spacer */}
-        <div className="h-[68px] sm:h-[88px] lg:h-[104px]" />
+        <div className="h-[76px] sm:h-[104px] md:h-[120px] lg:h-[116px]" />
 
         <main className="mx-auto flex-1 w-full max-w-[1520px] overflow-x-hidden bg-white px-4 pt-2 pb-6 sm:px-6 lg:px-8 lg:py-6">
           <div className="mb-8 mt-4">
+            <Link
+              to="/"
+              className="mb-3 inline-flex items-center gap-2 text-sm font-medium !text-slate-900 transition hover:!text-[color:var(--brand-green)] sm:mb-4"
+            >
+              <ArrowLeft className="size-4" />
+              Back To Home
+            </Link>
             <h1 className="font-bold tracking-tight text-slate-900" style={{ fontSize: 'clamp(1.75rem, 3vw + 0.5rem, 2.75rem)' }}>{title}</h1>
           </div>
 
