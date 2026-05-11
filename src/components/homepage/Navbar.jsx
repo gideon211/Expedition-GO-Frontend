@@ -575,61 +575,7 @@ export function Navbar({
         </button>
       </div>
 
-      {/* Mobile & tablet compact search */}
-      {isCompactSearchVisible && (
-        <div className="border-t border-slate-200 lg:hidden bg-white px-3 py-2 sm:px-4">
-          <form
-            onSubmit={handleCompactSearchSubmit}
-            className="relative mx-auto flex w-full max-w-[1520px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm"
-          >
-            <Search className="size-4 text-(--brand-green)" />
-            <input
-              ref={navSearchInputRef}
-              value={compactSearchValue}
-              onChange={(e) => {
-                if (isExternalSearchMode) {
-                  onExternalSearchChange(e.target.value);
-                  setUserIsTyping(true);
-                } else {
-                  handleNavSearchChange(e);
-                }
-              }}
-              onFocus={() => {
-                setUserIsTyping(true);
-                const query = isExternalSearchMode ? (externalSearchQuery ?? "") : compactSearchQuery;
-                if (query.trim().length >= 2 && navSearchResults.total > 0) {
-                  setShowNavAutocomplete(true);
-                }
-              }}
-              onBlur={() => {
-                setTimeout(() => {
-                  setShowNavAutocomplete(false);
-                  setUserIsTyping(false);
-                }, 200);
-              }}
-              placeholder="Where are you going?"
-              className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
-              style={{ caretColor: '#01311a' }}
-              autoComplete="off"
-            />
-            <button
-              type="submit"
-              className="rounded-md bg-(--brand-green) px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-(--brand-green-2)"
-            >
-              Search
-            </button>
-
-            <div ref={navAutocompleteRef} className="absolute top-full left-0 right-0 mt-1 z-50">
-              <SearchAutocomplete
-                results={navSearchResults}
-                onSelect={handleNavAutocompleteSelect}
-                isVisible={showNavAutocomplete}
-                searchQuery={activeSearchQuery}
-              />
-            </div>
-          </form>
-        </div>
-      )}
+      {/* Mobile Search Bar - Removed, using hero search bar on mobile instead */}
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
