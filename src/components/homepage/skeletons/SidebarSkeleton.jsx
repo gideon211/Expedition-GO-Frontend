@@ -51,7 +51,7 @@ function CompactCardSkeleton({ delay = 0 }) {
 
 export function SidebarSkeleton() {
   return (
-    <aside className="space-y-[1.7rem] overflow-hidden md:space-y-6 xl:space-y-5">
+    <aside className="mt-13 space-y-[1.7rem] overflow-hidden md:space-y-6 xl:space-y-5">
       {/* Last Minute Deals Section */}
       <div className="rounded-[18px] border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="p-4 overflow-hidden">
@@ -77,6 +77,7 @@ export function SidebarSkeleton() {
       </div>
 
       {/* New Experiences Section */}
+      <div className="mt-23">
       <div className="rounded-[18px] border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="p-4 overflow-hidden">
           <div className="mb-[0.6375rem] flex items-center justify-between md:mb-2.5 xl:mb-3">
@@ -98,6 +99,7 @@ export function SidebarSkeleton() {
             ))}
           </div>
         </div>
+      </div>
       </div>
     </aside>
   );

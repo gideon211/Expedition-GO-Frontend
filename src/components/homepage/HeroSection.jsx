@@ -231,7 +231,7 @@ export function HeroSection({
           
           {/* Hero Search Bar - On mobile: becomes fixed at top. On desktop: fades out when reaching navbar */}
           <div 
-            className="relative mt-4 sm:mt-3.5 md:mt-4 max-w-4xl mx-auto"
+            className="relative mt-4 sm:mt-3.5 md:mt-4 mx-auto w-full max-w-4xl lg:max-w-2xl"
             style={{ minHeight: searchBarHeight > 0 ? `${searchBarHeight}px` : 'auto' }}
           >
             <div 
@@ -248,7 +248,7 @@ export function HeroSection({
               >
                 <div
                   id="hero-search-bar"
-                  className="grid gap-0 rounded-lg border border-slate-200 bg-white sm:grid-cols-[1fr_auto] grid-cols-[1fr_auto] shadow-md max-w-4xl mx-auto"
+                  className="grid w-full gap-0 rounded-lg border border-slate-200 bg-white sm:grid-cols-[1fr_auto] grid-cols-[1fr_auto] shadow-md mx-auto"
                 >
                   <div className="flex items-center gap-2 text-left text-slate-900 px-2 py-1.5">
                     <MapPin className="text-(--brand-green) shrink-0 size-3" />
@@ -323,40 +323,31 @@ export function HeroSection({
               {t('sections.pickupTitle')}
             </h2>
 
-            <div className="relative overflow-visible">
-              {carouselItems.length > 1 && (
-                <>
+            <div className="overflow-visible">
+              {/* Desktop: arrows outside the card strip (not over the cards) */}
+              <div className="mx-auto hidden w-full max-w-full items-center gap-2 px-1 sm:gap-3 md:flex lg:gap-4">
+                {carouselItems.length > 1 && (
                   <button
+                    type="button"
                     onClick={() => scroll("left")}
-                    className="hidden md:grid absolute left-0 top-1/2 z-20 -translate-y-1/2 size-10 place-items-center rounded-full bg-white/95 text-slate-900 shadow-lg backdrop-blur-sm transition hover:bg-white hover:scale-110"
+                    className="grid size-10 shrink-0 place-items-center rounded-full bg-white/95 text-slate-900 shadow-lg backdrop-blur-sm transition hover:scale-110 hover:bg-white"
                     aria-label="Previous"
                   >
                     <ChevronLeft className="size-5" />
                   </button>
+                )}
 
-                  <button
-                    onClick={() => scroll("right")}
-                    className="hidden md:grid absolute right-0 top-1/2 z-20 -translate-y-1/2 size-10 place-items-center rounded-full bg-white/95 text-slate-900 shadow-lg backdrop-blur-sm transition hover:bg-white hover:scale-110"
-                    aria-label="Next"
-                  >
-                    <ChevronRight className="size-5" />
-                  </button>
-                </>
-              )}
-
-              {/* Desktop carousel - finite scroll with centering */}
-              <div className="hidden md:flex justify-center">
                 <div
                   ref={desktopScrollRef}
-                  className="flex gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide pb-6 max-w-full"
+                  className="flex min-w-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden pb-6 scrollbar-hide"
                   style={{
                     WebkitOverflowScrolling: "touch",
-                    scrollSnapType: "x mandatory"
+                    scrollSnapType: "x mandatory",
                   }}
                 >
                   {carouselItems.map((item, index) => (
                     <div
-                      key={`${item.title}-${index}`}
+                      key={`${item.title}-${index}-desktop`}
                       className="w-[280px] min-w-[280px] shrink-0"
                       style={{ scrollSnapAlign: "start" }}
                     >
@@ -364,6 +355,17 @@ export function HeroSection({
                     </div>
                   ))}
                 </div>
+
+                {carouselItems.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => scroll("right")}
+                    className="grid size-10 shrink-0 place-items-center rounded-full bg-white/95 text-slate-900 shadow-lg backdrop-blur-sm transition hover:scale-110 hover:bg-white"
+                    aria-label="Next"
+                  >
+                    <ChevronRight className="size-5" />
+                  </button>
+                )}
               </div>
 
               {/* Mobile carousel - finite scroll */}

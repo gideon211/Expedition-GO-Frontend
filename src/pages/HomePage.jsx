@@ -29,23 +29,19 @@ function HomePageContent() {
   );
   const { isLoading } = useHomePageData({ skipInitialDelay: skipInitialHomeDelay });
   const showLogoutToast = Boolean(location.state?.showLogoutToast);
-  const [showQuickPostSignInSkeleton, setShowQuickPostSignInSkeleton] = useState(
-    Boolean(location.state?.showQuickHomeSkeleton)
-  );
   const [sharedHeroDateRange, setSharedHeroDateRange] = useState({ from: null, to: null });
   const [sharedSearchQuery, setSharedSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showCompactSearch, setShowCompactSearch] = useState(false);
 
   useEffect(() => {
-    if (!location.state?.skipHomeSkeletonDelay && !location.state?.showQuickHomeSkeleton) {
+    if (!location.state?.skipHomeSkeletonDelay) {
       return;
     }
 
     navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
   }, [
     location.state?.skipHomeSkeletonDelay,
-    location.state?.showQuickHomeSkeleton,
     navigate,
     location.pathname,
     location.search,
@@ -53,25 +49,7 @@ function HomePageContent() {
   ]);
 
   useEffect(() => {
-    if (!showQuickPostSignInSkeleton) {
-      return;
-    }
-
-    let secondFrame = 0;
-    const firstFrame = window.requestAnimationFrame(() => {
-      secondFrame = window.requestAnimationFrame(() => {
-        setShowQuickPostSignInSkeleton(false);
-      });
-    });
-
-    return () => {
-      window.cancelAnimationFrame(firstFrame);
-      window.cancelAnimationFrame(secondFrame);
-    };
-  }, [showQuickPostSignInSkeleton]);
-
-  useEffect(() => {
-    if (!showLogoutToast || isLoading || showQuickPostSignInSkeleton) {
+    if (!showLogoutToast || isLoading) {
       return;
     }
 
@@ -84,7 +62,6 @@ function HomePageContent() {
   }, [
     showLogoutToast,
     isLoading,
-    showQuickPostSignInSkeleton,
     navigate,
     location.pathname,
     location.search,
@@ -115,7 +92,7 @@ function HomePageContent() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (isLoading || showQuickPostSignInSkeleton) {
+  if (isLoading) {
     return <HomePageSkeleton />;
   }
 

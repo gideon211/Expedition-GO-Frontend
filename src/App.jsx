@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import BrandLoader from "@/components/ui/BrandLoader";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { CartProvider } from "@/contexts/CartContext";
@@ -66,9 +67,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary goHomeLink="/" goHomeLabel="Go Home" goAdminLink="/admin" goAdminLabel="Go to Admin">
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

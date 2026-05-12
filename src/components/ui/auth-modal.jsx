@@ -21,15 +21,15 @@ export function AuthModal({ isOpen, onClose }) {
 
   return (
     <div 
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 md:p-8 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[200] flex cursor-pointer items-center justify-center p-4 sm:p-6 md:p-8 animate-in fade-in duration-200"
       onClick={onClose}
     >
       {/* Full-screen blurred backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+      <div className="absolute inset-0 cursor-pointer bg-black/60 backdrop-blur-md" />
       
       {/* Modal */}
       <div 
-        className="relative w-full max-w-md animate-in zoom-in-95 duration-200 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8"
+        className="relative w-full max-w-md cursor-default animate-in zoom-in-95 duration-200 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}

@@ -1,44 +1,46 @@
+// ============================================================================
+// EXPEDITION GO - AUTHENTICATION SERVICE
+// Last Updated: May 12, 2026
+// CRITICAL: This file MUST replace your current auth service
+// ============================================================================
+
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   updateProfile,
 } from 'firebase/auth';
 
-// Authentication provider configuration
-const AUTH_PROVIDER = import.meta.env.VITE_AUTH_PROVIDER || 'mock';
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
-// Local storage key for user data
+const AUTH_PROVIDER = import.meta.env.VITE_AUTH_PROVIDER || 'mock';
 const AUTH_USER_KEY = 'expedition_go_auth_user';
 
-// Backend API base: prefer specific auth API env, then generic, then relative
+// Backend API base URL
 const rawBase = (
   import.meta.env.VITE_AUTH_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
-  '/api/v1'
+  '/api'
 );
 
 let API_BASE = rawBase.replace(/\/+$/, '');
 
-// If the base is an absolute host-only URL (e.g. https://host.com),
-// append the expected API prefix so calls target /api/v1 endpoints.
+// Append /api if needed
 if (/^https?:\/\/[^\/]+$/.test(API_BASE)) {
-  API_BASE = `${API_BASE}/api/v1`;
+  API_BASE = `${API_BASE}/api`;
 }
-console.log('API_BASE:', API_BASE);
 
-// On localhost, route auth API calls through Vite proxy to avoid browser CORS
-// while still using the hosted backend target configured in vite.config.js.
-const isLocalhost =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
+console.log('🔧 Auth Service Config:', {
+  provider: AUTH_PROVIDER,
+  apiBase: API_BASE,
+});
 
 // Firebase configuration
 const firebaseConfig = {
@@ -60,40 +62,18 @@ if (AUTH_PROVIDER === 'firebase') {
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: 'select_account' });
+    console.log('✅ Firebase initialized');
   } catch (error) {
-    console.error('Firebase initialization error:', error);
+    console.error('❌ Firebase initialization error:', error);
   }
 }
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
 
 export function getAuthProvider() {
   return AUTH_PROVIDER;
-}
-
-/**
- * Returns the API base URL used by the authenticated app code.
- */
-export function getApiBaseUrl() {
-  return API_BASE;
-}
-
-/**
- * Returns a usable bearer token for API requests, or null when unavailable.
- * Prefers a fresh Firebase ID token when running with the firebase provider,
- * and falls back to the stored mock-user identifier so requests still carry
- * an Authorization header during local development.
- */
-export async function getAuthToken({ forceRefresh = false } = {}) {
-  if (AUTH_PROVIDER === "firebase" && auth?.currentUser) {
-    try {
-      return await auth.currentUser.getIdToken(forceRefresh);
-    } catch (error) {
-      console.error("Failed to retrieve auth token:", error);
-      return null;
-    }
-  }
-
-  const stored = getStoredAuthUser();
-  return stored?.token || stored?.firebaseUid || stored?._id || null;
 }
 
 function storeAuthUser(user) {
@@ -124,58 +104,80 @@ function removeAuthUser() {
 }
 
 let authStateListeners = [];
+
 function notifyAuthStateChange(user) {
   authStateListeners.forEach((l) => l(user));
 }
 
-function extractBackendUser(payload) {
-  if (!payload || typeof payload !== 'object') return null;
-  return payload?.data?.user || payload?.user || payload?.data || null;
-}
+// ============================================================================
+// BACKEND API CALLS
+// ============================================================================
 
-async function callBackendUserOnboarding(idToken, attempts) {
-  let lastError = null;
+/**
+ * ⚠️ CRITICAL: ONLY USE THIS ENDPOINT
+ * 
+ * Call backend signup endpoint: POST /api/users/signup
+ * - Idempotent (safe to call multiple times)
+ * - Creates user if doesn't exist
+ * - Returns existing user if already exists
+ * - Does NOT require protect middleware
+ * - Handles Firebase token verification internally
+ */
+async function callBackendSignup(idToken, firebaseUser) {
+  const endpoint = `${API_BASE}/users/signup`;
+  
+  console.log('📡 Calling backend signup:', endpoint);
+  
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+      email: firebaseUser.email,
+    }),
+  });
 
-  for (const attempt of attempts) {
-    const res = await fetch(`${API_BASE}${attempt.path}`, {
-      method: attempt.method,
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      lastError = new Error(`Backend ${attempt.label} failed: ${res.status} ${text}`);
-
-      // Keep trying fallback routes/methods on 404.
-      if (res.status === 404) continue;
-      throw lastError;
-    }
-
-    const payload = await res.json();
-    const user = extractBackendUser(payload);
-    if (user) return user;
-
-    lastError = new Error(`Backend ${attempt.label} returned no user payload`);
+  if (!res.ok) {
+    const text = await res.text();
+    console.error('❌ Backend signup failed:', res.status, text);
+    throw new Error(`Backend signup failed: ${res.status} ${text}`);
   }
 
-  throw lastError || new Error('Backend onboarding failed: no valid endpoint response');
+  const payload = await res.json();
+  console.log('✅ Backend signup successful');
+  
+  // Backend returns: { status: 'success', data: { user: {...} } }
+  return payload.data.user;
 }
 
-async function callBackendCreateMe(idToken) {
-  return callBackendUserOnboarding(idToken, [
-    { method: 'POST', path: '/users/create-me', label: 'create-me' },
-    { method: 'PATCH', path: '/users/sync-me', label: 'sync-me (fallback)' },
-  ]);
-}
+/**
+ * Sync user profile with backend (for updates only)
+ * ⚠️ ONLY use this for profile updates, NOT for initial signup
+ */
+async function callBackendSyncMe(idToken, firebaseUser) {
+  const res = await fetch(`${API_BASE}/users/sync-me`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: firebaseUser.displayName,
+      email: firebaseUser.email,
+      photoURL: firebaseUser.photoURL,
+    }),
+  });
 
-async function callBackendSyncMe(idToken) {
-  return callBackendUserOnboarding(idToken, [
-    { method: 'PATCH', path: '/users/sync-me', label: 'sync-me' },
-    { method: 'POST', path: '/users/create-me', label: 'create-me (fallback)' },
-  ]);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Backend sync-me failed: ${res.status} ${text}`);
+  }
+
+  const payload = await res.json();
+  return payload.data.user;
 }
 
 function normalizeFirebaseClientUser(firebaseUser) {
@@ -190,24 +192,10 @@ function normalizeFirebaseClientUser(firebaseUser) {
   };
 }
 
-async function resolveBackendUserOrFallback(firebaseUser, idToken) {
-  try {
-    return await callBackendCreateMe(idToken);
-  } catch (createError) {
-    try {
-      return await callBackendSyncMe(idToken);
-    } catch (syncError) {
-      console.error('Backend onboarding failed:', createError, syncError);
-      return normalizeFirebaseClientUser(firebaseUser);
-    }
-  }
-}
+// ============================================================================
+// AUTHENTICATION STATE MANAGEMENT
+// ============================================================================
 
-/**
- * Subscribe to authentication state changes
- * callback receives the backend user (or null)
- * returns unsubscribe function
- */
 export async function subscribeToAuthState(callback) {
   authStateListeners.push(callback);
 
@@ -221,10 +209,18 @@ export async function subscribeToAuthState(callback) {
           return;
         }
 
-        const idToken = await firebaseUser.getIdToken(/* forceRefresh= */ false);
+        const idToken = await firebaseUser.getIdToken(false);
 
-        // Ensure backend user exists and return backend user object
-        const backendUser = await resolveBackendUserOrFallback(firebaseUser, idToken);
+        // ⚠️ CRITICAL: ONLY call /signup endpoint
+        // DO NOT call /create-me or /sync-me here
+        let backendUser = null;
+        try {
+          backendUser = await callBackendSignup(idToken, firebaseUser);
+        } catch (err) {
+          console.error('Backend signup failed:', err);
+          // Fallback to client-normalized user (offline mode)
+          backendUser = normalizeFirebaseClientUser(firebaseUser);
+        }
 
         storeAuthUser(backendUser);
         notifyAuthStateChange(backendUser);
@@ -242,7 +238,7 @@ export async function subscribeToAuthState(callback) {
       unsubscribe();
     };
   } else {
-    // Mock mode: immediately call with stored user
+    // Mock mode
     const current = getStoredAuthUser();
     callback(current);
     return () => {
@@ -251,9 +247,10 @@ export async function subscribeToAuthState(callback) {
   }
 }
 
-/**
- * Sign in with email and password
- */
+// ============================================================================
+// AUTHENTICATION METHODS
+// ============================================================================
+
 export async function signInWithEmail(email, password) {
   if (AUTH_PROVIDER === 'firebase' && auth) {
     try {
@@ -261,19 +258,27 @@ export async function signInWithEmail(email, password) {
       const firebaseUser = credential.user;
       const idToken = await firebaseUser.getIdToken();
 
-      // Keep sign-in resilient locally: fallback if backend onboarding is unavailable.
-      const backendUser = await resolveBackendUserOrFallback(firebaseUser, idToken);
+      // ⚠️ CRITICAL: Call /signup endpoint
+      const backendUser = await callBackendSignup(idToken, firebaseUser);
+
       storeAuthUser(backendUser);
       notifyAuthStateChange(backendUser);
       return backendUser;
     } catch (error) {
       console.error('Firebase sign in error:', error);
       let message = 'Failed to sign in. Please try again.';
-      if (error.code === 'auth/user-not-found') message = 'No account found with this email address.';
-      else if (error.code === 'auth/wrong-password') message = 'Incorrect password. Please try again.';
-      else if (error.code === 'auth/invalid-email') message = 'Invalid email address format.';
-      else if (error.code === 'auth/user-disabled') message = 'This account has been disabled.';
-      else if (error.code === 'auth/too-many-requests') message = 'Too many failed attempts. Please try again later.';
+      if (error.code === 'auth/user-not-found')
+        message = 'No account found with this email address.';
+      else if (error.code === 'auth/wrong-password')
+        message = 'Incorrect password. Please try again.';
+      else if (error.code === 'auth/invalid-email')
+        message = 'Invalid email address format.';
+      else if (error.code === 'auth/user-disabled')
+        message = 'This account has been disabled.';
+      else if (error.code === 'auth/too-many-requests')
+        message = 'Too many failed attempts. Please try again later.';
+      else if (error.code === 'auth/invalid-credential')
+        message = 'Invalid email or password.';
       throw new Error(message);
     }
   }
@@ -281,7 +286,7 @@ export async function signInWithEmail(email, password) {
   // Mock sign-in
   await new Promise((r) => setTimeout(r, 800));
   const user = {
-    _id: 'mock-' + Date.now(),
+    id: 'mock-' + Date.now(),
     firebaseUid: 'mock-' + Date.now(),
     email,
     emailVerified: true,
@@ -293,33 +298,40 @@ export async function signInWithEmail(email, password) {
   return user;
 }
 
-/**
- * Register new user with email and password
- */
 export async function registerWithEmail(name, email, password) {
   if (AUTH_PROVIDER === 'firebase' && auth) {
     try {
+      console.log('🔐 Registering with Firebase...');
       const credential = await createUserWithEmailAndPassword(auth, email, password);
-
+      
+      // Update Firebase profile with name
       if (name) {
         await updateProfile(credential.user, { displayName: name });
+        await credential.user.reload();
       }
 
-      const idToken = await credential.user.getIdToken();
+      const firebaseUser = auth.currentUser;
+      const idToken = await firebaseUser.getIdToken();
 
-      const backendUser = await resolveBackendUserOrFallback(credential.user, idToken);
-      // Ensure name is the one provided (backend create may have taken displayName)
-      backendUser.name = backendUser.name || name;
+      console.log('📡 Creating user in backend...');
+      // ⚠️ CRITICAL: Call /signup endpoint
+      const backendUser = await callBackendSignup(idToken, firebaseUser);
+
       storeAuthUser(backendUser);
       notifyAuthStateChange(backendUser);
+      console.log('✅ Registration complete!');
       return backendUser;
     } catch (error) {
-      console.error('Firebase registration error:', error);
+      console.error('❌ Firebase registration error:', error);
       let message = 'Failed to create account. Please try again.';
-      if (error.code === 'auth/email-already-in-use') message = 'An account with this email already exists.';
-      else if (error.code === 'auth/invalid-email') message = 'Invalid email address format.';
-      else if (error.code === 'auth/weak-password') message = 'Password is too weak. Please use at least 6 characters.';
-      else if (error.code === 'auth/operation-not-allowed') message = 'Email/password accounts are not enabled.';
+      if (error.code === 'auth/email-already-in-use')
+        message = 'An account with this email already exists.';
+      else if (error.code === 'auth/invalid-email')
+        message = 'Invalid email address format.';
+      else if (error.code === 'auth/weak-password')
+        message = 'Password is too weak. Please use at least 6 characters.';
+      else if (error.code === 'auth/operation-not-allowed')
+        message = 'Email/password accounts are not enabled.';
       throw new Error(message);
     }
   }
@@ -327,7 +339,7 @@ export async function registerWithEmail(name, email, password) {
   // Mock registration
   await new Promise((r) => setTimeout(r, 1000));
   const user = {
-    _id: 'mock-' + Date.now(),
+    id: 'mock-' + Date.now(),
     firebaseUid: 'mock-' + Date.now(),
     email,
     emailVerified: false,
@@ -339,9 +351,6 @@ export async function registerWithEmail(name, email, password) {
   return user;
 }
 
-/**
- * Sign in with Google
- */
 export async function signInWithGoogle() {
   if (AUTH_PROVIDER === 'firebase' && auth && googleProvider) {
     try {
@@ -349,32 +358,23 @@ export async function signInWithGoogle() {
       const firebaseUser = result.user;
       const idToken = await firebaseUser.getIdToken();
 
-      const backendUser = await resolveBackendUserOrFallback(firebaseUser, idToken);
+      // ⚠️ CRITICAL: Call /signup endpoint
+      const backendUser = await callBackendSignup(idToken, firebaseUser);
+
       storeAuthUser(backendUser);
       notifyAuthStateChange(backendUser);
       return backendUser;
     } catch (error) {
-      const popupFallbackCodes = new Set([
-        'auth/popup-blocked',
-        'auth/popup-closed-by-user',
-        'auth/cancelled-popup-request',
-      ]);
-
-      if (popupFallbackCodes.has(error?.code)) {
-        try {
-          await signInWithRedirect(auth, googleProvider);
-          return null;
-        } catch (redirectError) {
-          console.error('Google redirect sign in error:', redirectError);
-          throw new Error('Google sign-in could not start. Please try again.');
-        }
-      }
-
       console.error('Google sign in error:', error);
       let message = 'Failed to sign in with Google. Please try again.';
-      if (error.code === 'auth/account-exists-with-different-credential') message = 'An account already exists with the same email but different sign-in method.';
-      else if (error.code === 'auth/operation-not-allowed') message = 'Google sign-in is not enabled.';
-      else if (error.code === 'auth/unauthorized-domain') message = 'This localhost domain is not authorized in Firebase. Add localhost in Firebase Authentication > Settings > Authorized domains.';
+      if (error.code === 'auth/popup-closed-by-user')
+        message = 'Sign in was cancelled. Please try again.';
+      else if (error.code === 'auth/popup-blocked')
+        message = 'Pop-up was blocked by your browser. Please allow pop-ups and try again.';
+      else if (error.code === 'auth/account-exists-with-different-credential')
+        message = 'An account already exists with the same email but different sign-in method.';
+      else if (error.code === 'auth/operation-not-allowed')
+        message = 'Google sign-in is not enabled.';
       throw new Error(message);
     }
   }
@@ -382,7 +382,7 @@ export async function signInWithGoogle() {
   // Mock Google sign-in
   await new Promise((r) => setTimeout(r, 1200));
   const user = {
-    _id: 'mock-google-' + Date.now(),
+    id: 'mock-google-' + Date.now(),
     firebaseUid: 'mock-google-' + Date.now(),
     email: 'user@gmail.com',
     emailVerified: true,
@@ -395,9 +395,6 @@ export async function signInWithGoogle() {
   return user;
 }
 
-/**
- * Sign out current user
- */
 export async function signOutUser() {
   if (AUTH_PROVIDER === 'firebase' && auth) {
     try {
@@ -416,3 +413,65 @@ export async function signOutUser() {
   removeAuthUser();
   notifyAuthStateChange(null);
 }
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+export async function getCurrentUserToken() {
+  if (AUTH_PROVIDER === 'firebase' && auth && auth.currentUser) {
+    try {
+      return await auth.currentUser.getIdToken();
+    } catch (error) {
+      console.error('Failed to get user token:', error);
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Get the API base URL for making API requests
+ * Used by API client for constructing request URLs
+ */
+export function getApiBaseUrl() {
+  return API_BASE;
+}
+
+/**
+ * Get the current user's authentication token
+ * Alias for getCurrentUserToken() - used by API client
+ */
+export async function getAuthToken() {
+  return await getCurrentUserToken();
+}
+
+export async function updateUserProfile(updates) {
+  if (AUTH_PROVIDER === 'firebase' && auth && auth.currentUser) {
+    try {
+      // Update Firebase profile
+      if (updates.name || updates.photoURL) {
+        await updateProfile(auth.currentUser, {
+          displayName: updates.name,
+          photoURL: updates.photoURL,
+        });
+      }
+
+      const idToken = await auth.currentUser.getIdToken();
+
+      // Sync with backend
+      const backendUser = await callBackendSyncMe(idToken, auth.currentUser);
+
+      storeAuthUser(backendUser);
+      notifyAuthStateChange(backendUser);
+      return backendUser;
+    } catch (error) {
+      console.error('Profile update error:', error);
+      throw new Error('Failed to update profile. Please try again.');
+    }
+  }
+
+  throw new Error('No authenticated user');
+}
+
+export { auth };

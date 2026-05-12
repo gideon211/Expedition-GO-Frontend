@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import BrandLoader from "@/components/ui/BrandLoader";
 import { getAuthProvider, signInWithGoogle } from "@/lib/auth";
 
 function GoogleIcon() {
@@ -105,7 +104,7 @@ export function AuthForm({
           : t('auth.successWelcomeBack')
       );
 
-      navigate("/", { state: { skipHomeSkeletonDelay: true, showQuickHomeSkeleton: true } });
+      navigate("/", { state: { skipHomeSkeletonDelay: true } });
     } catch (submissionError) {
       setError(submissionError.message || t('auth.errorRequest'));
     } finally {
@@ -123,16 +122,12 @@ export function AuthForm({
       // Simple success message without Firebase details
       setSuccess(t('auth.successGoogleSignIn'));
 
-      navigate("/", { state: { skipHomeSkeletonDelay: true, showQuickHomeSkeleton: true } });
+      navigate("/", { state: { skipHomeSkeletonDelay: true } });
     } catch (submissionError) {
       setError(submissionError.message || "We couldn't complete Google sign-in.");
     } finally {
       setGoogleLoading(false);
     }
-  }
-
-  if (isSubmitting) {
-    return <BrandLoader fullScreen label={isRegister ? "Creating account" : "Signing in"} />;
   }
 
   return (

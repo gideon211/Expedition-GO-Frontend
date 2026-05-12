@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { 
@@ -87,7 +87,7 @@ const MONTH_NAMES = [
   "December",
 ];
 
-const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const TOUR_DETAIL_TABS = [
   { key: "overview", label: "Overview" },
@@ -103,6 +103,16 @@ const getDateKey = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const parseDateKey = (value) => {
+  const parts = String(value || "").split("-");
+  if (parts.length !== 3) return null;
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+  const d = Number(parts[2]);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
+  return new Date(y, m - 1, d);
+};
+
 const isSameCalendarDay = (firstDate, secondDate) => (
   firstDate &&
   secondDate &&
@@ -110,6 +120,24 @@ const isSameCalendarDay = (firstDate, secondDate) => (
   firstDate.getMonth() === secondDate.getMonth() &&
   firstDate.getDate() === secondDate.getDate()
 );
+
+const startOfLocalDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const normalizeBookingRange = (a, b) => {
+  const start = startOfLocalDay(a);
+  const end = startOfLocalDay(b);
+  return start.getTime() <= end.getTime() ? { start, end } : { start: end, end: start };
+};
+
+const dayTime = (date) => startOfLocalDay(date).getTime();
+
+const isDayInInclusiveRange = (day, rangeStart, rangeEnd) => {
+  if (!rangeStart || !rangeEnd) return false;
+  const t = dayTime(day);
+  const lo = Math.min(dayTime(rangeStart), dayTime(rangeEnd));
+  const hi = Math.max(dayTime(rangeStart), dayTime(rangeEnd));
+  return t >= lo && t <= hi;
+};
 
 const parseReviewCount = (value) => {
   if (typeof value === "number") return value;
@@ -146,17 +174,23 @@ const buildReviewBreakdown = (rating, reviewCount) => {
 function BookingCalendarPopover({
   monthCursor,
   onMonthChange,
-  onSelectDate,
-  priceLabel,
-  selectedDate,
+  onCommitRange,
+  selectedRange,
   today,
 }) {
-  const calendarMonths = [0, 1].map((offset) => new Date(monthCursor.getFullYear(), monthCursor.getMonth() + offset, 1));
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const [dragRedraw, setDragRedraw] = useState(0);
+  const dragActiveRef = useRef(false);
+  const anchorRef = useRef(null);
+  const hoverRef = useRef(null);
+  const gridRef = useRef(null);
+  const captureIdRef = useRef(null);
 
-  const buildMonthDays = (monthDate) => {
-    const year = monthDate.getFullYear();
-    const month = monthDate.getMonth();
+  const todayStart = startOfLocalDay(today);
+  const monthDate = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
+
+  const monthDays = useMemo(() => {
+    const year = monthCursor.getFullYear();
+    const month = monthCursor.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPreviousMonth = new Date(year, month, 0).getDate();
@@ -185,77 +219,166 @@ function BookingCalendarPopover({
     }
 
     return days;
+  }, [monthCursor.getFullYear(), monthCursor.getMonth()]);
+
+  const updateHoverFromClientPoint = (clientX, clientY) => {
+    const el = document.elementFromPoint(clientX, clientY);
+    const node = el?.closest?.("[data-cal-selectable]");
+    if (!node || !gridRef.current?.contains(node)) return;
+    const parsed = parseDateKey(node.getAttribute("data-cal-day"));
+    if (!parsed || startOfLocalDay(parsed) < todayStart) return;
+    hoverRef.current = parsed;
+    setDragRedraw((n) => n + 1);
+  };
+
+  const bump = () => setDragRedraw((n) => n + 1);
+
+  const liveRange = useMemo(() => {
+    if (dragActiveRef.current && anchorRef.current) {
+      const hover = hoverRef.current ?? anchorRef.current;
+      return normalizeBookingRange(anchorRef.current, hover);
+    }
+    return selectedRange ?? null;
+  }, [selectedRange, dragRedraw]);
+
+  useEffect(() => {
+    const finish = (event) => {
+      if (!dragActiveRef.current) return;
+      if (event.type === "pointerup" && event.button !== 0) return;
+      if (gridRef.current && captureIdRef.current != null) {
+        try {
+          gridRef.current.releasePointerCapture(captureIdRef.current);
+        } catch {
+          // Already released or target detached.
+        }
+        captureIdRef.current = null;
+      }
+      const anchor = anchorRef.current;
+      const hover = hoverRef.current ?? anchorRef.current;
+      dragActiveRef.current = false;
+      anchorRef.current = null;
+      hoverRef.current = null;
+      bump();
+      if (anchor && hover) onCommitRange(anchor, hover);
+    };
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", finish);
+    return () => {
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+    };
+  }, [onCommitRange]);
+
+  const handlePrevMonth = () => {
+    onMonthChange(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    onMonthChange(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1));
   };
 
   return (
-    <div className="absolute left-0 top-[calc(100%+0.75rem)] z-50 w-[min(760px,calc(100vw-2rem))] rounded-sm border border-slate-200 bg-white p-5 text-[color:var(--brand-green)] shadow-[0_18px_45px_rgba(15,23,42,0.18)] lg:right-0 lg:left-auto">
-      <div className="relative grid gap-6 md:grid-cols-2">
-        <button
-          type="button"
-          onClick={() => onMonthChange(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1))}
-          className="absolute -left-2 -top-1 grid size-9 place-items-center rounded-full text-[color:var(--brand-green)] transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
-          aria-label="Show previous month"
+    <div className="absolute left-1/2 top-[calc(100%+0.75rem)] z-50 w-[min(640px,100%,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-slate-200/80 bg-white p-5 text-slate-900 shadow-[0_18px_45px_rgba(15,23,42,0.12)] select-none">
+      <div className="min-w-0">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={handlePrevMonth}
+            className="grid size-8 shrink-0 place-items-center rounded-full text-slate-700 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <h3 className="min-w-0 flex-1 truncate text-center text-base font-bold text-slate-900">
+            {MONTH_NAMES[monthDate.getMonth()]} {monthDate.getFullYear()}
+          </h3>
+          <button
+            type="button"
+            onClick={handleNextMonth}
+            className="grid size-8 shrink-0 place-items-center rounded-full text-slate-700 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
+            aria-label="Next month"
+          >
+            <ChevronRight className="size-5" />
+          </button>
+        </div>
+
+        <div className="mb-2 grid grid-cols-7 gap-y-1 text-center text-[11px] font-medium text-slate-500">
+          {WEEKDAY_LABELS.map((day, index) => (
+            <span key={`${day}-${index}`}>{day}</span>
+          ))}
+        </div>
+        <div
+          ref={gridRef}
+          className="grid grid-cols-7 gap-y-1 touch-none text-center"
+          onPointerMove={(e) => {
+            if (!dragActiveRef.current) return;
+            updateHoverFromClientPoint(e.clientX, e.clientY);
+          }}
         >
-          <ChevronLeft className="size-6" />
-        </button>
-        <button
-          type="button"
-          onClick={() => onMonthChange(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1))}
-          className="absolute -right-2 -top-1 grid size-9 place-items-center rounded-full text-[color:var(--brand-green)] transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
-          aria-label="Show next month"
-        >
-          <ChevronRight className="size-6" />
-        </button>
+          {monthDays.map(({ date, isCurrentMonth }) => {
+            const isUnavailable = !isCurrentMonth || date < todayStart;
+            const range = liveRange;
+            const inRange = range ? isDayInInclusiveRange(date, range.start, range.end) : false;
+            const t = dayTime(date);
+            const lo = range ? Math.min(dayTime(range.start), dayTime(range.end)) : null;
+            const hi = range ? Math.max(dayTime(range.start), dayTime(range.end)) : null;
+            const multiDay = Boolean(range && lo !== hi);
+            const isLow = range && t === lo;
+            const isHigh = range && t === hi;
+            const isMiddle = Boolean(multiDay && inRange && !isLow && !isHigh);
+            const isEndpointBubble = Boolean(inRange && !isMiddle);
 
-        {calendarMonths.map((monthDate) => {
-          const monthDays = buildMonthDays(monthDate);
-
-          return (
-            <div key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`} className="px-1">
-              <h3 className="text-center text-base font-black">
-                {MONTH_NAMES[monthDate.getMonth()]} {monthDate.getFullYear()}
-              </h3>
-              <div className="mt-6 grid grid-cols-7 border-b border-slate-200 pb-3 text-center text-sm font-semibold text-slate-600">
-                {WEEKDAY_LABELS.map((day, index) => (
-                  <span key={`${day}-${index}`}>{day}</span>
-                ))}
-              </div>
-              <div className="mt-3 grid grid-cols-7 gap-y-3 text-center">
-                {monthDays.map(({ date, isCurrentMonth }) => {
-                  const isUnavailable = !isCurrentMonth || date <= todayStart;
-                  const isSelected = isSameCalendarDay(date, selectedDate);
-
-                  return (
-                    <button
-                      key={getDateKey(date)}
-                      type="button"
-                      disabled={isUnavailable}
-                      onClick={() => onSelectDate(date)}
-                      className={`mx-auto flex min-h-12 w-11 flex-col items-center justify-center rounded-[4px] text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] ${
-                        isSelected
-                          ? "bg-[color:var(--brand-green)] font-black text-white"
-                          : isUnavailable
-                            ? "cursor-not-allowed text-slate-400 line-through"
-                            : "font-black text-[color:var(--brand-green)] hover:bg-emerald-50"
-                      }`}
-                    >
-                      <span>{date.getDate()}</span>
-                      {isCurrentMonth && !isUnavailable && (
-                        <span className={`text-xs font-semibold ${isSelected ? "text-white" : "text-slate-600"}`}>
-                          {priceLabel}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-6 space-y-2 text-xs text-slate-600">
-        <p>Showing prices in USD</p>
-        <p>Adult pricing shown in calendar</p>
+            return (
+              <button
+                key={`${monthDate.getFullYear()}-${monthDate.getMonth()}-${getDateKey(date)}`}
+                type="button"
+                tabIndex={isUnavailable ? -1 : 0}
+                aria-disabled={isUnavailable}
+                className={`relative mx-auto flex size-9 items-center justify-center text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] ${
+                  isUnavailable ? "cursor-not-allowed text-slate-400" : "font-medium text-slate-900"
+                } ${!isUnavailable ? "hover:bg-slate-100" : ""} `}
+                {...(isUnavailable
+                  ? { disabled: true }
+                  : {
+                      "data-cal-selectable": true,
+                      "data-cal-day": getDateKey(date),
+                      onPointerDown: (e) => {
+                        if (e.button !== 0) return;
+                        e.preventDefault();
+                        dragActiveRef.current = true;
+                        anchorRef.current = date;
+                        hoverRef.current = date;
+                        if (gridRef.current != null && typeof e.pointerId === "number") {
+                          try {
+                            gridRef.current.setPointerCapture(e.pointerId);
+                            captureIdRef.current = e.pointerId;
+                          } catch {
+                            captureIdRef.current = null;
+                          }
+                        }
+                        bump();
+                      },
+                      onPointerEnter: () => {
+                        if (!dragActiveRef.current) return;
+                        hoverRef.current = date;
+                        bump();
+                      },
+                    })}
+              >
+                {isMiddle ? (
+                  <span className="pointer-events-none absolute inset-y-px left-0 right-0 bg-emerald-100" aria-hidden />
+                ) : null}
+                <span
+                  className={`relative z-[1] grid size-9 place-items-center rounded-md ${
+                    isEndpointBubble ? "bg-[color:var(--brand-green)] font-semibold text-white" : ""
+                  }`}
+                >
+                  {date.getDate()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -458,7 +581,7 @@ function TourDetailContent() {
   const currentTour = useMemo(() => getTourByTitle(selectedTourTitle), [selectedTourTitle]);
   const selectedTourRatingNumber = Number.parseFloat(currentTour?.rating) || tourData.ratingsAverage;
   const selectedTourReviewsNumber = parseReviewCount(currentTour?.reviews) || tourData.ratingsQuantity;
-  const [selectedDate, setSelectedDate] = useState();
+  const [bookingDateRange, setBookingDateRange] = useState(null);
   const [isDateCalendarOpen, setIsDateCalendarOpen] = useState(false);
   const [isTravelerPickerOpen, setIsTravelerPickerOpen] = useState(false);
   const [calendarMonthCursor, setCalendarMonthCursor] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -489,7 +612,6 @@ function TourDetailContent() {
     fullDescription: true,
   });
   const [fullDescriptionExpanded, setFullDescriptionExpanded] = useState(false);
-  const activeDetailTabIndex = Math.max(0, TOUR_DETAIL_TABS.findIndex((tab) => tab.key === activeDetailTab));
   const reviewBreakdown = useMemo(
     () => buildReviewBreakdown(selectedTourRatingNumber, selectedTourReviewsNumber),
     [selectedTourRatingNumber, selectedTourReviewsNumber]
@@ -608,15 +730,40 @@ function TourDetailContent() {
   const convertedUnitPrice = convertPrice(selectedTourPriceNumber);
   const convertedTotalPrice = convertPrice(totalPrice);
   const today = useMemo(() => new Date(), []);
-  const selectedDateLabel = selectedDate
-    ? selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })
-    : "Select date";
-  const selectedDateWarningLabel = selectedDate
-    ? selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
-    : "your selected date";
+  const selectedDateLabel = useMemo(() => {
+    if (!bookingDateRange?.start || !bookingDateRange?.end) return "Select date";
+    const { start, end } = bookingDateRange;
+    if (isSameCalendarDay(start, end)) {
+      return start.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+    }
+    const sameYear = start.getFullYear() === end.getFullYear();
+    const startPart = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const endPart = end.toLocaleDateString(
+      "en-US",
+      sameYear ? { month: "short", day: "numeric", year: "numeric" } : { month: "short", day: "numeric", year: "numeric" }
+    );
+    return `${startPart} – ${endPart}`;
+  }, [bookingDateRange]);
+  const selectedDateWarningLabel = useMemo(() => {
+    if (!bookingDateRange?.start || !bookingDateRange?.end) return "your selected date";
+    const { start, end } = bookingDateRange;
+    if (isSameCalendarDay(start, end)) {
+      return start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    }
+    const startWarn = start.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const endWarn = end.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    return `${startWarn} – ${endWarn}`;
+  }, [bookingDateRange]);
+
+  const commitBookingRange = useCallback((start, end) => {
+    const { start: normStart, end: normEnd } = normalizeBookingRange(start, end);
+    setBookingDateRange({ start: normStart, end: normEnd });
+    setCalendarMonthCursor(new Date(normStart.getFullYear(), normStart.getMonth(), 1));
+    setIsDateCalendarOpen(false);
+  }, []);
 
   const handleCheckAvailability = () => {
-    if (!selectedDate) return;
+    if (!bookingDateRange?.start) return;
 
     const added = addToCart({
       tourId: id,
@@ -626,7 +773,10 @@ function TourDetailContent() {
       rating: String(selectedTourRatingNumber),
       reviews: String(selectedTourReviewsNumber),
       image: mergedImages[0] || tourData.imageCover,
-      selectedDate: selectedDate.toISOString(),
+      selectedDate: bookingDateRange.start.toISOString(),
+      ...( !isSameCalendarDay(bookingDateRange.start, bookingDateRange.end) && {
+        selectedDateEnd: bookingDateRange.end.toISOString(),
+      }),
       adults,
       seniors,
       youths,
@@ -637,12 +787,6 @@ function TourDetailContent() {
     if (added) {
       navigate("/cart");
     }
-  };
-
-  const handleCalendarDateSelect = (date) => {
-    setSelectedDate(date);
-    setCalendarMonthCursor(new Date(date.getFullYear(), date.getMonth(), 1));
-    setIsDateCalendarOpen(false);
   };
 
   const handleOpenReplyDialog = (question) => {
@@ -1167,10 +1311,14 @@ function TourDetailContent() {
               <button
                 type="button"
                 onClick={handleWishlistToggle}
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 shadow-[0_2px_10px_rgba(15,23,42,0.18)] transition hover:bg-white/95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                aria-label={isFavorited ? "Remove from wishlist" : "Add to wishlist"}
+                aria-pressed={isFavorited}
+                className="inline-grid size-11 shrink-0 place-items-center rounded-full bg-white text-slate-950 shadow-[0_2px_10px_rgba(15,23,42,0.18)] transition hover:bg-white/95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.98] touch-manipulation"
               >
-                <Heart className={`size-5 ${isFavorited ? "fill-red-500 text-red-500" : ""}`} />
-                Add to Wishlist
+                <Heart
+                  className={`size-6 ${isFavorited ? "fill-[color:var(--brand-green)] text-[color:var(--brand-green)]" : "fill-none text-slate-900"}`}
+                  aria-hidden
+                />
               </button>
             </div>
 
@@ -1265,9 +1413,8 @@ function TourDetailContent() {
                   <BookingCalendarPopover
                     monthCursor={calendarMonthCursor}
                     onMonthChange={setCalendarMonthCursor}
-                    onSelectDate={handleCalendarDateSelect}
-                    priceLabel={convertedUnitPrice.formatted}
-                    selectedDate={selectedDate}
+                    onCommitRange={commitBookingRange}
+                    selectedRange={bookingDateRange}
                     today={today}
                   />
                 )}
@@ -1325,7 +1472,7 @@ function TourDetailContent() {
 
               <Button
                 onClick={handleCheckAvailability}
-                disabled={!selectedDate}
+                disabled={!bookingDateRange}
                 className="mt-4 h-12 w-full rounded-full bg-[color:var(--brand-green)] text-base font-black !text-white hover:bg-[color:var(--brand-green)]/90 disabled:opacity-60"
               >
                 Check availability
@@ -1341,7 +1488,7 @@ function TourDetailContent() {
                     <button
                       key={date}
                       type="button"
-                      onClick={() => handleCalendarDateSelect(availableDate)}
+                      onClick={() => commitBookingRange(availableDate, availableDate)}
                       className="rounded-full border border-[color:var(--brand-green)] px-3 py-1.5 text-xs font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
                     >
                       {label}
@@ -1376,12 +1523,8 @@ function TourDetailContent() {
         </nav>
 
         <div className="mt-5">
-          <div className="min-w-0 overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-out"
-              style={{ transform: `translateX(-${activeDetailTabIndex * 100}%)` }}
-            >
-              <div className="w-full shrink-0 space-y-8 pr-px">
+          <div className="min-w-0">
+            {activeDetailTab === "overview" && (
             <section id="overview" className="border-b border-slate-200 pb-6">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">About</h2>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-[color:var(--brand-green)]/85">
@@ -1479,9 +1622,9 @@ function TourDetailContent() {
                 </div>
               </div>
             </section>
-              </div>
+            )}
 
-              <div className="w-full shrink-0 space-y-8 pr-px">
+            {activeDetailTab === "details" && (
             <section id="details" className="border-b border-slate-200 pb-6">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">Details</h2>
               <div className="mt-4 divide-y divide-slate-200">
@@ -1503,9 +1646,9 @@ function TourDetailContent() {
                 })}
               </div>
             </section>
-              </div>
+            )}
 
-              <div className="w-full shrink-0 space-y-8 pr-px">
+            {activeDetailTab === "itinerary" && (
             <section id="itinerary" className="border-b border-slate-200 pb-8">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">Itinerary</h2>
               <div className="mt-5 grid gap-6 lg:grid-cols-[330px_minmax(0,1fr)]">
@@ -1538,9 +1681,10 @@ function TourDetailContent() {
                 </div>
               </div>
             </section>
-              </div>
+            )}
 
-              <div className="w-full shrink-0 space-y-8 pr-px">
+            {activeDetailTab === "reviews" && (
+            <>
             <section id="reviews" className="border-b border-slate-200 pb-8">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <h2 className="text-2xl font-black text-slate-950">Reviews</h2>
@@ -1728,10 +1872,10 @@ function TourDetailContent() {
               </div>
               <button type="button" className="mt-2 text-xs font-bold underline">See all 853 reviews</button>
             </section>
-              </div>
-
-            </div>
+            </>
+            )}
           </div>
+        </div>
 
           <aside className="hidden">
             <div className="text-sm text-[color:var(--brand-green)]">
@@ -1768,9 +1912,8 @@ function TourDetailContent() {
                   <BookingCalendarPopover
                     monthCursor={calendarMonthCursor}
                     onMonthChange={setCalendarMonthCursor}
-                    onSelectDate={handleCalendarDateSelect}
-                    priceLabel={convertedUnitPrice.formatted}
-                    selectedDate={selectedDate}
+                    onCommitRange={commitBookingRange}
+                    selectedRange={bookingDateRange}
                     today={today}
                   />
                 )}
@@ -1832,7 +1975,7 @@ function TourDetailContent() {
 
               <Button
                 onClick={handleCheckAvailability}
-                disabled={!selectedDate}
+                disabled={!bookingDateRange}
                 className="mt-4 h-12 w-full rounded-full bg-[color:var(--brand-green)] text-base font-black !text-white hover:bg-[color:var(--brand-green)]/90 disabled:opacity-60"
               >
                 Check availability
@@ -1848,7 +1991,7 @@ function TourDetailContent() {
                     <button
                       key={date}
                       type="button"
-                      onClick={() => handleCalendarDateSelect(availableDate)}
+                      onClick={() => commitBookingRange(availableDate, availableDate)}
                       className="rounded-full border border-[color:var(--brand-green)] px-3 py-1.5 text-xs font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
                     >
                       {label}
@@ -1860,7 +2003,6 @@ function TourDetailContent() {
               {postedToursAside}
             </div>
           </aside>
-        </div>
 
         <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
           <DialogContent className="max-w-[560px] text-[color:var(--brand-green)]">

@@ -6,7 +6,8 @@ const CART_ITEM_TTL_MS = 25 * 60 * 1000;
 
 const CartContext = createContext();
 
-const getItemKey = (item) => `${item.title}__${item.selectedDate}`;
+const getItemKey = (item) =>
+  `${item.title}__${item.selectedDate}${item.selectedDateEnd ? `__${item.selectedDateEnd}` : ""}`;
 
 const removeExpiredItems = (items) => {
   const now = Date.now();

@@ -2,15 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 
 /**
  * HomePage loading orchestration.
- * - After splash: show skeleton for 1 second before rendering content
- * - Subsequent mounts in the same app session: instant (served from query cache)
+ * - First paint in a session: brief skeleton (~250ms) unless skipInitialDelay (e.g. returning from sign-in)
+ * - Subsequent mounts: instant (query cache)
  */
 export function useHomePageData({ skipInitialDelay = false } = {}) {
   return useQuery({
     queryKey: ["homePage", "initialLoad", skipInitialDelay ? "skipDelay" : "withDelay"],
     queryFn: async () => {
       if (!skipInitialDelay) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 250));
       }
       return {
         loaded: true,
