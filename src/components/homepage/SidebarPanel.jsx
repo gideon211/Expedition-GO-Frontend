@@ -26,7 +26,7 @@ function PanelHeading({ title, linkTo }) {
       <Link
         to={linkTo}
         onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
-        className="group inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[13px] font-semibold text-slate-700 transition hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
+        className="group relative z-10 inline-flex shrink-0 touch-manipulation items-center gap-1 whitespace-nowrap text-[13px] font-semibold text-slate-700 transition hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
       >
         <span className="relative">
           {t('sections.viewAll')}

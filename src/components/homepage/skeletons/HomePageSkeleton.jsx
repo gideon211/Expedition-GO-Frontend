@@ -7,14 +7,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function HomePageSkeleton() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[color:var(--page-bg)] text-slate-900">
+    <div className="min-h-[100svh] min-h-screen overflow-x-hidden bg-[color:var(--page-bg)] pb-[env(safe-area-inset-bottom,0)] text-slate-900 supports-[min-height:100dvh]:min-h-[100dvh]">
       <Navbar />
       <div className="hidden lg:block lg:h-[104px]" />
       <div className="h-0 lg:hidden" />
       <HeroSkeleton />
 
-      <main className="mx-auto max-w-[1520px] overflow-hidden px-4 pb-[3.4rem] sm:px-6 sm:pb-14">
-        <div className="grid gap-[2.125rem] md:gap-8 xl:gap-7 xl:grid-cols-[minmax(0,1fr)_430px]">
+      <main className="mx-auto w-full max-w-[1520px] overflow-hidden px-4 pb-[3.4rem] sm:px-6 sm:pb-14">
+        <div className="grid gap-[1.65rem] min-[640px]:gap-[2.125rem] md:gap-8 xl:grid-cols-[minmax(0,1fr)_430px] xl:gap-7">
           <div className="min-w-0 space-y-[1.7rem] pt-[1.4875rem] md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
             <TourCarouselSkeleton delay={0} />
             <div className="space-y-[1.7rem] pt-0 md:space-y-6 md:pt-4 xl:space-y-4 xl:pt-5">

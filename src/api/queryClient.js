@@ -1,6 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
 
-import { ApiError } from "./client";
+function getErrorStatus(error) {
+  if (!error || typeof error !== "object") return undefined;
+  if (typeof error.status === "number") return error.status;
+  return undefined;
+}
 
 /**
  * Production-ready QueryClient configuration.
@@ -15,9 +19,8 @@ export function createQueryClient() {
         gcTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         retry: (failureCount, error) => {
-          if (error instanceof ApiError) {
-            if ([400, 401, 403, 404, 422].includes(error.status)) return false;
-          }
+          const status = getErrorStatus(error);
+          if (status != null && [400, 401, 403, 404, 422].includes(status)) return false;
           return failureCount < 2;
         },
         retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8_000),

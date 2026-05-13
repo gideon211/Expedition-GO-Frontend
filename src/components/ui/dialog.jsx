@@ -39,7 +39,7 @@ const DialogContent = React.forwardRef(function DialogContent(
       >
         {children}
         {hideCloseButton ? null : (
-          <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex size-8 items-center justify-center rounded-full text-[color:var(--admin-muted)] hover:bg-[color:var(--admin-border-soft)]">
+          <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex size-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100">
             <X className="size-4" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
@@ -61,7 +61,7 @@ const DialogTitle = React.forwardRef(function DialogTitle({ className, ...props 
   return (
     <DialogPrimitive.Title
       ref={ref}
-      className={cn("text-lg font-semibold tracking-tight text-[color:var(--admin-text)]", className)}
+      className={cn("text-lg font-semibold tracking-tight text-slate-900", className)}
       {...props}
     />
   );
@@ -71,7 +71,7 @@ const DialogDescription = React.forwardRef(function DialogDescription({ classNam
   return (
     <DialogPrimitive.Description
       ref={ref}
-      className={cn("text-sm text-[color:var(--admin-muted)]", className)}
+      className={cn("text-sm text-slate-600", className)}
       {...props}
     />
   );

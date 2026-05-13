@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./styles/admin-theme.css";
 
 @font-face {
   font-family: "Plus Jakarta Sans";
@@ -246,7 +245,33 @@ button:disabled,
   }
 }
 
+/* Short wipe for post–sign-in splash (~1s; pair with JS timeout ≤1200ms) */
+.brand-loader--splash .brand-loader__fill-wrap {
+  animation: brandLoaderWipeSplash 0.92s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+@keyframes brandLoaderWipeSplash {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: calc(100% + 1.1ch);
+  }
+}
+
+@media (max-width: 1024px) {
+  .brand-loader--splash .brand-loader__fill {
+    font-size: clamp(48px, 8vw, 76px);
+    letter-spacing: -3px;
+  }
+}
+
 @media (max-width: 900px) {
+  .brand-loader--splash .brand-loader__fill {
+    font-size: clamp(38px, 10vw, 62px);
+    letter-spacing: -2px;
+  }
+
   .brand-loader__fill {
     font-size: 62px;
     letter-spacing: -2px;
@@ -254,6 +279,11 @@ button:disabled,
 }
 
 @media (max-width: 520px) {
+  .brand-loader--splash .brand-loader__fill {
+    font-size: clamp(28px, 9.5vw, 42px);
+    letter-spacing: -1px;
+  }
+
   .brand-loader__fill {
     font-size: 42px;
     letter-spacing: -1px;

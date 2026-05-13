@@ -13,44 +13,73 @@ export function TourCard({ title, duration, price, rating, reviews, image, disco
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
   const isFavorited = isInWishlist(title);
-  const pointerStartRef = useRef({ x: 0, y: 0 });
-  const isDraggingRef = useRef(false);
+  /** Tracks this pointer gesture so carousel horizontal scroll does not cancel every tap. */
+  const panRef = useRef({
+    active: false,
+    originX: 0,
+    originY: 0,
+    maxAbsDx: 0,
+    maxAbsDy: 0,
+  });
+  /** Set in pointerup/cancel before click; true = user was panning the carousel, not tapping. */
+  const lastGestureWasPanRef = useRef(false);
 
   // Convert price
   const convertedPrice = convertPrice(price);
 
   const handleHeartClick = (e) => {
+    e.preventDefault();
     e.stopPropagation();
     toggleWishlist({ title, duration, price, rating, reviews, image, discount });
   };
 
-  const handlePointerDown = (e) => {
-    pointerStartRef.current = {
-      x: e.clientX,
-      y: e.clientY
+  const resetPanTracking = () => {
+    panRef.current = {
+      active: false,
+      originX: 0,
+      originY: 0,
+      maxAbsDx: 0,
+      maxAbsDy: 0,
     };
-    isDraggingRef.current = false;
+  };
+
+  const handlePointerDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    panRef.current = {
+      active: true,
+      originX: e.clientX,
+      originY: e.clientY,
+      maxAbsDx: 0,
+      maxAbsDy: 0,
+    };
+    lastGestureWasPanRef.current = false;
   };
 
   const handlePointerMove = (e) => {
-    if (pointerStartRef.current.x === 0 && pointerStartRef.current.y === 0) return;
-    
-    const deltaX = Math.abs(e.clientX - pointerStartRef.current.x);
-    const deltaY = Math.abs(e.clientY - pointerStartRef.current.y);
-    
-    // Only consider it dragging if horizontal movement is significant
-    // and greater than vertical movement (horizontal scroll)
-    if (deltaX > 5 && deltaX > deltaY) {
-      isDraggingRef.current = true;
-    }
+    if (!panRef.current.active) return;
+
+    const dx = Math.abs(e.clientX - panRef.current.originX);
+    const dy = Math.abs(e.clientY - panRef.current.originY);
+    panRef.current.maxAbsDx = Math.max(panRef.current.maxAbsDx, dx);
+    panRef.current.maxAbsDy = Math.max(panRef.current.maxAbsDy, dy);
+  };
+
+  const endPointerGesture = () => {
+    if (!panRef.current.active) return;
+    const { maxAbsDx, maxAbsDy } = panRef.current;
+    resetPanTracking();
+    // Only treat as "carousel pan" if movement clearly dominated horizontal (not finger jitter).
+    const PAN_MIN_PX = 20;
+    const HORIZONTAL_DOMINANCE = 1.35;
+    lastGestureWasPanRef.current =
+      maxAbsDx >= PAN_MIN_PX && maxAbsDx > maxAbsDy * HORIZONTAL_DOMINANCE;
   };
 
   const handleCardClick = (e) => {
-    // Don't navigate if user was dragging/scrolling horizontally
-    if (isDraggingRef.current) {
+    if (lastGestureWasPanRef.current) {
+      lastGestureWasPanRef.current = false;
       return;
     }
-    // Navigate to tour detail page
     navigate(`/tour/${encodeURIComponent(title)}`);
   };
   
@@ -62,7 +91,9 @@ export function TourCard({ title, duration, price, rating, reviews, image, disco
       onClick={handleCardClick}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
-      className="group overflow-hidden rounded-b-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-0.5 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] cursor-pointer"
+      onPointerUp={endPointerGesture}
+      onPointerCancel={endPointerGesture}
+      className="group touch-manipulation overflow-hidden rounded-b-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-0.5 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] cursor-pointer"
     >
       <div className={`relative ${imageHeightClass} overflow-hidden bg-slate-100`}>
         <img 

@@ -19,10 +19,8 @@ import SignInPage from "@/pages/SignInPage";
 import SignOutPage from "@/pages/SignOutPage";
 import SupportPage from "@/pages/SupportPage";
 import SettingsPage from "@/pages/SettingsPage";
-import AdminRoutes from "@/routes/AdminRoutes";
 
 function AppContent() {
-  // Handle scroll restoration for all routes
   useScrollRestoration();
   const { loading } = useAuth();
 
@@ -56,7 +54,6 @@ function AppContent() {
             <Route path="/signout" element={<SignOutPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/admin/*" element={<AdminRoutes />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </CartProvider>
@@ -67,7 +64,7 @@ function AppContent() {
 
 function App() {
   return (
-    <ErrorBoundary goHomeLink="/" goHomeLabel="Go Home" goAdminLink="/admin" goAdminLabel="Go to Admin">
+    <ErrorBoundary goHomeLink="/" goHomeLabel="Go Home">
       <AuthProvider>
         <AppContent />
       </AuthProvider>

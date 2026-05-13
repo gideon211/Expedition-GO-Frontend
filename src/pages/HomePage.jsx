@@ -12,6 +12,7 @@ import { TourCarouselSection } from "@/components/homepage/TourCarouselSection";
 import { NewsletterSection } from "@/components/homepage/NewsletterSection";
 import { FeaturesSection } from "@/components/homepage/FeaturesSection";
 import { HomePageSkeleton } from "@/components/homepage/skeletons/HomePageSkeleton";
+import BrandLoader from "@/components/ui/BrandLoader";
 import { leisureTours, pickupTours, recommendedTours, topRatedTours } from "@/components/homepage/data";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
@@ -19,15 +20,38 @@ import { AuthModal } from "@/components/ui/auth-modal";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useHomePageData } from "@/hooks/useHomePageData";
 
+/** Post–sign-in/register handoff: show brand splash, stay under ~1200ms. */
+const POST_AUTH_SPLASH_MS = 1120;
+
 function HomePageContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthModalOpen, closeAuthModal } = useAuthModal();
   const { t } = useTranslation();
-  const [skipInitialHomeDelay] = useState(
-    Boolean(location.state?.skipHomeSkeletonDelay || location.state?.showQuickHomeSkeleton)
+  const [skipInitialHomeDelay] = useState(() =>
+    Boolean(location.state?.skipHomeSkeletonDelay || location.state?.showQuickHomeSkeleton),
   );
-  const { isLoading } = useHomePageData({ skipInitialDelay: skipInitialHomeDelay });
+  const [showPostAuthSplash] = useState(() => Boolean(location.state?.postAuthSplash));
+  const [authHandoffId] = useState(() =>
+    typeof location.state?.handoffId === "number" && Number.isFinite(location.state.handoffId)
+      ? location.state.handoffId
+      : null,
+  );
+  const [splashKind] = useState(() => location.state?.splashKind ?? "signin");
+  const [splashVisible, setSplashVisible] = useState(() => Boolean(location.state?.postAuthSplash));
+  /** Home fetch waits until splash ends so skeleton can run after splash (not during). */
+  const homeDataEnabled = !showPostAuthSplash || !splashVisible;
+  const homeLoad = useHomePageData({
+    skipInitialDelay: skipInitialHomeDelay,
+    enabled: homeDataEnabled,
+    handoffNonce: authHandoffId,
+    postAuthHandoff: authHandoffId != null,
+  });
+  /** Use fetchStatus + fresh handoff nonce so skeleton does not disappear when TanStack skips isLoading during cache quirks. */
+  const homeReady =
+    homeDataEnabled &&
+    Boolean(homeLoad.data?.loaded) &&
+    homeLoad.fetchStatus !== "fetching";
   const showLogoutToast = Boolean(location.state?.showLogoutToast);
   const [sharedHeroDateRange, setSharedHeroDateRange] = useState({ from: null, to: null });
   const [sharedSearchQuery, setSharedSearchQuery] = useState("");
@@ -35,21 +59,32 @@ function HomePageContent() {
   const [showCompactSearch, setShowCompactSearch] = useState(false);
 
   useEffect(() => {
-    if (!location.state?.skipHomeSkeletonDelay) {
+    if (!showPostAuthSplash) {
+      return;
+    }
+    const id = window.setTimeout(() => setSplashVisible(false), POST_AUTH_SPLASH_MS);
+    return () => window.clearTimeout(id);
+  }, [showPostAuthSplash]);
+
+  useEffect(() => {
+    if (!location.state?.skipHomeSkeletonDelay && !location.state?.postAuthSplash) {
       return;
     }
 
     navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
   }, [
     location.state?.skipHomeSkeletonDelay,
+    location.state?.postAuthSplash,
     navigate,
     location.pathname,
     location.search,
     location.hash,
   ]);
 
+  const authSplashBlocking = showPostAuthSplash && splashVisible;
+
   useEffect(() => {
-    if (!showLogoutToast || isLoading) {
+    if (!showLogoutToast || !homeReady || authSplashBlocking) {
       return;
     }
 
@@ -61,7 +96,8 @@ function HomePageContent() {
     navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
   }, [
     showLogoutToast,
-    isLoading,
+    homeReady,
+    authSplashBlocking,
     navigate,
     location.pathname,
     location.search,
@@ -92,7 +128,13 @@ function HomePageContent() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (isLoading) {
+  if (showPostAuthSplash && splashVisible) {
+    const splashLabel =
+      splashKind === "register" ? t("auth.successAccountCreated") : t("auth.successWelcomeBack");
+    return <BrandLoader fullScreen splash label={splashLabel} />;
+  }
+
+  if (!homeReady) {
     return <HomePageSkeleton />;
   }
 

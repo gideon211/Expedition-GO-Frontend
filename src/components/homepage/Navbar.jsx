@@ -271,7 +271,8 @@ export function Navbar({
 <img
   src={companyPic}
   alt="Expedition-Go Group Limited"
-  className="block w-auto object-contain leading-none h-14 sm:h-20 md:h-24 lg:h-24"
+          className="block w-auto object-contain leading-none h-14 sm:h-20 md:h-20 lg:h-20 xl:h-24"
+
 />
 </button>
 
@@ -279,7 +280,7 @@ export function Navbar({
           <div className="flex-1 justify-center hidden lg:flex">
             <form
               onSubmit={handleCompactSearchSubmit}
-              className="relative flex w-full max-w-[600px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm hover:shadow-md"
+              className="relative flex w-full max-w-[600px] lg:max-w-[420px] xl:max-w-[600px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm hover:shadow-md"
             >
               <Search className="size-4 text-(--brand-green)" />
               <input
@@ -332,139 +333,43 @@ export function Navbar({
           </div>
         )}
 
-        <div className="hidden items-center gap-6 lg:flex">
-          <Link to="/wishlist" className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer">
+        <div className="hidden items-center gap-6 lg:gap-3 xl:gap-6 lg:flex">
+          <Link to="/wishlist" className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer lg:p-2 xl:p-0">
             <Heart className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
-            <span className="text-xs font-semibold relative">
+            <span className="hidden xl:block text-xs font-semibold relative">
               {t('nav.wishlist')}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
           </Link>
-          <Link to="/cart" className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer">
+          <Link to="/cart" className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer lg:p-2 xl:p-0">
             <ShoppingCart className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
-            <span className="text-xs font-semibold  relative">
+            <span className="hidden xl:block text-xs font-semibold relative">
               {t('nav.cart')}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
           </Link>
-          <button className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer">
+          <button className="group flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer lg:p-2 xl:p-0">
             <svg className="size-5 transition group-hover:text-[color:var(--brand-green)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span className="text-xs relative font-semibold ">
+            <span className="hidden xl:block text-xs relative font-semibold">
               {t('nav.bookings')}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
           </button>
-          <div className="relative">
-            <button 
-              onClick={() => setIsLanguageCurrencyOpen(!isLanguageCurrencyOpen)}
-              className="group font-semibold  flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer"
-            >
-              <Globe className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
-              <span className="text-xs relative font-semibold ">
-                {getCurrentLanguageLabel()}/{currency} {availableCurrencies.find(c => c.code === currency)?.symbol}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
-              </span>
-            </button>
-            {isLanguageCurrencyOpen && (
-              <>
-                {/* Backdrop */}
-                <div 
-                  className="fixed inset-0 z-40" 
-                  onClick={() => setIsLanguageCurrencyOpen(false)}
-                />
-                {/* Popup */}
-                <div className="fixed lg:absolute left-4 right-4 top-20 lg:left-auto lg:right-0 lg:top-full mt-2 z-[60] w-auto lg:w-[500px] max-h-[600px] rounded-lg border border-slate-200 bg-white shadow-xl dark:!bg-white">
-                  {/* Header with close button */}
-                  <div className="flex items-center justify-between border-b border-slate-200 p-4">
-                    <div className="flex gap-6">
-                      <button
-                        onClick={() => setActiveTab("language")}
-                        className={`flex items-center gap-2 pb-2 text-sm font-semibold transition ${
-                          activeTab === "language"
-                            ? "border-b-2 border-[color:var(--brand-green)] text-[color:var(--brand-green)]"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        <Globe className="size-4" />
-                        Language
-                      </button>
-                      <button
-                        onClick={() => setActiveTab("currency")}
-                        className={`flex items-center gap-2 pb-2 text-sm font-semibold transition ${
-                          activeTab === "currency"
-                            ? "border-b-2 border-[color:var(--brand-green)] text-[color:var(--brand-green)]"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Currency
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => setIsLanguageCurrencyOpen(false)}
-                      className="text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="size-5" />
-                    </button>
-                  </div>
-
-                  {/* Content */}
-                  <div className="max-h-[500px] overflow-y-auto p-4">
-                    {activeTab === "language" ? (
-                      <div className="grid grid-cols-2 gap-3">
-                        {languages.map((lang) => (
-                          <button
-                            key={lang.code}
-                            onClick={() => handleLanguageChange(lang.code)}
-                            className={`flex items-center justify-between rounded-lg px-4 py-3 text-left text-sm transition ${
-                              i18n.language === lang.code
-                                ? "bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] font-semibold"
-                                : "text-slate-700 hover:bg-slate-50"
-                            }`}
-                          >
-                            <span>{lang.name}</span>
-                            {i18n.language === lang.code && (
-                              <svg className="size-5 text-[color:var(--brand-green)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3">
-                        {availableCurrencies.map((curr) => (
-                          <button
-                            key={curr.code}
-                            onClick={() => handleCurrencyChange(curr.code)}
-                            className={`flex items-center justify-between rounded-lg px-4 py-3 text-left text-sm transition ${
-                              currency === curr.code
-                                ? "bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] font-semibold"
-                                : "text-slate-700 hover:bg-slate-50"
-                            }`}
-                          >
-                            <div>
-                              <div className="font-medium">{curr.code}</div>
-                              <div className="text-xs text-slate-500">{curr.name}</div>
-                            </div>
-                            {currency === curr.code && (
-                              <svg className="size-5 text-[color:var(--brand-green)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsLanguageCurrencyOpen(!isLanguageCurrencyOpen)}
+            className="group font-semibold flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 cursor-pointer lg:p-2 xl:p-0"
+            aria-expanded={isLanguageCurrencyOpen}
+            aria-haspopup="dialog"
+          >
+            <Globe className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
+            <span className="hidden xl:block text-xs relative font-semibold">
+              {getCurrentLanguageLabel()}/{currency} {availableCurrencies.find(c => c.code === currency)?.symbol}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
+            </span>
+          </button>
           {!loading && (
             user ? (
               <div className="relative">
@@ -539,11 +444,11 @@ export function Navbar({
               <div className="relative">
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[color:var(--brand-green)] hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)]"
+                  className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-2 xl:px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[color:var(--brand-green)] hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)]"
                 >
-                  <UserCircle2 className="size-4 " />
-                  {t('nav.profile')}
-                  <ChevronDown className="size-4" />
+                  <UserCircle2 className="size-4" />
+                  <span className="hidden xl:inline">{t('nav.profile')}</span>
+                  <ChevronDown className="hidden xl:block size-4" />
                 </button>
                 {isUserMenuOpen && (
                   <>
@@ -588,26 +493,146 @@ export function Navbar({
           )}
         </div>
 
-        <button 
+        <button
+          type="button"
           onClick={toggleMobileMenu}
-          className="grid size-9 shrink-0 place-items-center rounded-full border border-slate-300 text-slate-950 sm:size-10 xl:hidden"
+          className="grid size-9 shrink-0 place-items-center rounded-full border border-slate-300 text-slate-950 sm:size-10 lg:hidden"
           aria-label="Toggle menu"
         >
           {isMobileMenuOpen ? <X className="size-4 sm:size-5" /> : <Menu className="size-4 sm:size-5" />}
         </button>
       </div>
 
+      {isLanguageCurrencyOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsLanguageCurrencyOpen(false)}
+            aria-hidden
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Language and currency"
+            className="fixed left-4 right-4 top-20 z-[60] max-h-[min(600px,calc(100vh-5.5rem))] w-auto overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl sm:left-6 sm:right-6 lg:left-auto lg:right-8 lg:top-24 lg:w-[500px] lg:max-h-[600px] dark:!bg-white"
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 p-4">
+              <div className="flex gap-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("language")}
+                  className={`flex items-center gap-2 pb-2 text-sm font-semibold transition ${
+                    activeTab === "language"
+                      ? "border-b-2 border-[color:var(--brand-green)] text-[color:var(--brand-green)]"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Globe className="size-4" />
+                  Language
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("currency")}
+                  className={`flex items-center gap-2 pb-2 text-sm font-semibold transition ${
+                    activeTab === "currency"
+                      ? "border-b-2 border-[color:var(--brand-green)] text-[color:var(--brand-green)]"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Currency
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLanguageCurrencyOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="max-h-[min(500px,calc(100vh-10rem))] overflow-y-auto p-4 lg:max-h-[500px]">
+              {activeTab === "language" ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      onClick={() => handleLanguageChange(lang.code)}
+                      className={`flex items-center justify-between rounded-lg px-4 py-3 text-left text-sm transition ${
+                        i18n.language === lang.code
+                          ? "bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] font-semibold"
+                          : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span>{lang.name}</span>
+                      {i18n.language === lang.code && (
+                        <svg className="size-5 shrink-0 text-[color:var(--brand-green)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {availableCurrencies.map((curr) => (
+                    <button
+                      key={curr.code}
+                      type="button"
+                      onClick={() => handleCurrencyChange(curr.code)}
+                      className={`flex items-center justify-between rounded-lg px-4 py-3 text-left text-sm transition ${
+                        currency === curr.code
+                          ? "bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] font-semibold"
+                          : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div>
+                        <div className="font-medium">{curr.code}</div>
+                        <div className="text-xs text-slate-500">{curr.name}</div>
+                      </div>
+                      {currency === curr.code && (
+                        <svg className="size-5 shrink-0 text-[color:var(--brand-green)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Mobile Search Bar - Removed, using hero search bar on mobile instead */}
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="border-t border-slate-200 !bg-white xl:hidden dark:!bg-white dark:border-slate-200">
+        <div className="border-t border-slate-200 !bg-white lg:hidden dark:!bg-white dark:border-slate-200">
           <div className="mx-auto max-w-[1520px] px-4 py-4 sm:px-6 dark:text-slate-950">
             {/* Actions */}
             <div className="flex flex-col gap-3">
-              <button className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950">
-                <Globe className="size-4" />
-                <span className="text-sm">English (US) • USD</span>
+              <button
+                type="button"
+                onClick={() => {
+                  closeMobileMenu();
+                  setIsLanguageCurrencyOpen(true);
+                }}
+                className="inline-flex w-full items-center gap-2 rounded-lg py-2 text-left text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+              >
+                <Globe className="size-4 shrink-0" />
+                <span className="text-sm">
+                  {(languages.find((l) => l.code === i18n.language)?.name) ?? getCurrentLanguageLabel()}
+                  {" · "}
+                  {currency}
+                  {availableCurrencies.find((c) => c.code === currency)?.symbol
+                    ? ` (${availableCurrencies.find((c) => c.code === currency).symbol})`
+                    : ""}
+                </span>
               </button>
               <Link
                 to="/wishlist"

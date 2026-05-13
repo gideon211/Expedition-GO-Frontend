@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarDays, Clock3, ShoppingCart, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -32,6 +32,7 @@ const formatRemainingTime = (ms) => {
 
 function CartPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { cart, removeFromCart, clearCart } = useCart();
   const { convertPrice } = useCurrency();
   const [now, setNow] = useState(Date.now());
@@ -56,13 +57,13 @@ function CartPage() {
 
       <main className="mx-auto w-full max-w-[1520px] px-3 py-5 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
         <div className="mb-6 sm:mb-8">
-          <Link
-            to="/"
-            className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[color:var(--brand-green)] sm:mb-4"
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[color:var(--brand-green)] sm:mb-4 cursor-pointer"
           >
             <ArrowLeft className="size-4" />
-            Back to Home
-          </Link>
+            Back
+          </button>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">

@@ -104,7 +104,13 @@ export function AuthForm({
           : t('auth.successWelcomeBack')
       );
 
-      navigate("/", { state: { skipHomeSkeletonDelay: true } });
+      navigate("/", {
+        state: {
+          postAuthSplash: true,
+          splashKind: isRegister ? "register" : "signin",
+          handoffId: Date.now(),
+        },
+      });
     } catch (submissionError) {
       setError(submissionError.message || t('auth.errorRequest'));
     } finally {
@@ -122,7 +128,7 @@ export function AuthForm({
       // Simple success message without Firebase details
       setSuccess(t('auth.successGoogleSignIn'));
 
-      navigate("/", { state: { skipHomeSkeletonDelay: true } });
+      navigate("/", { state: { postAuthSplash: true, splashKind: "signin", handoffId: Date.now() } });
     } catch (submissionError) {
       setError(submissionError.message || "We couldn't complete Google sign-in.");
     } finally {

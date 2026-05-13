@@ -1,16 +1,43 @@
 import { useQuery } from "@tanstack/react-query";
 
+const DEFAULT_INITIAL_DELAY_MS = 250;
+/** Slightly longer after auth handoff so the skeleton is visibly distinct from splash. */
+const POST_AUTH_INITIAL_DELAY_MS = 380;
+
 /**
  * HomePage loading orchestration.
- * - First paint in a session: brief skeleton (~250ms) unless skipInitialDelay (e.g. returning from sign-in)
- * - Subsequent mounts: instant (query cache)
+ * - Brief skeleton delay on first resolved load (unless `skipInitialDelay`)
+ * - Set `enabled: false` until a gate opens (e.g. post-auth splash finished) so the skeleton runs after splash
+ * - Pass `handoffNonce` after sign-in so React Query cannot reuse cached "already loaded" data and skip skeleton
  */
-export function useHomePageData({ skipInitialDelay = false } = {}) {
+export function useHomePageData({
+  skipInitialDelay = false,
+  enabled = true,
+  handoffNonce = null,
+  postAuthHandoff = false,
+} = {}) {
+  const delayMs = postAuthHandoff
+    ? POST_AUTH_INITIAL_DELAY_MS
+    : skipInitialDelay
+      ? 0
+      : DEFAULT_INITIAL_DELAY_MS;
+
+  const nonceKey =
+    typeof handoffNonce === "number" && Number.isFinite(handoffNonce) ? String(handoffNonce) : "stable";
+
+  const delayModeKey = delayMs === 0 ? "skipDelay" : delayMs === POST_AUTH_INITIAL_DELAY_MS ? "postAuthDelay" : "defaultDelay";
+
   return useQuery({
-    queryKey: ["homePage", "initialLoad", skipInitialDelay ? "skipDelay" : "withDelay"],
+    queryKey: [
+      "homePage",
+      "initialLoad",
+      delayModeKey,
+      postAuthHandoff ? "postAuth" : "default",
+      nonceKey,
+    ],
     queryFn: async () => {
-      if (!skipInitialDelay) {
-        await new Promise((resolve) => setTimeout(resolve, 250));
+      if (delayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
       return {
         loaded: true,
@@ -22,5 +49,6 @@ export function useHomePageData({ skipInitialDelay = false } = {}) {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    enabled,
   });
 }

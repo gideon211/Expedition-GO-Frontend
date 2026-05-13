@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useRef } from "react";
 
@@ -7,17 +8,37 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
 export function SidebarDealCard({ title, oldPrice, price, discount, countdown, image }) {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
   const isFavorited = isInWishlist(title);
-  const touchStartRef = useRef({ x: 0, y: 0 });
+
+  const panRef = useRef({
+    active: false,
+    originX: 0,
+    originY: 0,
+    maxAbsDx: 0,
+    maxAbsDy: 0,
+  });
+  const lastGestureWasPanRef = useRef(false);
+
+  const resetPanTracking = () => {
+    panRef.current = {
+      active: false,
+      originX: 0,
+      originY: 0,
+      maxAbsDx: 0,
+      maxAbsDy: 0,
+    };
+  };
 
   // Convert prices
   const convertedOldPrice = convertPrice(oldPrice);
   const convertedPrice = convertPrice(price);
 
   const handleHeartClick = (e) => {
+    e.preventDefault();
     e.stopPropagation();
     toggleWishlist({ 
       title, 
@@ -29,34 +50,52 @@ export function SidebarDealCard({ title, oldPrice, price, discount, countdown, i
     });
   };
 
-  const handleTouchStart = (e) => {
-    touchStartRef.current = {
-      x: e.touches?.[0].clientX || 0,
-      y: e.touches?.[0].clientY || 0
+  const handlePointerDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    panRef.current = {
+      active: true,
+      originX: e.clientX,
+      originY: e.clientY,
+      maxAbsDx: 0,
+      maxAbsDy: 0,
     };
+    lastGestureWasPanRef.current = false;
   };
 
-  const handleCardClick = (e) => {
-    // On mobile, check if this was a scroll or a tap
-    if (touchStartRef.current.x !== 0 || touchStartRef.current.y !== 0) {
-      const moveX = Math.abs((e.clientX || 0) - touchStartRef.current.x);
-      const moveY = Math.abs((e.clientY || 0) - touchStartRef.current.y);
-      // If movement > 10px, treat as scroll, not tap
-      if (moveX > 10 || moveY > 10) {
-        touchStartRef.current = { x: 0, y: 0 };
-        return;
-      }
-      touchStartRef.current = { x: 0, y: 0 };
+  const handlePointerMove = (e) => {
+    if (!panRef.current.active) return;
+    const dx = Math.abs(e.clientX - panRef.current.originX);
+    const dy = Math.abs(e.clientY - panRef.current.originY);
+    panRef.current.maxAbsDx = Math.max(panRef.current.maxAbsDx, dx);
+    panRef.current.maxAbsDy = Math.max(panRef.current.maxAbsDy, dy);
+  };
+
+  const endPointerGesture = () => {
+    if (!panRef.current.active) return;
+    const { maxAbsDx, maxAbsDy } = panRef.current;
+    resetPanTracking();
+    const PAN_MIN_PX = 20;
+    const HORIZONTAL_DOMINANCE = 1.35;
+    lastGestureWasPanRef.current =
+      maxAbsDx >= PAN_MIN_PX && maxAbsDx > maxAbsDy * HORIZONTAL_DOMINANCE;
+  };
+
+  const handleCardClick = () => {
+    if (lastGestureWasPanRef.current) {
+      lastGestureWasPanRef.current = false;
+      return;
     }
-    // Navigate to tour detail page
-    // Tracking will happen on the detail page when user actually views it
+    navigate(`/tour/${encodeURIComponent(title)}`);
   };
 
   return (
     <Card 
       onClick={handleCardClick}
-      onTouchStart={handleTouchStart}
-      className="overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-1 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] cursor-pointer"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={endPointerGesture}
+      onPointerCancel={endPointerGesture}
+      className="touch-manipulation overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-1 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] cursor-pointer"
     >
       <div className="relative h-36 overflow-hidden">
         <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 xl:hover:scale-105" />
