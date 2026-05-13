@@ -18,7 +18,6 @@ export function NewsletterSection() {
     e.preventDefault();
     if (email) {
       // Handle newsletter subscription
-      console.log("Subscribing email:", email);
       setIsSubscribed(true);
       setTimeout(() => {
         setEmail(user?.email || "");

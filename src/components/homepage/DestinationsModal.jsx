@@ -35,7 +35,7 @@ export function DestinationsModal({ isOpen, onClose }) {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 z-40 bg-black/50"
+            className="fixed inset-0 z-[70] cursor-pointer bg-black/50"
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -45,7 +45,7 @@ export function DestinationsModal({ isOpen, onClose }) {
 
           {/* Slide-out Panel */}
           <motion.div
-            className="fixed right-0 top-0 z-50 h-screen w-full max-w-2xl bg-white shadow-2xl flex flex-col"
+            className="fixed right-0 top-0 z-[80] h-screen w-full max-w-2xl bg-white shadow-2xl flex flex-col"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -77,7 +77,7 @@ export function DestinationsModal({ isOpen, onClose }) {
                 </div>
               ))}
             </div>
-            <button className="w-full rounded-lg border-2 border-slate-300 py-3 font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-50">
+            <button className="w-full rounded-lg border-2 border-slate-300 py-3 font-semibold text-[color:var(--brand-green)] transition hover:border-[color:var(--brand-green)]/35 hover:bg-[color:var(--brand-mist)]">
               See more <ChevronDown className="inline size-4 ml-1" />
             </button>
           </div>

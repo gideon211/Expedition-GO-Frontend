@@ -4,6 +4,7 @@ import { motion, useAnimation } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { CompactTourCard } from "./CompactTourCard";
 import { SidebarDealCard } from "./SidebarDealCard";
@@ -36,20 +37,23 @@ function PanelHeading({ title, linkTo }) {
   );
 }
 
-function SwipeableSection({ children, itemCount, originalChildren }) {
+function SwipeableSection({ children, itemCount, originalChildren, className, scrollClassName }) {
   const scrollRef = useRef(null);
 
   return (
     <>
       {/* Desktop: Grid layout - show original items only */}
-      <div className="hidden xl:grid xl:grid-cols-2 xl:gap-3">
+      <div className={cn("hidden xl:grid xl:grid-cols-2 xl:gap-3", className)}>
         {originalChildren}
       </div>
 
       {/* Mobile/Tablet: Native horizontal scroll */}
       <div 
         ref={scrollRef}
-        className="xl:hidden overflow-x-auto overflow-y-hidden flex gap-3 snap-x snap-mandatory scrollbar-hide"
+        className={cn(
+          "xl:hidden overflow-x-auto overflow-y-hidden flex gap-3 snap-x snap-mandatory scrollbar-hide",
+          scrollClassName,
+        )}
         style={{ 
           WebkitOverflowScrolling: 'touch',
           scrollSnapType: 'x mandatory'
@@ -66,7 +70,7 @@ export function SidebarPanel() {
   const sidebarNewExperiences = [...sidebarTopRated, ...sidebarTopRated.slice(0, 2)];
   
   return (
-    <aside className="space-y-[1.7rem] overflow-hidden md:space-y-6 xl:space-y-5">
+    <aside className="mt-13 space-y-[1.7rem] overflow-hidden md:space-y-6 xl:space-y-5">
       <Card className="rounded-[18px] border border-slate-200 bg-white shadow-sm overflow-hidden">
         <CardContent className="p-4 overflow-hidden">
           <PanelHeading title={t('sections.lastMinuteDeals')} linkTo="/tours?category=last-minute-deals" />
@@ -88,11 +92,13 @@ export function SidebarPanel() {
           </SwipeableSection>
         </CardContent>
       </Card>
-
-      <Card className="rounded-[18px] border border-slate-200 bg-white shadow-sm overflow-hidden">
+      
+<div className="mt-23">
+      <Card className="h-auto rounded-[18px] border border-slate-200 bg-white shadow-sm overflow-hidden">
         <CardContent className="p-4 overflow-hidden">
           <PanelHeading title={t('sections.newExperiences')} linkTo="/tours?category=new-experiences" />
           <SwipeableSection 
+            className="xl:gap-x-3 xl:gap-y-[calc(0.99rem*2.015)]"
             itemCount={sidebarNewExperiences.length}
             originalChildren={sidebarNewExperiences.map((tour, index) => (
               <div key={`${tour.title}-${index}`} className="xl:w-auto">
@@ -110,6 +116,7 @@ export function SidebarPanel() {
           </SwipeableSection>
         </CardContent>
       </Card>
+  </div>
 
       {/* <Card className="rounded-[18px] border border-slate-200 bg-[#fafaf8] shadow-sm">
         <CardContent className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">

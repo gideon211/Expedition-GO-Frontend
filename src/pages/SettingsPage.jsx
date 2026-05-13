@@ -62,12 +62,10 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     // Handle save logic here
-    console.log("Saving settings:", formData);
     setHasChanges(false);
   };
 
   const handleNotificationSave = () => {
-    console.log("Saving notifications:", notifications);
     setNotificationChanges(false);
   };
 

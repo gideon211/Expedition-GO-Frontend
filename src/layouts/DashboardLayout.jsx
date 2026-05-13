@@ -65,7 +65,7 @@ function Sidebar({ open, onClose }) {
     <>
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm lg:hidden",
+          "fixed inset-0 z-40 cursor-pointer bg-slate-950/55 backdrop-blur-sm lg:hidden",
           open ? "block" : "hidden",
         )}
         onClick={onClose}

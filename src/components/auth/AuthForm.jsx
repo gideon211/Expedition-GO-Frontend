@@ -67,6 +67,7 @@ export function AuthForm({
 
   const provider = getAuthProvider();
   const isRegister = mode === "register";
+  const isSubmitting = loading || googleLoading;
 
   function updateField(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -90,7 +91,7 @@ export function AuthForm({
     setLoading(true);
 
     try {
-      const result = await onSubmit({
+      await onSubmit({
         name: form.name,
         email: form.email,
         password: form.password,
@@ -103,9 +104,7 @@ export function AuthForm({
           : t('auth.successWelcomeBack')
       );
 
-      window.setTimeout(() => {
-        navigate("/");
-      }, 900);
+      navigate("/", { state: { skipHomeSkeletonDelay: true } });
     } catch (submissionError) {
       setError(submissionError.message || t('auth.errorRequest'));
     } finally {
@@ -119,13 +118,11 @@ export function AuthForm({
     setGoogleLoading(true);
 
     try {
-      const result = await signInWithGoogle();
+      await signInWithGoogle();
       // Simple success message without Firebase details
       setSuccess(t('auth.successGoogleSignIn'));
 
-      window.setTimeout(() => {
-        navigate("/");
-      }, 900);
+      navigate("/", { state: { skipHomeSkeletonDelay: true } });
     } catch (submissionError) {
       setError(submissionError.message || "We couldn't complete Google sign-in.");
     } finally {

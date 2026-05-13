@@ -27,6 +27,9 @@ export function Navbar({
   const [compactSearchQuery, setCompactSearchQuery] = useState("");
   const [showNavAutocomplete, setShowNavAutocomplete] = useState(false);
   const [userIsTyping, setUserIsTyping] = useState(false);
+  const [isDesktopViewport, setIsDesktopViewport] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 1024 : false
+  );
   const [mobileDateRange, setMobileDateRange] = useState({ from: null, to: null });
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
   const mobileCalendarRef = useRef(null);
@@ -46,6 +49,7 @@ export function Navbar({
   
   // Determine the active search query for autocomplete
   const activeSearchQuery = isExternalSearchMode ? (externalSearchQuery ?? "") : compactSearchQuery;
+  const isCompactSearchVisible = showCompactSearch || forceShowCompactSearch;
   
   // Get search results for navbar
   const navSearchResults = useSearchAutocomplete(activeSearchQuery);
@@ -125,6 +129,10 @@ export function Navbar({
 
   // Show autocomplete when there are results AND user is actively typing
   useEffect(() => {
+    if (!isDesktopViewport) {
+      setShowNavAutocomplete(false);
+      return;
+    }
     if (!userIsTyping) return;
     
     const query = isExternalSearchMode ? (externalSearchQuery ?? "") : compactSearchQuery;
@@ -133,13 +141,43 @@ export function Navbar({
     } else {
       setShowNavAutocomplete(false);
     }
-  }, [compactSearchQuery, externalSearchQuery, isExternalSearchMode, navSearchResults.total, userIsTyping]);
+  }, [compactSearchQuery, externalSearchQuery, isExternalSearchMode, navSearchResults.total, userIsTyping, isDesktopViewport]);
 
   // Close autocomplete and reset typing state when route changes
   useEffect(() => {
     setShowNavAutocomplete(false);
     setUserIsTyping(false);
   }, [location.pathname, location.search]);
+
+  // Keep local query synced with shared query to avoid stale input state.
+  useEffect(() => {
+    if (isExternalSearchMode) {
+      setCompactSearchQuery(externalSearchQuery ?? "");
+    }
+  }, [isExternalSearchMode, externalSearchQuery]);
+
+  // If user searched in hero and then scrolls to navbar, keep results available.
+  useEffect(() => {
+    if (!isDesktopViewport) {
+      setShowNavAutocomplete(false);
+      return;
+    }
+    if (location.pathname !== "/") return;
+    if (!isCompactSearchVisible) return;
+    if (activeSearchQuery.trim().length >= 2 && navSearchResults.total > 0) {
+      setShowNavAutocomplete(true);
+    }
+  }, [isCompactSearchVisible, activeSearchQuery, navSearchResults.total, isDesktopViewport, location.pathname]);
+
+  // Keep viewport mode in sync so mobile/tablet never mount desktop autocomplete.
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktopViewport(window.innerWidth >= 1024);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const getCurrentLanguageLabel = () => {
     const langMap = {
@@ -237,7 +275,7 @@ export function Navbar({
 />
 </button>
 
-        {(showCompactSearch || forceShowCompactSearch) && (
+        {isCompactSearchVisible && isDesktopViewport && (
           <div className="flex-1 justify-center hidden lg:flex">
             <form
               onSubmit={handleCompactSearchSubmit}

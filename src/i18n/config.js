@@ -190,6 +190,9 @@ const resources = {
         instantConfirmation: "Instant confirmation",
         aboutTour: "About this tour",
         highlights: "Highlights",
+        fullDescription: "Full description",
+        seeMore: "See more",
+        seeLess: "See less",
         itinerary: "Itinerary",
         whatsIncluded: "What's included",
         notSuitableFor: "Not suitable for",
@@ -201,7 +204,8 @@ const resources = {
         pickupIncluded: "Pickup Included",
         easy: "Easy",
         medium: "Medium",
-        hard: "Hard"
+        hard: "Hard",
+        viewPromoted: "View"
       }
     }
   },
@@ -391,6 +395,9 @@ const resources = {
         instantConfirmation: "Confirmación instantánea",
         aboutTour: "Acerca de este tour",
         highlights: "Aspectos destacados",
+        fullDescription: "Descripción completa",
+        seeMore: "Ver más",
+        seeLess: "Ver menos",
         itinerary: "Itinerario",
         whatsIncluded: "Qué está incluido",
         notSuitableFor: "No apto para",
@@ -402,7 +409,8 @@ const resources = {
         pickupIncluded: "Recogida incluida",
         easy: "Fácil",
         medium: "Medio",
-        hard: "Difícil"
+        hard: "Difícil",
+        viewPromoted: "Ver"
       }
     }
   },
@@ -592,6 +600,9 @@ const resources = {
         instantConfirmation: "Confirmation instantanée",
         aboutTour: "À propos de ce circuit",
         highlights: "Points forts",
+        fullDescription: "Description complète",
+        seeMore: "Voir plus",
+        seeLess: "Voir moins",
         itinerary: "Itinéraire",
         whatsIncluded: "Ce qui est inclus",
         notSuitableFor: "Ne convient pas pour",
@@ -603,7 +614,8 @@ const resources = {
         pickupIncluded: "Prise en charge incluse",
         easy: "Facile",
         medium: "Moyen",
-        hard: "Difficile"
+        hard: "Difficile",
+        viewPromoted: "Voir"
       }
     }
   },
@@ -793,6 +805,9 @@ const resources = {
         instantConfirmation: "Sofortige Bestätigung",
         aboutTour: "Über diese Tour",
         highlights: "Höhepunkte",
+        fullDescription: "Vollständige Beschreibung",
+        seeMore: "Mehr anzeigen",
+        seeLess: "Weniger anzeigen",
         itinerary: "Reiseverlauf",
         whatsIncluded: "Was ist inbegriffen",
         notSuitableFor: "Nicht geeignet für",
@@ -804,7 +819,8 @@ const resources = {
         pickupIncluded: "Abholung inbegriffen",
         easy: "Einfach",
         medium: "Mittel",
-        hard: "Schwer"
+        hard: "Schwer",
+        viewPromoted: "Ansehen"
       }
     }
   },
@@ -993,6 +1009,9 @@ const resources = {
         instantConfirmation: "Directe bevestiging",
         aboutTour: "Over deze tour",
         highlights: "Hoogtepunten",
+        fullDescription: "Volledige beschrijving",
+        seeMore: "Meer weergeven",
+        seeLess: "Minder weergeven",
         itinerary: "Reisroute",
         whatsIncluded: "Wat is inbegrepen",
         notSuitableFor: "Niet geschikt voor",
@@ -1004,7 +1023,8 @@ const resources = {
         pickupIncluded: "Ophaalservice inbegrepen",
         easy: "Gemakkelijk",
         medium: "Gemiddeld",
-        hard: "Moeilijk"
+        hard: "Moeilijk",
+        viewPromoted: "Bekijk"
       }
     }
   }

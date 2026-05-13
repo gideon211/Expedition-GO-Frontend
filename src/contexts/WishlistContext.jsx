@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 
+import { devWarn } from "@/lib/logger";
+
 const WishlistContext = createContext();
 
 export function WishlistProvider({ children }) {
@@ -10,7 +12,7 @@ export function WishlistProvider({ children }) {
     try {
       return JSON.parse(savedWishlist);
     } catch (error) {
-      console.error("Error loading wishlist:", error);
+      devWarn("[wishlist] Failed to parse localStorage", error);
       return [];
     }
   });

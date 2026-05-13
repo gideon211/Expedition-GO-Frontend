@@ -1,21 +1,22 @@
 import { getApiBaseUrl, getAuthToken } from "@/lib/auth";
 
 /**
- * Normalised API error returned to React Query / UI.
+ * Normalized API error for React Query/UI handling.
  */
 export class ApiError extends Error {
-  constructor({ message, status, data, url }) {
+  constructor({ message, status = 0, data = null, url = null }) {
     super(message || "Request failed");
     this.name = "ApiError";
-    this.status = status ?? 0;
-    this.data = data ?? null;
-    this.url = url ?? null;
+    this.status = status;
+    this.data = data;
+    this.url = url;
   }
 }
 
 function joinUrl(base, path) {
   if (!path) return base;
   if (/^https?:\/\//i.test(path)) return path;
+
   const cleanedBase = base.replace(/\/+$/, "");
   const cleanedPath = path.startsWith("/") ? path : `/${path}`;
   return `${cleanedBase}${cleanedPath}`;
@@ -23,22 +24,32 @@ function joinUrl(base, path) {
 
 function buildQuery(params) {
   if (!params) return "";
+
   const search = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === "") return;
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") continue;
+
     if (Array.isArray(value)) {
-      value.forEach((entry) => search.append(key, String(entry)));
-    } else {
-      search.append(key, String(value));
+      for (const entry of value) {
+        if (entry === undefined || entry === null || entry === "") continue;
+        search.append(key, String(entry));
+      }
+      continue;
     }
-  });
-  const str = search.toString();
-  return str ? `?${str}` : "";
+
+    search.append(key, String(value));
+  }
+
+  const query = search.toString();
+  return query ? `?${query}` : "";
 }
 
 async function parseResponse(response) {
-  const contentType = response.headers.get("content-type") || "";
   if (response.status === 204) return null;
+
+  const contentType = response.headers.get("content-type") || "";
+
   if (contentType.includes("application/json")) {
     try {
       return await response.json();
@@ -46,6 +57,7 @@ async function parseResponse(response) {
       return null;
     }
   }
+
   try {
     return await response.text();
   } catch {
@@ -53,21 +65,28 @@ async function parseResponse(response) {
   }
 }
 
+function getErrorMessage(data, response) {
+  return (
+    (data && typeof data === "object" && (data.message || data.error)) ||
+    response.statusText ||
+    `Request failed with status ${response.status}`
+  );
+}
+
 /**
- * Lightweight fetch wrapper used by every React Query hook.
- *
- * Options:
- *  - method: HTTP verb
- *  - params: object of query string params (skips null/undefined)
- *  - body: any JSON-serialisable body
- *  - signal: AbortSignal forwarded by React Query
- *  - auth: when false, skips attaching the Authorization header
+ * Lightweight fetch wrapper used by React Query hooks.
  */
 export async function apiRequest(path, options = {}) {
-  const { method = "GET", params, body, signal, auth = true, headers = {} } = options;
+  const {
+    method = "GET",
+    params,
+    body,
+    signal,
+    auth = true,
+    headers = {},
+  } = options;
 
-  const base = getApiBaseUrl();
-  const url = `${joinUrl(base, path)}${buildQuery(params)}`;
+  const url = `${joinUrl(getApiBaseUrl(), path)}${buildQuery(params)}`;
 
   const finalHeaders = {
     Accept: "application/json",
@@ -75,11 +94,13 @@ export async function apiRequest(path, options = {}) {
   };
 
   let payload;
+
   if (body !== undefined && body !== null) {
     if (body instanceof FormData) {
       payload = body;
     } else {
-      finalHeaders["Content-Type"] = finalHeaders["Content-Type"] || "application/json";
+      finalHeaders["Content-Type"] =
+        finalHeaders["Content-Type"] || "application/json";
       payload = typeof body === "string" ? body : JSON.stringify(body);
     }
   }
@@ -89,18 +110,24 @@ export async function apiRequest(path, options = {}) {
       const token = await getAuthToken();
       if (token) finalHeaders.Authorization = `Bearer ${token}`;
     } catch {
-      // Silent: requests can proceed unauthenticated, the backend will respond 401.
+      // Allow unauthenticated requests to proceed normally.
     }
   }
 
   let response;
   try {
-    response = await fetch(url, { method, headers: finalHeaders, body: payload, signal });
+    response = await fetch(url, {
+      method,
+      headers: finalHeaders,
+      body: payload,
+      signal,
+      credentials: "include",
+    });
   } catch (error) {
     if (error?.name === "AbortError") throw error;
+
     throw new ApiError({
       message: error?.message || "Network request failed",
-      status: 0,
       url,
     });
   }
@@ -108,19 +135,19 @@ export async function apiRequest(path, options = {}) {
   const data = await parseResponse(response);
 
   if (!response.ok) {
-    const message =
-      (data && typeof data === "object" && (data.message || data.error)) ||
-      response.statusText ||
-      `Request failed with status ${response.status}`;
-    throw new ApiError({ message, status: response.status, data, url });
+    throw new ApiError({
+      message: getErrorMessage(data, response),
+      status: response.status,
+      data,
+      url,
+    });
   }
 
   return data;
 }
 
 /**
- * Many backends wrap responses in `{ status: 'success', data: ... }`.
- * Helper that returns the inner payload when present.
+ * Returns the inner `data` payload when the backend wraps responses.
  */
 export function unwrap(payload, key) {
   if (!payload || typeof payload !== "object") return payload;

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronUp } from "lucide-react";
+import { toast } from "sonner";
 import { DestinationsSection } from "@/components/homepage/DestinationsSection";
 import { Footer } from "@/components/homepage/Footer";
 import { HeroSection } from "@/components/homepage/HeroSection";
@@ -18,13 +20,53 @@ import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useHomePageData } from "@/hooks/useHomePageData";
 
 function HomePageContent() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthModalOpen, closeAuthModal } = useAuthModal();
   const { t } = useTranslation();
-  const { isLoading } = useHomePageData();
+  const [skipInitialHomeDelay] = useState(
+    Boolean(location.state?.skipHomeSkeletonDelay || location.state?.showQuickHomeSkeleton)
+  );
+  const { isLoading } = useHomePageData({ skipInitialDelay: skipInitialHomeDelay });
+  const showLogoutToast = Boolean(location.state?.showLogoutToast);
   const [sharedHeroDateRange, setSharedHeroDateRange] = useState({ from: null, to: null });
   const [sharedSearchQuery, setSharedSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showCompactSearch, setShowCompactSearch] = useState(false);
+
+  useEffect(() => {
+    if (!location.state?.skipHomeSkeletonDelay) {
+      return;
+    }
+
+    navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
+  }, [
+    location.state?.skipHomeSkeletonDelay,
+    navigate,
+    location.pathname,
+    location.search,
+    location.hash,
+  ]);
+
+  useEffect(() => {
+    if (!showLogoutToast || isLoading) {
+      return;
+    }
+
+    toast.success("successfully logged out", {
+      id: "logout-success-toast",
+      position: "top-center",
+      duration: 3500,
+    });
+    navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
+  }, [
+    showLogoutToast,
+    isLoading,
+    navigate,
+    location.pathname,
+    location.search,
+    location.hash,
+  ]);
 
   useEffect(() => {
     let ticking = false;

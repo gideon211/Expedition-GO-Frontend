@@ -1,12 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { devWarn } from "@/lib/logger";
+
 const CART_STORAGE_KEY = "cart_items_v1";
 const CART_ITEM_TTL_MS = 25 * 60 * 1000;
 
 const CartContext = createContext();
 
-const getItemKey = (item) => `${item.title}__${item.selectedDate}`;
+const getItemKey = (item) =>
+  `${item.title}__${item.selectedDate}${item.selectedDateEnd ? `__${item.selectedDateEnd}` : ""}`;
 
 const removeExpiredItems = (items) => {
   const now = Date.now();
@@ -23,7 +26,7 @@ export function CartProvider({ children }) {
       if (!Array.isArray(parsed)) return [];
       return removeExpiredItems(parsed);
     } catch (error) {
-      console.error("Error loading cart:", error);
+      devWarn("[cart] Failed to parse localStorage", error);
       return [];
     }
   });
