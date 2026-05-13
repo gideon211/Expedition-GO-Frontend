@@ -1,6 +1,7 @@
 import { Star, CircleCheck } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useRef } from "react";
 
 import { useCurrency } from "@/contexts/CurrencyContext";
 
@@ -9,32 +10,89 @@ import { useCurrency } from "@/contexts/CurrencyContext";
  * Matches GetYourGuide's "Continue planning your trip" card style exactly
  */
 export function HeroTourCard({ title, duration, price, rating, reviews, image, disableTracking = false }) {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const { convertPrice } = useCurrency();
 
   const convertedPrice = convertPrice(price);
 
-  const handleCardClick = () => {
-    navigate(`/tour/${encodeURIComponent(title)}`);
+  const panRef = useRef({
+    active: false,
+    originX: 0,
+    originY: 0,
+    maxAbsDx: 0,
+    maxAbsDy: 0,
+  });
+  const lastGestureWasPanRef = useRef(false);
+
+  const resetPanTracking = () => {
+    panRef.current = {
+      active: false,
+      originX: 0,
+      originY: 0,
+      maxAbsDx: 0,
+      maxAbsDy: 0,
+    };
   };
 
+  const handlePointerDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    panRef.current = {
+      active: true,
+      originX: e.clientX,
+      originY: e.clientY,
+      maxAbsDx: 0,
+      maxAbsDy: 0,
+    };
+    lastGestureWasPanRef.current = false;
+  };
+
+  const handlePointerMove = (e) => {
+    if (!panRef.current.active) return;
+    const dx = Math.abs(e.clientX - panRef.current.originX);
+    const dy = Math.abs(e.clientY - panRef.current.originY);
+    panRef.current.maxAbsDx = Math.max(panRef.current.maxAbsDx, dx);
+    panRef.current.maxAbsDy = Math.max(panRef.current.maxAbsDy, dy);
+  };
+
+  const endPointerGesture = () => {
+    if (!panRef.current.active) return;
+    const { maxAbsDx, maxAbsDy } = panRef.current;
+    resetPanTracking();
+    const PAN_MIN_PX = 20;
+    const HORIZONTAL_DOMINANCE = 1.35;
+    lastGestureWasPanRef.current =
+      maxAbsDx >= PAN_MIN_PX && maxAbsDx > maxAbsDy * HORIZONTAL_DOMINANCE;
+  };
+
+  const handleDetailLinkClick = (e) => {
+    if (lastGestureWasPanRef.current) {
+      e.preventDefault();
+      lastGestureWasPanRef.current = false;
+    }
+  };
+
+  const detailTo = `/tour/${encodeURIComponent(title)}`;
+
   return (
-    <div 
-      onClick={handleCardClick}
-      className="group flex h-[133px] overflow-hidden rounded-xl bg-white shadow-md transition duration-200 hover:shadow-lg cursor-pointer p-2"
+    <div
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={endPointerGesture}
+      onPointerCancel={endPointerGesture}
+      className="group relative contain-none flex h-[133px] touch-manipulation overflow-hidden rounded-xl bg-white p-2 shadow-md transition duration-200 hover:shadow-lg"
     >
       {/* Image - Left side, adjusted for new height */}
-      <div className="relative w-[100px] shrink-0 overflow-hidden bg-slate-100 rounded-lg">
+      <div className="relative z-0 w-[100px] shrink-0 overflow-hidden rounded-lg bg-slate-100">
         <img 
           src={image} 
-          alt={title} 
+          alt=""
+          aria-hidden={true}
           className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-105" 
         />
       </div>
 
       {/* Content - Right side */}
-      <div className="flex flex-1 flex-col pl-2 min-w-0">
+      <div className="relative z-0 flex min-w-0 flex-1 flex-col pl-2">
         {/* Title - single line with ellipsis, full width */}
         <h3 
           className="truncate font-semibold leading-[1.1] text-slate-900 mb-1 w-full"
@@ -109,6 +167,12 @@ export function HeroTourCard({ title, duration, price, rating, reviews, image, d
           </div>
         </div>
       </div>
+      <Link
+        to={detailTo}
+        onClick={handleDetailLinkClick}
+        aria-label={`${t("common.viewDetails", { defaultValue: "View details" })}: ${title}`}
+        className="absolute inset-0 z-[5] rounded-xl outline-none ring-inset xl:focus-visible:ring-2 xl:focus-visible:ring-slate-400"
+      />
     </div>
   );
 }

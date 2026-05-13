@@ -38,10 +38,15 @@ const resources = {
         likelyToSellOut: "Likely to Sell Out",
         destinations: "Popular Destinations",
         newExperiences: "New Experiences",
+        newBadge: "New",
         lastMinuteDeals: "Last Minute Deals",
         leisureTitle: "Leisure & Relaxation",
         allToursTitle: "All Tours",
         viewAll: "View all"
+      },
+      exploreMore: {
+        title: "Explore more",
+        topAttractions: "Top attractions in {{country}}",
       },
       stats: {
         travellers: "Travellers guided",
@@ -69,7 +74,16 @@ const resources = {
         securePayments: "Secure Payments",
         securePaymentsDesc: "100% safe & secure checkout",
         realReviews: "Real Reviews",
-        realReviewsDesc: "From real travellers like you"
+        realReviewsDesc: "From real travellers like you",
+        whyBookHeading: "Why book with us?",
+        whyBookSupportTitle: "24/7 customer support",
+        whyBookSupportDesc: "No matter the time zone, we're here to help.",
+        whyBookRewardsTitle: "Earn rewards",
+        whyBookRewardsDesc: "Explore, earn, redeem, and repeat with our loyalty program.",
+        whyBookReviewsTitle: "Millions of reviews",
+        whyBookReviewsDesc: "Plan and book with confidence using reviews from fellow travellers.",
+        whyBookPlanTitle: "Plan your way",
+        whyBookPlanDesc: "Stay flexible with free cancellation and the option to reserve now and pay later at no additional cost."
       },
       common: {
         from: "From",
@@ -205,7 +219,14 @@ const resources = {
         easy: "Easy",
         medium: "Medium",
         hard: "Hard",
-        viewPromoted: "View"
+        viewPromoted: "View",
+        similarExperiences: "Similar experiences",
+        similarScrollPrev: "Show previous similar tours",
+        similarScrollNext: "Show more similar tours",
+        perAdultShort: "per adult",
+        priceVaries: "price varies",
+        needFurtherAssistance: "Need further assistance?",
+        startChat: "Start chat"
       }
     }
   },
@@ -243,10 +264,15 @@ const resources = {
         likelyToSellOut: "Probable agotamiento",
         destinations: "Destinos populares",
         newExperiences: "Nuevas experiencias",
+        newBadge: "Nuevo",
         lastMinuteDeals: "Ofertas de último minuto",
         leisureTitle: "Ocio y relajación",
         allToursTitle: "Todos los tours",
         viewAll: "Ver todo"
+      },
+      exploreMore: {
+        title: "Explora más",
+        topAttractions: "Principales atracciones en {{country}}",
       },
       stats: {
         travellers: "Viajeros guiados",
@@ -274,7 +300,16 @@ const resources = {
         securePayments: "Pagos seguros",
         securePaymentsDesc: "Pago 100% seguro",
         realReviews: "Reseñas reales",
-        realReviewsDesc: "De viajeros reales como tú"
+        realReviewsDesc: "De viajeros reales como tú",
+        whyBookHeading: "¿Por qué reservar con nosotros?",
+        whyBookSupportTitle: "Atención al cliente 24/7",
+        whyBookSupportDesc: "En cualquier zona horaria, estamos aquí para ayudarte.",
+        whyBookRewardsTitle: "Gana recompensas",
+        whyBookRewardsDesc: "Explora, gana, canjea y repite con nuestro programa de fidelidad.",
+        whyBookReviewsTitle: "Millones de opiniones",
+        whyBookReviewsDesc: "Planifica y reserva con confianza gracias a opiniones de otros viajeros.",
+        whyBookPlanTitle: "Organízalo a tu manera",
+        whyBookPlanDesc: "Mantén la flexibilidad con cancelación gratuita y la opción de reservar ahora y pagar después sin coste adicional."
       },
       common: {
         from: "Desde",
@@ -410,7 +445,14 @@ const resources = {
         easy: "Fácil",
         medium: "Medio",
         hard: "Difícil",
-        viewPromoted: "Ver"
+        viewPromoted: "Ver",
+        similarExperiences: "Experiencias similares",
+        similarScrollPrev: "Ver experiencias anteriores",
+        similarScrollNext: "Ver más experiencias",
+        perAdultShort: "por adulto",
+        priceVaries: "el precio varía",
+        needFurtherAssistance: "¿Necesita más ayuda?",
+        startChat: "Iniciar chat"
       }
     }
   },
@@ -448,10 +490,15 @@ const resources = {
         likelyToSellOut: "Susceptible d'être épuisé",
         destinations: "Destinations populaires",
         newExperiences: "Nouvelles expériences",
+        newBadge: "Nouveau",
         lastMinuteDeals: "Offres de dernière minute",
         leisureTitle: "Loisirs et détente",
         allToursTitle: "Toutes les visites",
         viewAll: "Voir tout"
+      },
+      exploreMore: {
+        title: "Explorer plus",
+        topAttractions: "Meilleures attractions en {{country}}",
       },
       stats: {
         travellers: "Voyageurs guidés",
@@ -479,7 +526,16 @@ const resources = {
         securePayments: "Paiements sécurisés",
         securePaymentsDesc: "Paiement 100% sûr et sécurisé",
         realReviews: "Avis réels",
-        realReviewsDesc: "De vrais voyageurs comme vous"
+        realReviewsDesc: "De vrais voyageurs comme vous",
+        whyBookHeading: "Pourquoi réserver avec nous ?",
+        whyBookSupportTitle: "Assistance client 24h/24 et 7j/7",
+        whyBookSupportDesc: "Quel que soit votre fuseau horaire, nous sommes là pour vous aider.",
+        whyBookRewardsTitle: "Cumulez des récompenses",
+        whyBookRewardsDesc: "Explorez, gagnez, utilisez vos points et recommencez avec notre programme de fidélité.",
+        whyBookReviewsTitle: "Des millions d'avis",
+        whyBookReviewsDesc: "Planifiez et réservez en toute confiance grâce aux avis d'autres voyageurs.",
+        whyBookPlanTitle: "À votre façon",
+        whyBookPlanDesc: "Restez flexible avec annulation gratuite et possibilité de réserver maintenant et payer plus tard sans frais supplémentaires."
       },
       common: {
         from: "À partir de",
@@ -615,7 +671,14 @@ const resources = {
         easy: "Facile",
         medium: "Moyen",
         hard: "Difficile",
-        viewPromoted: "Voir"
+        viewPromoted: "Voir",
+        similarExperiences: "Expériences similaires",
+        similarScrollPrev: "Voir les expériences précédentes",
+        similarScrollNext: "Voir plus d’expériences",
+        perAdultShort: "par adulte",
+        priceVaries: "prix variable",
+        needFurtherAssistance: "Besoin d’aide supplémentaire ?",
+        startChat: "Démarrer le chat"
       }
     }
   },
@@ -653,10 +716,15 @@ const resources = {
         likelyToSellOut: "Wahrscheinlich ausverkauft",
         destinations: "Beliebte Reiseziele",
         newExperiences: "Neue Erlebnisse",
+        newBadge: "Neu",
         lastMinuteDeals: "Last-Minute-Angebote",
         leisureTitle: "Freizeit und Entspannung",
         allToursTitle: "Alle Touren",
         viewAll: "Alle anzeigen"
+      },
+      exploreMore: {
+        title: "Mehr entdecken",
+        topAttractions: "Top-Sehenswürdigkeiten in {{country}}",
       },
       stats: {
         travellers: "Geführte Reisende",
@@ -684,7 +752,16 @@ const resources = {
         securePayments: "Sichere Zahlungen",
         securePaymentsDesc: "100% sicher und geschützt",
         realReviews: "Echte Bewertungen",
-        realReviewsDesc: "Von echten Reisenden wie Ihnen"
+        realReviewsDesc: "Von echten Reisenden wie Ihnen",
+        whyBookHeading: "Warum bei uns buchen?",
+        whyBookSupportTitle: "Kundenservice rund um die Uhr",
+        whyBookSupportDesc: "Unabhängig von Ihrer Zeitzone – wir sind für Sie da.",
+        whyBookRewardsTitle: "Prämien sammeln",
+        whyBookRewardsDesc: "Entdecken, sammeln, einlösen und wiederholen – mit unserem Treueprogramm.",
+        whyBookReviewsTitle: "Millionen von Bewertungen",
+        whyBookReviewsDesc: "Planen und buchen Sie mit Vertrauen dank Bewertungen anderer Reisender.",
+        whyBookPlanTitle: "Ganz nach Ihren Wünschen",
+        whyBookPlanDesc: "Bleiben Sie flexibel mit kostenloser Stornierung und der Möglichkeit, jetzt zu reservieren und später zu zahlen – ohne Aufpreis."
       },
       common: {
         from: "Ab",
@@ -820,7 +897,14 @@ const resources = {
         easy: "Einfach",
         medium: "Mittel",
         hard: "Schwer",
-        viewPromoted: "Ansehen"
+        viewPromoted: "Ansehen",
+        similarExperiences: "Ähnliche Erlebnisse",
+        similarScrollPrev: "Vorherige Erlebnisse anzeigen",
+        similarScrollNext: "Weitere Erlebnisse anzeigen",
+        perAdultShort: "pro Erwachsenem",
+        priceVaries: "Preis variiert",
+        needFurtherAssistance: "Brauchen Sie weitere Hilfe?",
+        startChat: "Chat starten"
       }
     }
   },
@@ -857,10 +941,15 @@ const resources = {
         likelyToSellOut: "Waarschijnlijk uitverkocht",
         destinations: "Populaire bestemmingen",
         newExperiences: "Nieuwe ervaringen",
+        newBadge: "Nieuw",
         lastMinuteDeals: "Last-minute aanbiedingen",
         leisureTitle: "Vrije tijd en ontspanning",
         allToursTitle: "Alle tours",
         viewAll: "Bekijk alles"
+      },
+      exploreMore: {
+        title: "Ontdek meer",
+        topAttractions: "Topattracties in {{country}}",
       },
       stats: {
         travellers: "Begeleide reizigers",
@@ -888,7 +977,16 @@ const resources = {
         securePayments: "Veilige betalingen",
         securePaymentsDesc: "100% veilig en beveiligd",
         realReviews: "Echte beoordelingen",
-        realReviewsDesc: "Van echte reizigers zoals jij"
+        realReviewsDesc: "Van echte reizigers zoals jij",
+        whyBookHeading: "Waarom bij ons boeken?",
+        whyBookSupportTitle: "Klantenservice 24/7",
+        whyBookSupportDesc: "Ongeacht je tijdzone: we staan voor je klaar.",
+        whyBookRewardsTitle: "Spaar beloningen",
+        whyBookRewardsDesc: "Ontdek, verdien, wissel in en begin opnieuw met ons loyaliteitsprogramma.",
+        whyBookReviewsTitle: "Miljoenen beoordelingen",
+        whyBookReviewsDesc: "Plan en boek met vertrouwen dankzij beoordelingen van medereizigers.",
+        whyBookPlanTitle: "Plan op jouw manier",
+        whyBookPlanDesc: "Blijf flexibel met gratis annulering en de optie om nu te reserveren en later te betalen – zonder extra kosten."
       },
       common: {
         from: "Vanaf",
@@ -1024,7 +1122,14 @@ const resources = {
         easy: "Gemakkelijk",
         medium: "Gemiddeld",
         hard: "Moeilijk",
-        viewPromoted: "Bekijk"
+        viewPromoted: "Bekijk",
+        similarExperiences: "Vergelijkbare ervaringen",
+        similarScrollPrev: "Toon vorige tours",
+        similarScrollNext: "Toon meer tours",
+        perAdultShort: "per volwassene",
+        priceVaries: "prijs kan variëren",
+        needFurtherAssistance: "Nog hulp nodig?",
+        startChat: "Start chat"
       }
     }
   }

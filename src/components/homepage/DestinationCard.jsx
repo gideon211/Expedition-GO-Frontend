@@ -21,7 +21,7 @@ export function DestinationCard({ title, tours, image, variant = "default" }) {
   const imageHeightClass = variant === "allTours" ? "h-[10rem] xl:h-[11rem]" : "h-32 xl:h-36";
 
   return (
-    <Card className="group overflow-hidden rounded-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-1 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] cursor-pointer">
+    <Card className="group cursor-pointer overflow-hidden rounded-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-1 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)]">
       <div className={`relative ${imageHeightClass} overflow-hidden`}>
         <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 xl:group-hover:scale-110" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent pointer-events-none" />

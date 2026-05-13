@@ -22,20 +22,24 @@ import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
-function MobileAllToursCard({ item }) {
+function MobileAllToursCard({ item, badge = "duration" }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
   const [showDescription, setShowDescription] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
+  /** After a horizontal swipe (show/hide description), block the synthetic click so the tour link does not fire. */
+  const blockNextLinkClickRef = useRef(false);
   const isFavorited = isInWishlist(item.title);
+  const detailTo = `/tour/${encodeURIComponent(item.title)}`;
   const convertedPrice = convertPrice(item.price);
 
   const descriptionText = `Visit the castles of cape coast and explore the adventures of Kakum National Park with this guided tour from Accra. You'll learn and discover the history of Cape Coast Castle and Elmina Castle and also undertake the canopy walkway experience at Kakum National Park.`;
   const showReadMore = descriptionText.length > 170;
 
   const handleTouchStart = (event) => {
+    blockNextLinkClickRef.current = false;
     setTouchStartX(event.touches[0]?.clientX ?? null);
   };
 
@@ -43,9 +47,21 @@ function MobileAllToursCard({ item }) {
     if (touchStartX === null) return;
     const endX = event.changedTouches[0]?.clientX ?? touchStartX;
     const deltaX = endX - touchStartX;
-    if (deltaX < -40) setShowDescription(true);
-    if (deltaX > 40) setShowDescription(false);
+    if (deltaX < -40) {
+      setShowDescription(true);
+      blockNextLinkClickRef.current = true;
+    } else if (deltaX > 40) {
+      setShowDescription(false);
+      blockNextLinkClickRef.current = true;
+    }
     setTouchStartX(null);
+  };
+
+  const handleDetailLinkClick = (e) => {
+    if (blockNextLinkClickRef.current) {
+      e.preventDefault();
+      blockNextLinkClickRef.current = false;
+    }
   };
 
   return (
@@ -57,12 +73,24 @@ function MobileAllToursCard({ item }) {
       <div
         className={`flex w-[200%] transition-transform duration-300 ease-out ${showDescription ? "-translate-x-1/2" : "translate-x-0"}`}
       >
-        <div className="w-1/2">
+        <div className="relative w-1/2">
+          <Link
+            to={detailTo}
+            onClick={handleDetailLinkClick}
+            aria-label={`${t("common.viewDetails", { defaultValue: "View details" })}: ${item.title}`}
+            className="absolute inset-0 z-[5] rounded-md outline-none ring-inset focus-visible:ring-2 focus-visible:ring-slate-400"
+          />
           <div className="flex h-[188px]">
             <div className="relative w-[38%] overflow-hidden">
               <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
-              <span className="absolute left-2 top-2 rounded-md bg-slate-900/80 px-2 py-1 text-[8px] font-bold text-white shadow-sm">
-                {item.duration || "11 to 15 hours"}
+              <span
+                className={
+                  badge === "new"
+                    ? "absolute left-2 top-2 rounded-md bg-white/95 px-2 py-1 text-[8px] font-bold text-slate-900 shadow-sm backdrop-blur-sm"
+                    : "absolute left-2 top-2 rounded-md bg-slate-900/80 px-2 py-1 text-[8px] font-bold text-white shadow-sm"
+                }
+              >
+                {badge === "new" ? t("sections.newBadge") : item.duration || "11 to 15 hours"}
               </span>
               <button
                 type="button"
@@ -77,7 +105,7 @@ function MobileAllToursCard({ item }) {
                     discount: item.discount,
                   })
                 }
-                className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-white/92 text-slate-700 shadow"
+                className="absolute right-2 top-2 z-10 grid size-7 place-items-center rounded-full bg-white/92 text-slate-700 shadow"
               >
                 <Heart className={`size-4 ${isFavorited ? "fill-[color:var(--brand-green)] text-[color:var(--brand-green)]" : ""}`} />
               </button>
@@ -146,6 +174,7 @@ function AllToursPageContent() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const category = searchParams.get("category") || "all";
+  const tourListBadge = category === "new-experiences" ? "new" : "duration";
   const initialSearch = searchParams.get("search") || "";
 
   useEffect(() => {
@@ -758,10 +787,10 @@ function AllToursPageContent() {
                 ) : (
                   <div key={`${item.title}-${index}`} className="w-full">
                     <div className="sm:hidden">
-                      <MobileAllToursCard item={item} />
+                      <MobileAllToursCard item={item} badge={tourListBadge} />
                     </div>
                     <div className="hidden sm:block">
-                      <TourCard {...item} variant="allTours" />
+                      <TourCard {...item} variant="allTours" badge={tourListBadge} />
                     </div>
                   </div>
                 )

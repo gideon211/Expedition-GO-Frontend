@@ -23,11 +23,13 @@ import {
   Users,
   MapPin,
   Share2,
-  Grid3X3
+  Grid3X3,
+  MessageSquare,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
+import { SimilarExperiencesCarousel } from "@/components/tour-detail/SimilarExperiencesCarousel";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
@@ -35,7 +37,8 @@ import { RecentlyViewedProvider, useRecentlyViewed } from "@/contexts/RecentlyVi
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useCart } from "@/contexts/CartContext";
-import { getTourByTitle, getAllTours } from "@/lib/tourData";
+import { getTourByTitle } from "@/lib/tourData";
+import { openTawkChat } from "@/lib/tawk";
 import fallbackTourImage from "@/assets/images/hero_pic.jpg";
 
 const EXTERNAL_FALLBACK_IMAGES = [
@@ -617,27 +620,6 @@ function TourDetailContent() {
     [selectedTourRatingNumber, selectedTourReviewsNumber]
   );
 
-  const sidebarPostedTours = useMemo(() => {
-    const postedStubs = ["Mar 2026", "Feb 2026", "Jan 2026", "Dec 2025", "Nov 2025"];
-    const all = getAllTours();
-    const seen = new Set();
-    const picked = [];
-    for (const t of all) {
-      if (t.title === selectedTourTitle) continue;
-      if (seen.has(t.title)) continue;
-      seen.add(t.title);
-      picked.push({
-        title: t.title,
-        image: t.image,
-        rating: t.rating,
-        price: t.price,
-        postedLabel: postedStubs[picked.length % postedStubs.length],
-      });
-      if (picked.length >= 3) break;
-    }
-    return picked;
-  }, [selectedTourTitle]);
-
   useEffect(() => {
     setSelectedImage(0);
   }, [id]);
@@ -1141,44 +1123,19 @@ function TourDetailContent() {
     { asker: "Charlie B", question: "Hello what time is pick up and return from Accra?", answer: "Pickup is usually early morning and return timing depends on traffic and selected stops." },
   ];
 
-  const postedToursAside = (
-    <div className="mt-5 rounded-lg border border-slate-200 p-2.5 sm:p-3">
-      <p className="text-[11px] font-black leading-tight text-[color:var(--brand-green)]">Explore other promoted experiences</p>
-      {/* <p className="mt-0.5 text-[9px] leading-snug text-slate-500">Published listings from our catalog—compact for this panel.</p> */}
-      <div className="mt-2 space-y-1">
-        {sidebarPostedTours.length === 0 ? (
-          <p className="text-[9px] text-slate-500">No other tours to show yet.</p>
-        ) : (
-          sidebarPostedTours.map((tour) => (
-            <div
-              key={tour.title}
-              className="flex w-full items-center gap-2 rounded-md border border-slate-100 bg-white/50 p-1"
-            >
-              <img
-                src={tour.image}
-                alt=""
-                className="size-9 shrink-0 rounded-sm object-cover"
-                data-fallback-offset={0}
-                onError={handleImageError}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="line-clamp-2 text-[10px] font-bold leading-snug text-[color:var(--brand-green)]">{tour.title}</p>
-                <p className="mt-0.5 text-[9px] text-slate-600">
-                  {tour.rating} ★ · {tour.price}
-                </p>
-                <p className="mt-0.5 text-[9px] font-medium text-slate-400">Posted · {tour.postedLabel}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate(`/tour/${encodeURIComponent(tour.title)}`)}
-                className="shrink-0 rounded-md bg-[color:var(--brand-green)] px-2.5 py-1.5 text-[10px] font-bold text-white shadow-sm transition hover:brightness-95 active:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
-              >
-                {t("tourDetail.viewPromoted")}
-              </button>
-            </div>
-          ))
-        )}
-      </div>
+  const assistanceAside = (
+    <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50/80 p-3 sm:p-3.5">
+      <p className="text-sm font-bold leading-snug text-[color:var(--brand-green)] sm:text-[0.9375rem]">
+        {t("tourDetail.needFurtherAssistance")}
+      </p>
+      <button
+        type="button"
+        onClick={() => openTawkChat()}
+        className="mt-2.5 inline-flex w-full items-center gap-2 text-left text-sm font-normal text-[color:var(--brand-green)] underline underline-offset-[3px] decoration-[color:var(--brand-green)] transition hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] sm:w-auto"
+      >
+        <MessageSquare className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+        {t("tourDetail.startChat")}
+      </button>
     </div>
   );
 
@@ -1485,12 +1442,12 @@ function TourDetailContent() {
                 })}
               </div>
 
-              {postedToursAside}
+              {assistanceAside}
             </div>
           </aside>
         </div>
 
-        <nav className="sticky top-[58px] z-30 -mx-4 mt-5 overflow-x-auto border-y border-slate-200 bg-white px-4 sm:-mx-6 sm:px-6 lg:top-[104px] lg:-mx-8 lg:px-8">
+        <nav className="sticky top-[58px] z-30 -mx-4 mt-5 overflow-x-auto bg-white px-4 sm:-mx-6 sm:px-6 lg:top-[104px] lg:-mx-8 lg:px-8">
           <div className="flex min-w-max gap-7 text-sm font-bold text-[color:var(--brand-green)]">
             {TOUR_DETAIL_TABS.map((tab) => (
               <button
@@ -1513,7 +1470,7 @@ function TourDetailContent() {
         <div className="mt-5">
           <div className="min-w-0">
             {activeDetailTab === "overview" && (
-            <section id="overview" className="border-b border-slate-200 pb-6">
+            <section id="overview" className="pb-6">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">About</h2>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-[color:var(--brand-green)]/85">
                 Visit the castles of Cape Coast and explore the adventures of Kakum National Park with this guided tour from Accra. You'll learn and discover the history of Cape Coast Castle and Elmina Castle and also undertake the canopy walkway experience.
@@ -1530,8 +1487,8 @@ function TourDetailContent() {
                 ))}
               </div>
 
-              <div className="mt-8 border-t border-slate-200 pt-6">
-                <div className="border-b border-slate-200">
+              <div className="mt-8 space-y-2 pt-6">
+                <div>
                   <button
                     type="button"
                     onClick={() =>
@@ -1560,7 +1517,7 @@ function TourDetailContent() {
                   )}
                 </div>
 
-                <div className="border-b border-slate-200">
+                <div>
                   <button
                     type="button"
                     onClick={() =>
@@ -1613,9 +1570,9 @@ function TourDetailContent() {
             )}
 
             {activeDetailTab === "details" && (
-            <section id="details" className="border-b border-slate-200 pb-6">
+            <section id="details" className="pb-6">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">Details</h2>
-              <div className="mt-4 divide-y divide-slate-200">
+              <div className="mt-4 space-y-3">
                 {infoSections.map((section) => {
                   const isOpen = expandedInfoSection === section.key;
                   return (
@@ -1637,7 +1594,7 @@ function TourDetailContent() {
             )}
 
             {activeDetailTab === "itinerary" && (
-            <section id="itinerary" className="border-b border-slate-200 pb-8">
+            <section id="itinerary" className="pb-8">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">Itinerary</h2>
               <div className="mt-5 grid gap-6 lg:grid-cols-[330px_minmax(0,1fr)]">
                 <div className="space-y-0">
@@ -1673,7 +1630,7 @@ function TourDetailContent() {
 
             {activeDetailTab === "reviews" && (
             <>
-            <section id="reviews" className="border-b border-slate-200 pb-8">
+            <section id="reviews" className="pb-8">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <h2 className="text-2xl font-black text-slate-950">Reviews</h2>
                 <button
@@ -1751,7 +1708,7 @@ function TourDetailContent() {
                       </p>
                     ) : (
                     filteredReviewCards.map((review) => (
-                      <article key={`review-${review.id}`} className="border-t border-slate-200 pt-5">
+                      <article key={`review-${review.id}`}>
                         <p className="font-black">{review.name}</p>
                         <p className="text-xs text-[color:var(--brand-green)]/65">{review.date} • {review.tag}</p>
                         <div className="mt-2 flex gap-0.5 text-emerald-600" aria-hidden="true">
@@ -1823,9 +1780,9 @@ function TourDetailContent() {
                   Ask a question
                 </button>
               </div>
-              <div className="mt-5 divide-y divide-slate-200">
+              <div className="mt-5 space-y-8">
                 {qaItems.map((item) => (
-                  <article key={item.question} className="py-5">
+                  <article key={item.question}>
                     <p className="text-sm font-black">{item.asker}</p>
                     <p className="mt-2 text-sm leading-6">{item.question}</p>
                     <p className="mt-4 pl-6 text-sm leading-6 text-[color:var(--brand-green)]/80">{item.answer}</p>
@@ -1841,7 +1798,7 @@ function TourDetailContent() {
               </div>
             </section>
 
-            <section id="operator" className="border-b border-slate-200 pb-8">
+            <section id="operator" className="pb-8">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">About the operator</h2>
               <p className="mt-2 text-sm text-[color:var(--brand-green)]/75">Don't take it from us - here's what people have to say about this operator.</p>
               <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
@@ -1864,6 +1821,8 @@ function TourDetailContent() {
             )}
           </div>
         </div>
+
+        <SimilarExperiencesCarousel excludeTitle={selectedTourTitle} onImageError={handleImageError} />
 
           <aside className="hidden">
             <div className="text-sm text-[color:var(--brand-green)]">
@@ -1988,7 +1947,7 @@ function TourDetailContent() {
                 })}
               </div>
 
-              {postedToursAside}
+              {assistanceAside}
             </div>
           </aside>
 

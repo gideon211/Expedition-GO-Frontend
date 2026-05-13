@@ -1,5 +1,5 @@
 import { Heart } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useRef } from "react";
 
@@ -8,7 +8,6 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
 export function SidebarDealCard({ title, oldPrice, price, discount, countdown, image }) {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
@@ -80,38 +79,28 @@ export function SidebarDealCard({ title, oldPrice, price, discount, countdown, i
       maxAbsDx >= PAN_MIN_PX && maxAbsDx > maxAbsDy * HORIZONTAL_DOMINANCE;
   };
 
-  const handleCardClick = () => {
+  const handleDetailLinkClick = (e) => {
     if (lastGestureWasPanRef.current) {
+      e.preventDefault();
       lastGestureWasPanRef.current = false;
-      return;
     }
-    navigate(`/tour/${encodeURIComponent(title)}`);
   };
+
+  const detailTo = `/tour/${encodeURIComponent(title)}`;
 
   return (
     <Card 
-      onClick={handleCardClick}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="touch-manipulation overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-1 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] cursor-pointer"
+      className="relative contain-none touch-manipulation overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-1 xl:hover:shadow-none xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)]"
     >
-      <div className="relative h-36 overflow-hidden">
-        <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 xl:hover:scale-105" />
-        <span className="absolute left-2 top-2 rounded-md bg-red-500 px-2 py-1 text-[11px] font-bold text-white pointer-events-none xl:text-[10px]">{discount}</span>
-        <button 
-          onClick={handleHeartClick}
-          className="absolute right-2 top-2 grid size-6 place-items-center rounded-full bg-white/88 text-slate-700 shadow-sm backdrop-blur transition xl:hover:bg-white xl:hover:scale-110 z-10"
-        >
-          <Heart 
-            className={`size-3 transition-colors ${
-              isFavorited ? 'fill-[color:var(--brand-green)] text-[color:var(--brand-green)]' : ''
-            }`} 
-          />
-        </button>
+      <div className="relative z-0 h-36 overflow-hidden">
+        <img src={image} alt="" aria-hidden={true} className="h-full w-full object-cover transition duration-500 xl:hover:scale-105" />
+        <span className="pointer-events-none absolute left-2 top-2 rounded-md bg-red-500 px-2 py-1 text-[11px] font-bold text-white xl:text-[10px]">{discount}</span>
       </div>
-      <CardContent className="p-4 xl:p-3.5">
+      <CardContent className="relative z-0 p-4 xl:p-3.5">
         <p className="line-clamp-2 text-[15px] font-semibold leading-tight text-slate-900 xl:text-[14px]">{title}</p>
         
         {/* Price and Timer Row */}
@@ -137,6 +126,23 @@ export function SidebarDealCard({ title, oldPrice, price, discount, countdown, i
           </div>
         </div>
       </CardContent>
+      <Link
+        to={detailTo}
+        onClick={handleDetailLinkClick}
+        aria-label={`${t("common.viewDetails", { defaultValue: "View details" })}: ${title}`}
+        className="absolute inset-0 z-[5] rounded-[14px] outline-none ring-inset xl:focus-visible:ring-2 xl:focus-visible:ring-slate-400"
+      />
+      <button 
+        type="button"
+        onClick={handleHeartClick}
+        className="absolute right-2 top-2 z-[10] grid size-6 place-items-center rounded-full bg-white/88 text-slate-700 shadow-sm backdrop-blur transition xl:hover:bg-white xl:hover:scale-110"
+      >
+        <Heart 
+          className={`size-3 transition-colors ${
+            isFavorited ? 'fill-[color:var(--brand-green)] text-[color:var(--brand-green)]' : ''
+          }`} 
+        />
+      </button>
     </Card>
   );
 }

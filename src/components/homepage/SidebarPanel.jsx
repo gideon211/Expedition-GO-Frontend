@@ -16,7 +16,7 @@ function PanelHeading({ title, linkTo }) {
   const { t } = useTranslation();
   
   return (
-    <div className="mb-[0.6375rem] flex items-center justify-between gap-2 md:mb-2.5 xl:mb-3">
+    <div className="relative z-30 isolate mb-[0.6375rem] flex items-center justify-between gap-2 md:mb-2.5 xl:mb-3">
       <h3 
         className="font-bold tracking-tight text-slate-900 leading-[1.15]"
         style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
@@ -26,7 +26,7 @@ function PanelHeading({ title, linkTo }) {
       <Link
         to={linkTo}
         onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
-        className="group relative z-10 inline-flex shrink-0 touch-manipulation items-center gap-1 whitespace-nowrap text-[13px] font-semibold text-slate-700 transition hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
+        className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md px-3 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
       >
         <span className="relative">
           {t('sections.viewAll')}
@@ -102,14 +102,14 @@ export function SidebarPanel() {
             itemCount={sidebarNewExperiences.length}
             originalChildren={sidebarNewExperiences.map((tour, index) => (
               <div key={`${tour.title}-${index}`} className="xl:w-auto">
-                <CompactTourCard {...tour} />
+                <CompactTourCard {...tour} badge="new" />
               </div>
             ))}
           >
             {sidebarNewExperiences.map((tour, index) => (
               <div key={`${tour.title}-${index}`} className="w-[280px] flex-shrink-0 snap-start">
                 <div className="pointer-events-auto">
-                  <CompactTourCard {...tour} />
+                  <CompactTourCard {...tour} badge="new" />
                 </div>
               </div>
             ))}

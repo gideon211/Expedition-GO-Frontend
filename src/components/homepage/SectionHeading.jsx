@@ -7,7 +7,7 @@ export function SectionHeading({ title, subtitle, categoryId, onScrollLeft, onSc
   const hasScrollButtons = onScrollLeft && onScrollRight;
 
   return (
-    <div className="mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
+    <div className="relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
       <div className="min-w-0 flex-1">
         <h2
           className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
@@ -24,10 +24,10 @@ export function SectionHeading({ title, subtitle, categoryId, onScrollLeft, onSc
         ) : null}
       </div>
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="relative z-[1] flex shrink-0 items-center gap-3">
         <Link
-          to={`/tours?category=${categoryId || "all"}`}
-          className="group relative z-10 inline-flex shrink-0 touch-manipulation items-center gap-1 whitespace-nowrap text-[13px] font-semibold text-slate-700 transition hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
+          to={`/tours?category=${encodeURIComponent(categoryId || "all")}`}
+          className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
         >
           <span className="relative">
             {t("sections.viewAll")}

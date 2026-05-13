@@ -1,76 +1,13 @@
 import { useEffect } from "react";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
+import { hideTawkWidget, loadTawkScript, openTawkChat } from "@/lib/tawk";
 
 export default function SupportPage() {
   useEffect(() => {
-    // Load Tawk.to chatbot script (guarded to avoid duplicate widgets in dev/strict-mode).
-    if (typeof window === "undefined") return;
-
-    const TAUK_SCRIPT_ID = "tawk-to-support-script";
-    const TAUK_SRC = "https://embed.tawk.to/644922ef31ebfa0fe7fa8b14/1guur0u4t";
-
-    // Keep the widget hidden until the user clicks "Start Chat".
-    window.Tawk_API = window.Tawk_API || {};
-    window.Tawk_API.onLoad = function onLoad() {
-      if (typeof window.Tawk_API?.hideWidget === "function") {
-        window.Tawk_API.hideWidget();
-      }
-    };
-    window.Tawk_API.onChatMinimized = function onChatMinimized() {
-      if (typeof window.Tawk_API?.hideWidget === "function") {
-        window.Tawk_API.hideWidget();
-      }
-    };
-    window.Tawk_API.onChatHidden = function onChatHidden() {
-      if (typeof window.Tawk_API?.hideWidget === "function") {
-        window.Tawk_API.hideWidget();
-      }
-    };
-
-    const existingScript = document.getElementById(TAUK_SCRIPT_ID);
-    if (existingScript) return;
-
-    const script = document.createElement("script");
-    script.id = TAUK_SCRIPT_ID;
-    script.async = true;
-    script.src = TAUK_SRC;
-    script.setAttribute("crossorigin", "anonymous");
-    document.body.appendChild(script);
-
-    // Hide widget when leaving Support page so it never persists on other pages.
-    return () => {
-      if (typeof window !== "undefined" && window.Tawk_API) {
-        if (typeof window.Tawk_API.minimize === "function") {
-          window.Tawk_API.minimize();
-        }
-        if (typeof window.Tawk_API.hideWidget === "function") {
-          window.Tawk_API.hideWidget();
-        }
-      }
-    };
+    loadTawkScript();
+    return () => hideTawkWidget();
   }, []);
-
-  const handleStartChat = () => {
-    if (typeof window === "undefined") return;
-
-    const tryOpen = (attempt) => {
-      const tawk = window.Tawk_API;
-      if (!tawk) {
-        // Widget may not be ready yet—retry a few times.
-        if (attempt < 10) setTimeout(() => tryOpen(attempt + 1), 300);
-        return;
-      }
-
-      // Show and open only from this button click.
-      if (typeof tawk.showWidget === "function") tawk.showWidget();
-      if (typeof tawk.unhideWidget === "function") tawk.unhideWidget();
-      if (typeof tawk.maximize === "function") return tawk.maximize();
-      if (typeof tawk.openWidget === "function") return tawk.openWidget();
-    };
-
-    tryOpen(0);
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -141,7 +78,7 @@ export default function SupportPage() {
               </p>
               <button
                 type="button"
-                onClick={handleStartChat}
+                onClick={() => openTawkChat()}
                 className="w-full rounded-lg bg-[color:var(--brand-green)] px-4 py-2 font-semibold text-white transition hover:bg-[color:var(--brand-green)]/90"
               >
                 Start Chat

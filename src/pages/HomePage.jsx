@@ -11,6 +11,7 @@ import { SidebarPanel } from "@/components/homepage/SidebarPanel";
 import { TourCarouselSection } from "@/components/homepage/TourCarouselSection";
 import { NewsletterSection } from "@/components/homepage/NewsletterSection";
 import { FeaturesSection } from "@/components/homepage/FeaturesSection";
+import { ExploreMoreSection } from "@/components/homepage/ExploreMoreSection";
 import { HomePageSkeleton } from "@/components/homepage/skeletons/HomePageSkeleton";
 import BrandLoader from "@/components/ui/BrandLoader";
 import { leisureTours, pickupTours, recommendedTours, topRatedTours } from "@/components/homepage/data";
@@ -160,7 +161,7 @@ function HomePageContent() {
           onExternalSearchChange={setSharedSearchQuery}
         />
 
-        <main className="mx-auto max-w-[1520px] px-4 pb-[3.4rem] sm:px-6 sm:pb-14 overflow-hidden">
+        <main className="mx-auto max-w-[1520px] overflow-x-hidden px-4 pb-[3.4rem] sm:px-6 sm:pb-14">
           <div className="grid gap-[2.125rem] md:gap-8 xl:gap-7 xl:grid-cols-[minmax(0,1fr)_430px]">
             <div className="space-y-[1.7rem] pt-[1.4875rem] min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
               <TourCarouselSection id="tours" title={t('sections.featuredTitle')} items={pickupTours} />
@@ -183,8 +184,12 @@ function HomePageContent() {
         </div>
 
         {/* Features Section - Full Width before footer */}
-        <div className="mx-auto max-w-[1520px] px-4 sm:px-6 mb-[3.4rem] md:mb-14 overflow-hidden">
+        <div className="mx-auto mb-[3.4rem] max-w-[1520px] px-4 sm:px-6 md:mb-14">
           <FeaturesSection />
+        </div>
+
+        <div className="mb-[3.4rem] md:mb-14">
+          <ExploreMoreSection />
         </div>
 
         <Footer />

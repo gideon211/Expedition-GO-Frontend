@@ -45,6 +45,11 @@
   --brand-mist: #ffffff;
   --brand-sand: #f6f4ed;
   --page-bg: #ffffff;
+  /* Soft icon blobs (homepage palette–aligned) */
+  --why-book-blob-1: color-mix(in srgb, var(--brand-sand) 72%, #fecaca 28%);
+  --why-book-blob-2: color-mix(in srgb, #ffffff 78%, var(--brand-green-3) 22%);
+  --why-book-blob-3: color-mix(in srgb, var(--brand-sand) 70%, #fde047 30%);
+  --why-book-blob-4: color-mix(in srgb, #ffffff 82%, var(--brand-green-2) 18%);
 }
 
 html {
