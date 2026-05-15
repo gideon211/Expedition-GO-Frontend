@@ -40,7 +40,7 @@ export function RecentlyViewedProvider({ children }) {
     if (recentlyViewed.length > 0) {
       localStorage.setItem(storageKey, JSON.stringify(recentlyViewed));
     }
-  }, [recentlyViewed, user?.uid]);
+  }, [recentlyViewed, user]);
 
   const addToRecentlyViewed = useCallback((item) => {
     setRecentlyViewed((prev) => {
@@ -57,7 +57,7 @@ export function RecentlyViewedProvider({ children }) {
     setRecentlyViewed([]);
     const storageKey = user ? `recentlyViewed_${user.uid}` : 'recentlyViewed_guest';
     localStorage.removeItem(storageKey);
-  }, [user?.uid]);
+  }, [user]);
 
   const value = useMemo(
     () => ({

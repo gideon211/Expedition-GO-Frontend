@@ -9,7 +9,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
  * Hero Tour Card - Horizontal layout for hero section "Pickup where you left off" carousel
  * Matches GetYourGuide's "Continue planning your trip" card style exactly
  */
-export function HeroTourCard({ title, duration, price, rating, reviews, image, disableTracking = false }) {
+export function HeroTourCard({ title, duration, price, rating, reviews, image, _disableTracking = false }) {
   const { t } = useTranslation();
   const { convertPrice } = useCurrency();
 

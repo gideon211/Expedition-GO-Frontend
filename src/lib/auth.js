@@ -29,7 +29,7 @@ const rawBase =
 
 let API_BASE = rawBase.replace(/\/+$/, '');
 
-if (/^https?:\/\/[^\/]+$/.test(API_BASE)) {
+if (/^https?:\/\/[^/]+$/.test(API_BASE)) {
   API_BASE = `${API_BASE}/api`;
 }
 

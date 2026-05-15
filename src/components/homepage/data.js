@@ -111,50 +111,76 @@ export const destinations = [
   {
     title: "Accra",
     tours: "120+ Tours",
+    region: "Greater Accra",
     image:
       "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Cape Coast",
     tours: "80+ Tours",
+    region: "Central Region",
     image:
       "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Kakum National Park",
     tours: "45+ Tours",
+    region: "Central Region",
     image:
       "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Kumasi",
     tours: "70+ Tours",
+    region: "Ashanti Region",
     image:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Volta Region",
     tours: "60+ Tours",
+    region: "Volta Region",
     image:
       "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Tamale",
     tours: "40+ Tours",
+    region: "Northern Region",
     image:
       "https://images.unsplash.com/photo-1521401830884-6c03c1c87ebb?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Axim",
     tours: "35+ Tours",
+    region: "Western Region",
     image:
       "https://images.unsplash.com/photo-1501959915551-4e8a04b3074d?auto=format&fit=crop&w=1200&q=80",
   },
-  ...Array.from({ length: 20 }, (_, index) => ({
-    title: `Ghana Destination ${index + 1}`,
-    tours: `${35 + index * 3}+ Tours`,
-    image: `https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80&sig=destination${index + 1}`,
-  })),
+  ...Array.from({ length: 10 }, (_, index) => {
+    const regionPool = [
+      "Greater Accra",
+      "Central Region",
+      "Eastern Region",
+      "Volta Region",
+      "Ashanti Region",
+      "Brong Ahafo Region",
+      "Western Region",
+      "Upper West Region",
+      "Upper East Region",
+      "Northern Region",
+      "Savannah Region",
+      "North East Region",
+      "Ahafo Region",
+      "Bono Region",
+    ];
+    return {
+      title: `Ghana Destination ${index + 1}`,
+      tours: `${35 + index * 3}+ Tours`,
+      region: regionPool[index % regionPool.length],
+      image: `https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80&sig=destination${index + 1}`,
+    };
+  }),
 ];
 
 export const recommendedTours = [

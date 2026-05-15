@@ -8,9 +8,7 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  CircleAlert,
   Clock,
-  Gem,
   Star, 
   Heart,
   Info,
@@ -607,9 +605,9 @@ function TourDetailContent() {
   const [youths, setYouths] = useState(0);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
-  const [expandedDay, setExpandedDay] = useState(0);
+  const [_expandedDay, _setExpandedDay] = useState(0);
   const [expandedInfoSection, setExpandedInfoSection] = useState("included");
-  const [travelerType, setTravelerType] = useState("adults");
+  const [_travelerType, _setTravelerType] = useState("adults");
   const [overviewAccordionOpen, setOverviewAccordionOpen] = useState({
     highlights: true,
     fullDescription: true,
@@ -684,7 +682,7 @@ function TourDetailContent() {
     }
   };
 
-  const selectedTravelerMeta = tourData.includesByTraveler[travelerType];
+  const _selectedTravelerMeta = tourData.includesByTraveler[_travelerType];
   const totalTravelers = adults + seniors + youths + children + infants;
   const totalPrice = useMemo(
     () => (
@@ -698,6 +696,9 @@ function TourDetailContent() {
   const convertedUnitPrice = convertPrice(selectedTourPriceNumber);
   const convertedTotalPrice = convertPrice(totalPrice);
   const today = useMemo(() => new Date(), []);
+  const nextAvailableQuickPickDates = tourData.startDates.filter((iso) => (
+    startOfLocalDay(new Date(iso)).getTime() > startOfLocalDay(new Date()).getTime()
+  )).slice(0, 4);
   const selectedDateLabel = useMemo(() => {
     if (!bookingDateRange?.start || !bookingDateRange?.end) return "Select date";
     const { start, end } = bookingDateRange;
@@ -712,7 +713,7 @@ function TourDetailContent() {
     );
     return `${startPart} – ${endPart}`;
   }, [bookingDateRange]);
-  const selectedDateWarningLabel = useMemo(() => {
+  const _selectedDateWarningLabel = useMemo(() => {
     if (!bookingDateRange?.start || !bookingDateRange?.end) return "your selected date";
     const { start, end } = bookingDateRange;
     if (isSameCalendarDay(start, end)) {
@@ -1435,24 +1436,28 @@ function TourDetailContent() {
                 Check availability
               </Button>
 
-              <p className="mt-4 font-black">Next Available Dates:</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {tourData.startDates.slice(3, 7).map((date) => {
-                  const availableDate = new Date(date);
-                  const label = availableDate.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
+              {nextAvailableQuickPickDates.length > 0 && (
+                <>
+                  <p className="mt-4 font-black">Next Available Dates:</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {nextAvailableQuickPickDates.map((date) => {
+                      const availableDate = new Date(date);
+                      const label = availableDate.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
 
-                  return (
-                    <button
-                      key={date}
-                      type="button"
-                      onClick={() => commitBookingRange(availableDate, availableDate)}
-                      className="rounded-full border border-[color:var(--brand-green)] px-3 py-1.5 text-xs font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
+                      return (
+                        <button
+                          key={date}
+                          type="button"
+                          onClick={() => commitBookingRange(availableDate, availableDate)}
+                          className="rounded-full border border-[color:var(--brand-green)] px-3 py-1.5 text-xs font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
 
               {assistanceAside}
             </div>
@@ -1940,24 +1945,28 @@ function TourDetailContent() {
                 Check availability
               </Button>
 
-              <p className="mt-4 font-black">Next Available Dates:</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {tourData.startDates.slice(3, 7).map((date) => {
-                  const availableDate = new Date(date);
-                  const label = availableDate.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
+              {nextAvailableQuickPickDates.length > 0 && (
+                <>
+                  <p className="mt-4 font-black">Next Available Dates:</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {nextAvailableQuickPickDates.map((date) => {
+                      const availableDate = new Date(date);
+                      const label = availableDate.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
 
-                  return (
-                    <button
-                      key={date}
-                      type="button"
-                      onClick={() => commitBookingRange(availableDate, availableDate)}
-                      className="rounded-full border border-[color:var(--brand-green)] px-3 py-1.5 text-xs font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
+                      return (
+                        <button
+                          key={date}
+                          type="button"
+                          onClick={() => commitBookingRange(availableDate, availableDate)}
+                          className="rounded-full border border-[color:var(--brand-green)] px-3 py-1.5 text-xs font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
 
               {assistanceAside}
             </div>

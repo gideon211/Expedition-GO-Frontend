@@ -1,6 +1,6 @@
 
 import { MapPin, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -14,15 +14,15 @@ import { useSearchAutocomplete } from "@/hooks/useSearchAutocomplete";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 
 export function HeroSection({
-  sharedDateRange,
-  onSharedDateRangeChange,
+  _sharedDateRange,
+  _onSharedDateRangeChange,
   onSearchBarVisibilityChange,
   externalSearchQuery,
   onExternalSearchChange,
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [_currentIndex, _setCurrentIndex] = useState(0);
   const [isSearchBarSticky, setIsSearchBarSticky] = useState(false);
   const [searchBarHeight, setSearchBarHeight] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,7 +33,8 @@ export function HeroSection({
   const searchInputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const searchBarInitialTop = useRef(null);
-  const isScrollingRef = useRef(false);
+  const _isScrollingRef = useRef(false);
+  const prevStickyRef = useRef(false);
   const { recentlyViewed } = useRecentlyViewed();
   const isExternalSearchMode = typeof onExternalSearchChange === "function";
   const activeSearchQuery = isExternalSearchMode ? (externalSearchQuery ?? "") : searchQuery;
@@ -44,8 +45,8 @@ export function HeroSection({
   // Carousel setup - Simple finite scroll
   const carouselItems = recentlyViewed.length > 0 ? recentlyViewed : [];
 
-  const cardWidth = 280; // Horizontal card width
-  const gap = 12;
+  const _cardWidth = 280; // Horizontal card width
+  const _gap = 12;
 
   // Simple scroll function for finite carousel
   const scroll = (direction) => {
@@ -145,15 +146,13 @@ export function HeroSection({
       const threshold = searchBarInitialTop.current - 150;
       const shouldBeSticky = scrollPosition >= threshold;
       
-      setIsSearchBarSticky(prev => {
-        if (prev !== shouldBeSticky) {
-          if (onSearchBarVisibilityChange) {
-            onSearchBarVisibilityChange(shouldBeSticky);
-          }
-          return shouldBeSticky;
+      if (prevStickyRef.current !== shouldBeSticky) {
+        prevStickyRef.current = shouldBeSticky;
+        setIsSearchBarSticky(shouldBeSticky);
+        if (onSearchBarVisibilityChange) {
+          onSearchBarVisibilityChange(shouldBeSticky);
         }
-        return prev;
-      });
+      }
     };
 
     // Initial check

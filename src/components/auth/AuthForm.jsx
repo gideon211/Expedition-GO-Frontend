@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getAuthProvider, signInWithGoogle } from "@/lib/auth";
+import { signInWithGoogle } from "@/lib/auth";
 
 function GoogleIcon() {
   return (
@@ -65,9 +65,7 @@ export function AuthForm({
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const provider = getAuthProvider();
   const isRegister = mode === "register";
-  const isSubmitting = loading || googleLoading;
 
   function updateField(key, value) {
     setForm((current) => ({ ...current, [key]: value }));

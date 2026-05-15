@@ -182,7 +182,7 @@ export function TourCarouselSection({ id, title, subtitle, items }) {
   }, [nudgeMobileInfiniteLoop]);
 
   return (
-    <section id={id} className="py-[1.275rem] md:py-4 xl:py-5">
+    <section id={id} className="py-4 md:py-4 xl:py-5">
       <SectionHeading
         title={title}
         subtitle={subtitle}

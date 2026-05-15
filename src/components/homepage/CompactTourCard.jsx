@@ -18,7 +18,7 @@ export function CompactTourCard({
   reviews,
   image,
   discount,
-  disableTracking = false,
+  _disableTracking = false,
   badge = "duration",
 }) {
   const { t } = useTranslation();

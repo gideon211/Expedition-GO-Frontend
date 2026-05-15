@@ -1,15 +1,143 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  User,
+  Bell,
+  CreditCard,
+  Mail,
+  Smartphone,
+  Tag,
+  Trash2,
+  Plus,
+  Shield,
+  Check,
+  ChevronRight,
+  CalendarDays,
+} from "lucide-react";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
-import { Settings, Bell, CreditCard } from "lucide-react";
 
+/* ------------------------------------------------------------------ */
+/*  Shared animation presets                                           */
+/* ------------------------------------------------------------------ */
+const fadeUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { duration: 0.28, ease: "easeOut" },
+};
+
+const staggerContainer = {
+  animate: { transition: { staggerChildren: 0.06 } },
+};
+
+const staggerItem = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.25, ease: "easeOut" },
+};
+
+/* ------------------------------------------------------------------ */
+/*  Toggle switch (replaces checkbox)                                  */
+/* ------------------------------------------------------------------ */
+function ToggleSwitch({ checked, onChange, disabled = false }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-green)]/30 ${
+        checked
+          ? "bg-[color:var(--brand-green)]"
+          : "bg-slate-300"
+      } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+    >
+      <span
+        className={`inline-block size-4 rounded-full bg-white shadow transition-transform duration-200 ${
+          checked ? "translate-x-6" : "translate-x-1"
+        }`}
+      />
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Form input wrapper                                                 */
+/* ------------------------------------------------------------------ */
+function FormField({ label, children, hint }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-[13px] font-semibold tracking-wide text-slate-700 uppercase">
+        {label}
+      </label>
+      {children}
+      {hint && <p className="text-xs text-slate-400">{hint}</p>}
+    </div>
+  );
+}
+
+function TextInput({ value, onChange, name, placeholder, type = "text", disabled = false }) {
+  return (
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      placeholder={placeholder}
+      className={`w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[color:var(--brand-green)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-green)]/15 ${
+        disabled ? "cursor-not-allowed bg-slate-50 text-slate-400" : ""
+      }`}
+    />
+  );
+}
+
+function SelectInput({ value, onChange, name, placeholder, options }) {
+  return (
+    <div className="relative">
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition-all hover:border-slate-300 focus:border-[color:var(--brand-green)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-green)]/15"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <ChevronRight className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 rotate-90 text-slate-400" />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Tab definitions                                                    */
+/* ------------------------------------------------------------------ */
+const TABS = [
+  { id: "personal", label: "Personal Details", icon: User },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "payment", label: "Payment Methods", icon: CreditCard },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Main page                                                          */
+/* ------------------------------------------------------------------ */
 export default function SettingsPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const [isMobile, setIsMobile] = useState(false);
+
+  /* form state */
   const [formData, setFormData] = useState({
     firstName: user?.name?.split(" ")[0] || "",
     lastName: user?.name?.split(" ")[1] || "",
@@ -17,354 +145,509 @@ export default function SettingsPage() {
     phone: "",
     day: "",
     month: "",
-    year: ""
+    year: "",
   });
   const [notifications, setNotifications] = useState({
     email: true,
     sms: true,
-    marketing: false
+    marketing: false,
   });
   const [hasChanges, setHasChanges] = useState(false);
   const [notificationChanges, setNotificationChanges] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Redirect if not logged in
+  /* viewport */
   useEffect(() => {
-    if (loading) return; // Wait for auth to load
-    
-    if (!user) {
-      navigate("/signin", { replace: true });
-    } else {
-      setIsAuthorized(true);
-    }
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  /* auth guard */
+  useEffect(() => {
+    if (loading) return;
+    if (!user) navigate("/signin", { replace: true });
+    else setIsAuthorized(true);
   }, [user, loading, navigate]);
 
-  // Don't render anything until we know if user is authorized
-  if (loading || !isAuthorized) {
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user.name?.split(" ")[0] || "",
+        lastName: user.name?.split(" ")[1] || "",
+        email: user.email || "",
+      }));
+    }
+  }, [user]);
+
+  if (loading || !isAuthorized) return null;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setHasChanges(true);
   };
 
   const handleNotificationChange = (key) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
     setNotificationChanges(true);
   };
 
-  const handleSave = () => {
-    // Handle save logic here
-    setHasChanges(false);
-  };
+  const handleSave = () => setHasChanges(false);
+  const handleNotificationSave = () => setNotificationChanges(false);
 
-  const handleNotificationSave = () => {
-    setNotificationChanges(false);
-  };
+  const days = Array.from({ length: 31 }, (_, i) => ({
+    value: String(i + 1),
+    label: String(i + 1),
+  }));
+  const months = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
+  ].map((m, i) => ({ value: String(i + 1), label: m }));
+  const years = Array.from({ length: 100 }, (_, i) => {
+    const y = new Date().getFullYear() - i;
+    return { value: String(y), label: String(y) };
+  });
 
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
+  const userInitial = user?.name?.charAt(0).toUpperCase() || "U";
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <div className="bg-white">
-        <Navbar />
-      </div>
-      
-      {/* Navbar spacer */}
+    <div className="flex min-h-screen flex-col bg-white">
+      <Navbar />
       <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
 
-      <main className="flex-1 bg-white">
-        <div className="mx-auto max-w-[1520px] px-4 py-8 sm:px-6 lg:px-8">
-          <h1 className="font-bold text-slate-900 mb-8" style={{ fontSize: 'clamp(1.75rem, 2.5vw + 0.5rem, 2.25rem)' }}>Settings</h1>
+      <main className="flex-1">
+        {/* Hero header */}
+        <div className="relative overflow-hidden border-b border-slate-200 bg-white">
+          <div className="relative mx-auto max-w-[1520px] px-4 pb-10 pt-8 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8">
+            <button
+              onClick={() => navigate(-1)}
+              className="group mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[color:var(--brand-green)]/30 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)]"
+            >
+              <ArrowLeft className="size-4 transition group-hover:-translate-x-0.5" />
+              Back
+            </button>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              Account Settings
+            </h1>
+            <p className="mt-2 max-w-lg text-sm font-medium text-slate-500">
+              Manage your personal details, notification preferences, and payment methods.
+            </p>
+          </div>
+        </div>
 
-          <div className="grid gap-6 lg:grid-cols-4">
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              {/* Profile Card */}
-              <div className="mb-6 rounded-lg bg-[color:var(--brand-green)] p-6 text-white lg:mb-0">
-                <div className="text-center">
-                  {user?.photoURL ? (
-                    <img
-                      src={user.photoURL}
-                      alt={user.name}
-                      className="mx-auto mb-4 size-16 rounded-full border-4 border-white object-cover"
-                    />
-                  ) : (
-                    <div className="mx-auto mb-4 grid size-16 place-items-center rounded-full border-4 border-white bg-[color:var(--brand-mist)] text-2xl font-bold text-[color:var(--brand-green)]">
-                      {user?.name?.charAt(0).toUpperCase()}
+        <div className="mx-auto max-w-[1520px] px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+            {/* ─── Sidebar ─── */}
+            <aside className="space-y-6">
+              {/* Profile mini-card */}
+              <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
+                <div className="relative px-6 pb-6 pt-16 text-center">
+                  {/* Decorative top arc */}
+                  <div className="absolute inset-x-0 top-0 h-28 bg-slate-900" />
+                  <div className="absolute inset-x-0 top-[6.5rem] h-12 bg-white rounded-t-[2rem]" />
+
+                  {/* Avatar — centered, larger */}
+                  <div className="relative mx-auto mb-4">
+                    {user?.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt={user.name}
+                        className="mx-auto size-28 rounded-full border-[6px] border-white object-cover shadow-lg"
+                      />
+                    ) : (
+                      <div className="mx-auto grid size-28 place-items-center rounded-full border-[6px] border-white bg-slate-200 shadow-lg">
+                        <User className="size-16 text-slate-500" strokeWidth={1.5} />
+                      </div>
+                    )}
+                    {/* Online / verified dot */}
+                    <div className="absolute bottom-1 right-1/2 translate-x-10 grid size-6 place-items-center rounded-full border-2 border-white bg-emerald-500">
+                      <Shield className="size-3 text-white" />
                     </div>
-                  )}
-                  <h2 className="font-bold text-slate-900" style={{ fontSize: 'clamp(1.25rem, 2vw + 0.5rem, 1.75rem)' }}>{user?.name || "User"}</h2>
-                  <p className="text-sm text-white/80">Account</p>
+                  </div>
+
+                  <h2 className="text-lg font-bold text-slate-900">{user?.name || "User"}</h2>
+                  <p className="mt-0.5 text-sm text-slate-500">{user?.email}</p>
+                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                    Verified Account
+                  </div>
                 </div>
               </div>
 
-              {/* Navigation Tabs */}
-              <div className="space-y-2">
-                <button
-                  onClick={() => setActiveTab("personal")}
-                  className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition ${
-                    activeTab === "personal"
-                      ? "bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] font-semibold"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  <Settings className="size-5" />
-                  <span>Personal details</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab("notifications")}
-                  className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition ${
-                    activeTab === "notifications"
-                      ? "bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] font-semibold"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  <Bell className="size-5" />
-                  <span>Notifications</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab("payment")}
-                  className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition ${
-                    activeTab === "payment"
-                      ? "bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] font-semibold"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  <CreditCard className="size-5" />
-                  <span>Saved cards</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              {/* Personal Details Tab */}
-              {activeTab === "personal" && (
-                <div className="rounded-lg border border-slate-200 bg-white p-6 sm:p-8">
-                  <h2 className="mb-6 font-bold text-slate-900" style={{ fontSize: 'clamp(1.25rem, 1.8vw + 0.5rem, 1.75rem)' }}>Profile Details</h2>
-
-                  {/* Name Fields */}
-                  <div className="mb-8">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          First Name
-                        </label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 placeholder-slate-500 focus:border-[color:var(--brand-green)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-green)]/20"
-                          placeholder="First Name"
+              {/* Tab navigation */}
+              <nav className="space-y-1 rounded-2xl border border-slate-200/60 bg-white p-2 shadow-sm">
+                {TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`group relative flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition-all ${
+                        isActive
+                          ? "bg-[color:var(--brand-mist)] text-[color:var(--brand-green)]"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeTab"
+                          className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-[color:var(--brand-green)]"
+                          transition={{ type: "spring", stiffness: 500, damping: 35 }}
                         />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          Last Name
-                        </label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 placeholder-slate-500 focus:border-[color:var(--brand-green)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-green)]/20"
-                          placeholder="Last Name"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Contact Details */}
-                  <h3 className="mb-4 font-bold text-slate-900" style={{ fontSize: 'clamp(1rem, 1.2vw + 0.5rem, 1.25rem)' }}>Contact Details</h3>
-                  <div className="mb-8 space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-900 mb-2">
-                        Email
-                      </label>
-                      <div className="rounded-lg bg-slate-100 px-4 py-2.5 text-slate-600 cursor-not-allowed">
-                        {formData.email}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-900 mb-2">
-                        Mobile Phone
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 placeholder-slate-500 focus:border-[color:var(--brand-green)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-green)]/20"
-                        placeholder="Mobile Phone"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Date of Birth */}
-                  <h3 className="mb-4 font-bold text-slate-900" style={{ fontSize: 'clamp(1rem, 1.2vw + 0.5rem, 1.25rem)' }}>Date of birth</h3>
-                  <div className="mb-8 grid gap-4 sm:grid-cols-3">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-900 mb-2">
-                        Day
-                      </label>
-                      <select
-                        name="day"
-                        value={formData.day}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-[color:var(--brand-green)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-green)]/20"
-                      >
-                        <option value="">Day</option>
-                        {days.map(day => (
-                          <option key={day} value={day}>{day}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-900 mb-2">
-                        Month
-                      </label>
-                      <select
-                        name="month"
-                        value={formData.month}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-[color:var(--brand-green)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-green)]/20"
-                      >
-                        <option value="">Month</option>
-                        {months.map((month, index) => (
-                          <option key={index} value={index + 1}>{month}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-900 mb-2">
-                        Year
-                      </label>
-                      <select
-                        name="year"
-                        value={formData.year}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-[color:var(--brand-green)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-green)]/20"
-                      >
-                        <option value="">Year</option>
-                        {years.map(year => (
-                          <option key={year} value={year}>{year}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Save Button */}
-                  <button
-                    onClick={handleSave}
-                    disabled={!hasChanges}
-                    className={`rounded-lg px-6 py-2.5 font-semibold text-white transition ${
-                      hasChanges
-                        ? "bg-[color:var(--brand-green)] hover:bg-[color:var(--brand-green)]/90 cursor-pointer"
-                        : "bg-slate-300 cursor-not-allowed"
-                    }`}
-                  >
-                    Save
-                  </button>
-
-                  {/* Delete Account */}
-                  <div className="mt-12 border-t border-slate-200 pt-8">
-                    <button className="text-sm font-semibold text-red-600 transition hover:text-red-700">
-                      Delete Account
+                      )}
+                      <Icon className={`size-[18px] transition ${isActive ? "text-[color:var(--brand-green)]" : "text-slate-400 group-hover:text-slate-600"}`} />
+                      <span>{tab.label}</span>
+                      {isActive && (
+                        <ChevronRight className="ml-auto size-4 text-[color:var(--brand-green)]" />
+                      )}
                     </button>
-                  </div>
-                </div>
-              )}
+                  );
+                })}
+              </nav>
+            </aside>
 
-              {/* Notifications Tab */}
-              {activeTab === "notifications" && (
-                <div className="rounded-lg border border-slate-200 bg-white p-6 sm:p-8">
-                  <h2 className="mb-6 font-bold text-slate-900" style={{ fontSize: 'clamp(1.25rem, 1.8vw + 0.5rem, 1.75rem)' }}>Notification Preferences</h2>
-                  <div className="space-y-4 mb-6">
-                    <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-4 cursor-pointer hover:bg-slate-50 transition">
-                      <input 
-                        type="checkbox" 
-                        checked={notifications.email}
-                        onChange={() => handleNotificationChange('email')}
-                        className="size-5 rounded border-slate-300 text-[color:var(--brand-green)]" 
-                      />
-                      <div>
-                        <p className="font-semibold text-slate-900">Email Notifications</p>
-                        <p className="text-sm text-slate-600">Receive updates about your bookings</p>
-                      </div>
-                    </label>
-                    <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-4 cursor-pointer hover:bg-slate-50 transition">
-                      <input 
-                        type="checkbox" 
-                        checked={notifications.sms}
-                        onChange={() => handleNotificationChange('sms')}
-                        className="size-5 rounded border-slate-300 text-[color:var(--brand-green)]" 
-                      />
-                      <div>
-                        <p className="font-semibold text-slate-900">SMS Notifications</p>
-                        <p className="text-sm text-slate-600">Get SMS alerts for important updates</p>
-                      </div>
-                    </label>
-                    <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-4 cursor-pointer hover:bg-slate-50 transition">
-                      <input 
-                        type="checkbox" 
-                        checked={notifications.marketing}
-                        onChange={() => handleNotificationChange('marketing')}
-                        className="size-5 rounded border-slate-300 text-[color:var(--brand-green)]" 
-                      />
-                      <div>
-                        <p className="font-semibold text-slate-900">Marketing Emails</p>
-                        <p className="text-sm text-slate-600">Receive promotional offers and deals</p>
-                      </div>
-                    </label>
-                  </div>
-                  <button
-                    onClick={handleNotificationSave}
-                    disabled={!notificationChanges}
-                    className={`rounded-lg px-6 py-2.5 font-semibold text-white transition ${
-                      notificationChanges
-                        ? "bg-[color:var(--brand-green)] hover:bg-[color:var(--brand-green)]/90 cursor-pointer"
-                        : "bg-slate-300 cursor-not-allowed"
-                    }`}
+            {/* ─── Main Content ─── */}
+            <div className="min-w-0">
+              <AnimatePresence mode="wait">
+                {activeTab === "personal" && (
+                  <motion.div
+                    key="personal"
+                    {...fadeUp}
+                    className="space-y-6"
                   >
-                    Save Changes
-                  </button>
-                </div>
-              )}
-
-              {/* Payment Tab */}
-              {activeTab === "payment" && (
-                <div className="rounded-lg border border-slate-200 bg-white p-6 sm:p-8">
-                  <h2 className="mb-6 font-bold text-slate-900" style={{ fontSize: 'clamp(1.25rem, 1.8vw + 0.5rem, 1.75rem)' }}>Saved Cards</h2>
-                  <div className="space-y-4">
-                    <div className="rounded-lg border border-slate-200 p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-slate-900">Visa ending in 4242</p>
-                          <p className="text-sm text-slate-600">Expires 12/25</p>
+                    {/* Profile section */}
+                    <section className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
+                      <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
+                        <div className="flex items-center gap-3">
+                          <div className="grid size-10 place-items-center rounded-xl bg-[color:var(--brand-mist)] text-[color:var(--brand-green)]">
+                            <User className="size-5" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-slate-900">Profile Details</h2>
+                            <p className="text-sm text-slate-500">Update your name and contact information</p>
+                          </div>
                         </div>
-                        <button className="text-sm font-semibold text-red-600 hover:text-red-700">
-                          Remove
+                      </div>
+
+                      <div className="space-y-6 p-6 sm:p-8">
+                        <div className="grid gap-6 sm:grid-cols-2">
+                          <FormField label="First Name">
+                            <TextInput
+                              name="firstName"
+                              value={formData.firstName}
+                              onChange={handleInputChange}
+                              placeholder="Enter your first name"
+                            />
+                          </FormField>
+                          <FormField label="Last Name">
+                            <TextInput
+                              name="lastName"
+                              value={formData.lastName}
+                              onChange={handleInputChange}
+                              placeholder="Enter your last name"
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="grid gap-6 sm:grid-cols-2">
+                          <FormField label="Email Address" hint="Email cannot be changed">
+                            <TextInput
+                              name="email"
+                              value={formData.email}
+                              onChange={() => {}}
+                              placeholder="your@email.com"
+                              disabled
+                            />
+                          </FormField>
+                          <FormField label="Mobile Phone">
+                            <TextInput
+                              name="phone"
+                              type="tel"
+                              value={formData.phone}
+                              onChange={handleInputChange}
+                              placeholder="+1 234 567 890"
+                            />
+                          </FormField>
+                        </div>
+
+                        <FormField label="Date of Birth">
+                          <div className="grid gap-4 sm:grid-cols-3">
+                            <SelectInput
+                              name="day"
+                              value={formData.day}
+                              onChange={handleInputChange}
+                              placeholder="Day"
+                              options={days}
+                            />
+                            <SelectInput
+                              name="month"
+                              value={formData.month}
+                              onChange={handleInputChange}
+                              placeholder="Month"
+                              options={months}
+                            />
+                            <SelectInput
+                              name="year"
+                              value={formData.year}
+                              onChange={handleInputChange}
+                              placeholder="Year"
+                              options={years}
+                            />
+                          </div>
+                        </FormField>
+
+                        <div className="flex items-center justify-between border-t border-slate-100 pt-6">
+                          <p className="text-sm text-slate-500">
+                            {hasChanges ? "You have unsaved changes" : "All changes saved"}
+                          </p>
+                          <button
+                            onClick={handleSave}
+                            disabled={!hasChanges}
+                            className={`inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all ${
+                              hasChanges
+                                ? "bg-[color:var(--brand-green)] shadow-[color:var(--brand-green)]/20 hover:shadow-md hover:brightness-110 active:scale-[0.98]"
+                                : "cursor-not-allowed bg-slate-300"
+                            }`}
+                          >
+                            <Check className="size-4" />
+                            Save Changes
+                          </button>
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* Danger zone */}
+                    <section className="overflow-hidden rounded-2xl border border-rose-200/60 bg-white shadow-sm">
+                      <div className="border-b border-rose-100 px-6 py-5 sm:px-8">
+                        <div className="flex items-center gap-3">
+                          <div className="grid size-10 place-items-center rounded-xl bg-rose-50 text-rose-600">
+                            <Trash2 className="size-5" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-slate-900">Delete Account</h2>
+                            <p className="text-sm text-slate-500">Permanently remove your account and data</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-6 sm:p-8">
+                        <p className="mb-5 text-sm leading-relaxed text-slate-600">
+                          Once you delete your account, there is no going back. All your bookings, wishlists, and personal data will be permanently removed.
+                        </p>
+                        {!showDeleteConfirm ? (
+                          <button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:bg-rose-50 hover:shadow active:scale-[0.98]"
+                          >
+                            <Trash2 className="size-4" />
+                            Delete Account
+                          </button>
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="rounded-xl border border-rose-200 bg-rose-50 p-4"
+                          >
+                            <p className="mb-3 text-sm font-semibold text-rose-800">
+                              Are you sure? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-white"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 active:scale-[0.98]"
+                              >
+                                Yes, Delete My Account
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    </section>
+                  </motion.div>
+                )}
+
+                {activeTab === "notifications" && (
+                  <motion.div
+                    key="notifications"
+                    {...fadeUp}
+                    className="space-y-6"
+                  >
+                    <section className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
+                      <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
+                        <div className="flex items-center gap-3">
+                          <div className="grid size-10 place-items-center rounded-xl bg-[color:var(--brand-mist)] text-[color:var(--brand-green)]">
+                            <Bell className="size-5" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-slate-900">Notification Preferences</h2>
+                            <p className="text-sm text-slate-500">Choose how you want to be notified</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <motion.div
+                        variants={staggerContainer}
+                        initial="initial"
+                        animate="animate"
+                        className="divide-y divide-slate-100 p-6 sm:p-8"
+                      >
+                        {/* Email */}
+                        <motion.div
+                          variants={staggerItem}
+                          className="flex items-start gap-4 py-5 first:pt-0 last:pb-0"
+                        >
+                          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-600">
+                            <Mail className="size-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-4">
+                              <div>
+                                <p className="font-semibold text-slate-900">Email Notifications</p>
+                                <p className="mt-0.5 text-sm text-slate-500">Receive booking confirmations, reminders, and trip updates</p>
+                              </div>
+                              <ToggleSwitch
+                                checked={notifications.email}
+                                onChange={() => handleNotificationChange("email")}
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        {/* SMS */}
+                        <motion.div
+                          variants={staggerItem}
+                          className="flex items-start gap-4 py-5 first:pt-0 last:pb-0"
+                        >
+                          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-600">
+                            <Smartphone className="size-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-4">
+                              <div>
+                                <p className="font-semibold text-slate-900">SMS Alerts</p>
+                                <p className="mt-0.5 text-sm text-slate-500">Get text alerts for last-minute changes and urgent updates</p>
+                              </div>
+                              <ToggleSwitch
+                                checked={notifications.sms}
+                                onChange={() => handleNotificationChange("sms")}
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        {/* Marketing */}
+                        <motion.div
+                          variants={staggerItem}
+                          className="flex items-start gap-4 py-5 first:pt-0 last:pb-0"
+                        >
+                          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-600">
+                            <Tag className="size-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-4">
+                              <div>
+                                <p className="font-semibold text-slate-900">Marketing & Promotions</p>
+                                <p className="mt-0.5 text-sm text-slate-500">Exclusive deals, seasonal offers, and travel inspiration</p>
+                              </div>
+                              <ToggleSwitch
+                                checked={notifications.marketing}
+                                onChange={() => handleNotificationChange("marketing")}
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      </motion.div>
+
+                      <div className="flex items-center justify-between border-t border-slate-100 px-6 py-5 sm:px-8">
+                        <p className="text-sm text-slate-500">
+                          {notificationChanges ? "You have unsaved changes" : "Preferences saved"}
+                        </p>
+                        <button
+                          onClick={handleNotificationSave}
+                          disabled={!notificationChanges}
+                          className={`inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all ${
+                            notificationChanges
+                              ? "bg-[color:var(--brand-green)] shadow-[color:var(--brand-green)]/20 hover:shadow-md hover:brightness-110 active:scale-[0.98]"
+                              : "cursor-not-allowed bg-slate-300"
+                          }`}
+                        >
+                          <Check className="size-4" />
+                          Save Preferences
                         </button>
                       </div>
-                    </div>
-                    <button className="w-full rounded-lg border-2 border-dashed border-[color:var(--brand-green)] py-4 font-semibold text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)]">
-                      + Add New Card
-                    </button>
-                  </div>
-                </div>
-              )}
+                    </section>
+                  </motion.div>
+                )}
+
+                {activeTab === "payment" && (
+                  <motion.div
+                    key="payment"
+                    {...fadeUp}
+                    className="space-y-6"
+                  >
+                    <section className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
+                      <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
+                        <div className="flex items-center gap-3">
+                          <div className="grid size-10 place-items-center rounded-xl bg-[color:var(--brand-mist)] text-[color:var(--brand-green)]">
+                            <CreditCard className="size-5" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-slate-900">Payment Methods</h2>
+                            <p className="text-sm text-slate-500">Manage your saved cards for faster checkout</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-6 sm:p-8 space-y-4">
+                        {/* Saved card — styled like a real card */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="relative overflow-hidden rounded-2xl bg-slate-900 p-6 text-white shadow-lg sm:p-8"
+                        >
+                          <div className="absolute right-0 top-0 h-32 w-32 -translate-y-4 translate-x-4 rounded-full bg-white/5" />
+                          <div className="absolute bottom-0 left-0 h-24 w-24 -translate-x-6 translate-y-6 rounded-full bg-white/5" />
+                          <div className="relative">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1">
+                                <p className="text-xs font-medium uppercase tracking-widest text-white/60">Debit Card</p>
+                                <p className="text-xl font-bold tracking-widest sm:text-2xl">**** **** **** 4242</p>
+                              </div>
+                              <div className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white/90 backdrop-blur-sm">
+                                Visa
+                              </div>
+                            </div>
+                            <div className="mt-8 flex items-end justify-between">
+                              <div>
+                                <p className="text-[10px] uppercase tracking-widest text-white/50">Card Holder</p>
+                                <p className="mt-0.5 text-sm font-semibold">{user?.name || "User"}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] uppercase tracking-widest text-white/50">Expires</p>
+                                <p className="mt-0.5 text-sm font-semibold">12 / 25</p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        <button className="group flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/50 py-5 text-sm font-semibold text-slate-600 transition hover:border-[color:var(--brand-green)]/40 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] active:scale-[0.99]">
+                          <Plus className="size-4 transition group-hover:scale-110" />
+                          Add New Payment Method
+                        </button>
+                      </div>
+                    </section>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

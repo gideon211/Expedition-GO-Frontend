@@ -1,6 +1,8 @@
 import js from "@eslint/js";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
+import importPlugin from "eslint-plugin-import";
+import aliasResolver from "eslint-import-resolver-alias";
 
 export default [
   js.configs.recommended,
@@ -9,6 +11,18 @@ export default [
     plugins: {
       react,
       "react-hooks": reactHooks,
+      import: importPlugin,
+    },
+    settings: {
+      "import/resolver": {
+        alias: {
+          map: [["@", "./src"]],
+          extensions: [".js", ".jsx"],
+        },
+      },
+      react: {
+        version: "detect",
+      },
     },
     languageOptions: {
       ecmaVersion: "latest",
@@ -55,20 +69,49 @@ export default [
         MouseEvent: "readonly",
         KeyboardEvent: "readonly",
         URLSearchParams: "readonly",
-      },
-    },
-    settings: {
-      react: {
-        version: "detect",
+        URL: "readonly",
+        Blob: "readonly",
+        AbortController: "readonly",
+        AbortSignal: "readonly",
+        ResizeObserver: "readonly",
+        navigator: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
+        performance: "readonly",
+        location: "readonly",
+        history: "readonly",
+        customElements: "readonly",
+        MutationObserver: "readonly",
+        IntersectionObserver: "readonly",
+        DOMParser: "readonly",
+        FileReader: "readonly",
+        WebSocket: "readonly",
+        Worker: "readonly",
+        MessageChannel: "readonly",
+        BroadcastChannel: "readonly",
+        crypto: "readonly",
+        atob: "readonly",
+        btoa: "readonly",
+        structuredClone: "readonly",
+        ReadableStream: "readonly",
+        WritableStream: "readonly",
+        TransformStream: "readonly",
+        Headers: "readonly",
+        Request: "readonly",
+        Response: "readonly",
+        EventSource: "readonly",
+        XMLHttpRequest: "readonly",
+        Navigator: "readonly",
       },
     },
     rules: {
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off",
+      "react/jsx-uses-vars": "error",
       "react/prop-types": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
       "no-console": ["warn", { allow: ["warn", "error"] }],
     },
   },

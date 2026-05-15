@@ -160,7 +160,6 @@ export function Calendar({ selected, onSelect, onClose, mode = "single" }) {
 
   const isRangeStart = (day) => {
     if (mode !== "range" || !dragStart) return false;
-    const date = new Date(year, month, day);
     
     // Show hover preview when selecting range
     if (!dragEnd && hoverDate && !isDragging) {
@@ -192,7 +191,6 @@ export function Calendar({ selected, onSelect, onClose, mode = "single" }) {
 
   const isRangeEnd = (day) => {
     if (mode !== "range" || !dragStart) return false;
-    const date = new Date(year, month, day);
     
     // Show hover preview when selecting range
     if (!dragEnd && hoverDate && !isDragging) {

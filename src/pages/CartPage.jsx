@@ -59,7 +59,7 @@ function CartPage() {
         <div className="mb-6 sm:mb-8">
           <button
             onClick={() => navigate(-1)}
-            className="group mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-[color:var(--brand-green)]/30 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] hover:shadow-md"
+            className="group mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-base font-semibold text-slate-600 shadow-sm transition hover:border-[color:var(--brand-green)]/30 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] hover:shadow-md sm:text-sm"
           >
             <ArrowLeft className="size-4 text-[color:var(--brand-green)] transition group-hover:-translate-x-0.5" />
             Back
@@ -74,7 +74,7 @@ function CartPage() {
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                   {t("nav.cart")}
                 </h1>
-                <p className="mt-0.5 text-sm font-medium text-slate-500">
+                <p className="mt-0.5 text-base font-medium text-slate-500 sm:text-sm">
                   {cart.length} {cart.length === 1 ? "item" : "items"} in your cart
                 </p>
               </div>
@@ -84,7 +84,7 @@ function CartPage() {
               <Button
                 variant="ghost"
                 onClick={clearCart}
-                className="shrink-0 gap-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+                className="shrink-0 gap-2 text-base text-slate-500 hover:bg-rose-50 hover:text-rose-600 sm:text-sm"
               >
                 <Trash2 className="size-4" />
                 <span className="hidden sm:inline">Clear cart</span>
@@ -102,12 +102,12 @@ function CartPage() {
             <h2 className="mb-2 text-xl font-bold text-slate-900 sm:text-2xl">
               Your cart is empty
             </h2>
-            <p className="mb-8 max-w-xs text-sm leading-relaxed text-slate-500 sm:text-base">
+            <p className="mb-8 max-w-xs text-base leading-relaxed text-slate-500">
               Activities you add will appear here. You have up to 25 minutes to complete your booking.
             </p>
             <Link
               to="/tours"
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--brand-green)] px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--brand-green)]/25 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30"
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--brand-green)] px-8 py-3 text-base font-semibold !text-white shadow-lg shadow-[color:var(--brand-green)]/25 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30 sm:text-sm"
             >
               Explore activities
             </Link>
@@ -131,13 +131,13 @@ function CartPage() {
                       <img
                         src={item.image}
                         alt={item.title}
-                        className="h-24 w-28 shrink-0 rounded-xl object-cover shadow-sm sm:h-32 sm:w-40"
+                        className="h-36 w-[7rem] shrink-0 rounded-xl object-cover object-center shadow-sm sm:h-80 sm:w-36 lg:h-40 lg:w-44"
                       />
                       <div className="flex min-w-0 flex-1 flex-col">
                         <div className="flex items-start justify-between gap-2">
-                           <h2 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900 sm:text-base lg:text-lg">
+                           <h5 className="line-clamp-2 text-base font-bold leading-snug text-slate-900 sm:text-base lg:text-lg">
                             {item.title}
-                          </h2>
+                          </h5>
                           <button
                             type="button"
                             onClick={() => removeFromCart(item.key)}
@@ -148,24 +148,24 @@ function CartPage() {
                           </button>
                         </div>
 
-                        <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
+                        <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
                           <Clock3 className="size-3.5 sm:size-4" />
                           {item.duration}
                         </p>
 
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 sm:text-xs">
                             <CalendarDays className="size-3.5" />
                             {formatBookingDateLabel(item.selectedDate, item.selectedDateEnd)}
                           </span>
                           {(item.adults || item.seniors || item.youths || item.children || item.infants) && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 sm:text-xs">
                               <Users className="size-3.5" />
                               {(item.adults || 0) + (item.seniors || 0) + (item.youths || 0) + (item.children || 0) + (item.infants || 0)} travelers
                             </span>
                           )}
                           {!isExpired ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700 sm:text-xs">
                               <span className="relative flex size-2">
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
                                 <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
@@ -173,7 +173,7 @@ function CartPage() {
                               Expires in {formatRemainingTime(remainingMs)}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-500 sm:text-xs">
                               Expired
                             </span>
                           )}
@@ -186,7 +186,7 @@ function CartPage() {
                           <button
                             type="button"
                             onClick={() => removeFromCart(item.key)}
-                            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-rose-600 transition hover:bg-rose-50 sm:hidden"
+                            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-base font-medium text-rose-600 transition hover:bg-rose-50 sm:hidden"
                           >
                             <Trash2 className="size-4" />
                             Remove
@@ -202,14 +202,14 @@ function CartPage() {
             {/* Summary */}
             <aside className="h-fit space-y-4 lg:sticky lg:top-28">
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <h3 className="text-base font-bold text-slate-900 sm:text-lg lg:text-xl">Order Summary</h3>
+                <h5 className="text-base font-bold text-slate-900 sm:text-lg lg:text-xl">Order Summary</h5>
 
                 <div className="mt-5 space-y-3">
-                  <div className="flex items-center justify-between text-sm text-slate-600">
+                  <div className="flex items-center justify-between text-base text-slate-600 sm:text-sm">
                     <span>Subtotal ({cart.length} {cart.length === 1 ? "item" : "items"})</span>
                     <span>{convertPrice(total).formatted}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-slate-600">
+                  <div className="flex items-center justify-between text-base text-slate-600 sm:text-sm">
                     <span>Taxes & Fees</span>
                     <span className="text-slate-400">Calculated at checkout</span>
                   </div>
@@ -226,7 +226,7 @@ function CartPage() {
                   Continue to Checkout
                 </Button>
 
-                <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500">
+                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-500 sm:text-xs">
                   <ShieldCheck className="size-3.5 text-slate-400" />
                   <span>Secure checkout &middot; No hidden fees</span>
                 </div>
@@ -234,8 +234,8 @@ function CartPage() {
 
               {/* Trust / Help small card */}
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <h4 className="mb-3 text-sm font-semibold text-slate-900">Need help?</h4>
-                <p className="text-sm leading-relaxed text-slate-500">
+                <h4 className="mb-3 text-base font-semibold text-slate-900 sm:text-lg">Need help?</h4>
+                <p className="text-base leading-relaxed text-slate-500 sm:text-sm">
                   Your items are reserved for 25 minutes. If you have questions, visit our{" "}
                   <Link to="/help" className="font-medium text-[color:var(--brand-green)] hover:underline">
                     Help Centre

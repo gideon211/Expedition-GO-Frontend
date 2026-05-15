@@ -227,6 +227,16 @@ const resources = {
         priceVaries: "price varies",
         needFurtherAssistance: "Need further assistance?",
         startChat: "Start chat"
+      },
+      modal: {
+        title: "Where to next?",
+        searchPlaceholder: "Search destinations...",
+        popularDestinations: "Popular destinations",
+        seeMore: "See more",
+        seeLess: "See less",
+        allRegions: "All Regions",
+        explore: "Explore",
+        destinationsIn: "Destinations in {{region}}"
       }
     }
   },
@@ -453,6 +463,16 @@ const resources = {
         priceVaries: "el precio varía",
         needFurtherAssistance: "¿Necesita más ayuda?",
         startChat: "Iniciar chat"
+      },
+      modal: {
+        title: "¿A dónde ahora?",
+        searchPlaceholder: "Buscar destinos...",
+        popularDestinations: "Destinos populares",
+        seeMore: "Ver más",
+        seeLess: "Ver menos",
+        allRegions: "Todas las regiones",
+        explore: "Explorar",
+        destinationsIn: "Destinos en {{region}}"
       }
     }
   },
@@ -679,6 +699,16 @@ const resources = {
         priceVaries: "prix variable",
         needFurtherAssistance: "Besoin d’aide supplémentaire ?",
         startChat: "Démarrer le chat"
+      },
+      modal: {
+        title: "Où allons-nous maintenant ?",
+        searchPlaceholder: "Rechercher des destinations...",
+        popularDestinations: "Destinations populaires",
+        seeMore: "Voir plus",
+        seeLess: "Voir moins",
+        allRegions: "Toutes les régions",
+        explore: "Explorer",
+        destinationsIn: "Destinations en {{region}}"
       }
     }
   },
@@ -905,6 +935,16 @@ const resources = {
         priceVaries: "Preis variiert",
         needFurtherAssistance: "Brauchen Sie weitere Hilfe?",
         startChat: "Chat starten"
+      },
+      modal: {
+        title: "Wohin als Nächstes?",
+        searchPlaceholder: "Reiseziele suchen...",
+        popularDestinations: "Beliebte Reiseziele",
+        seeMore: "Mehr anzeigen",
+        seeLess: "Weniger anzeigen",
+        allRegions: "Alle Regionen",
+        explore: "Entdecken",
+        destinationsIn: "Reiseziele in {{region}}"
       }
     }
   },
@@ -1130,6 +1170,16 @@ const resources = {
         priceVaries: "prijs kan variëren",
         needFurtherAssistance: "Nog hulp nodig?",
         startChat: "Start chat"
+      },
+      modal: {
+        title: "Waar ga je naartoe?",
+        searchPlaceholder: "Zoek bestemmingen...",
+        popularDestinations: "Populaire bestemmingen",
+        seeMore: "Meer weergeven",
+        seeLess: "Minder weergeven",
+        allRegions: "Alle regio's",
+        explore: "Verkennen",
+        destinationsIn: "Bestemmingen in {{region}}"
       }
     }
   }

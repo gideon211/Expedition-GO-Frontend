@@ -35,7 +35,7 @@ export function FeaturesSection() {
   const { t } = useTranslation();
 
   return (
-    <section className="bg-white py-[2.125rem] md:py-10 lg:py-12">
+    <section className="bg-white py-4 md:py-10 lg:py-12">
       <h2
         className="mx-auto mb-9 max-w-3xl px-0 text-center font-bold tracking-tight text-slate-900 md:mb-11"
         style={{ fontSize: "clamp(1.35rem, 2.2vw + 0.45rem, 1.875rem)" }}
@@ -43,17 +43,17 @@ export function FeaturesSection() {
         {t("features.whyBookHeading")}
       </h2>
 
-      {/* Horizontal row: scroll-snap on small / tablet; static 4-col grid on lg+ */}
+      {/* Below lg: one full-width snap slide per view; lg+: static 4-column grid */}
       <div
-        className="-mx-4 flex gap-7 overflow-x-auto overflow-y-visible px-4 pb-3 pt-1 [scrollbar-width:none] [-ms-overflow-style:none] snap-x snap-mandatory sm:-mx-6 sm:gap-8 sm:px-6 md:gap-9 md:pb-4 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:px-0 lg:pb-0 lg:pt-0 lg:snap-none [&::-webkit-scrollbar]:hidden"
+        className="-mx-4 flex gap-4 overflow-x-auto overflow-y-hidden scroll-px-4 px-4 pb-4 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] snap-x snap-mandatory sm:-mx-6 sm:gap-5 sm:scroll-px-6 sm:px-6 md:gap-6 md:pb-5 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:scroll-p-0 lg:px-0 lg:pb-0 lg:pt-0 lg:snap-none [&::-webkit-scrollbar]:hidden"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
           {WHY_BOOK_ITEMS.map(({ blobVar, Icon, titleKey, descKey }) => (
             <div
               key={titleKey}
-              className="flex w-[min(17.25rem,calc(100vw-2.75rem))] shrink-0 snap-center flex-col items-center text-center sm:w-[min(17.75rem,calc(50vw-1.75rem))] md:w-[min(18rem,42vw)] lg:w-auto lg:min-w-0 lg:max-w-none lg:shrink"
+              className="isolate flex w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] shrink-0 snap-center snap-always flex-col items-center px-1 text-center sm:w-[calc(100vw-3rem)] sm:max-w-[calc(100vw-3rem)] lg:w-auto lg:max-w-none lg:min-w-0 lg:snap-none lg:px-0"
             >
-              <div className="relative z-0 grid h-[5.25rem] w-full max-w-[5.75rem] place-items-center sm:h-[5.75rem] sm:max-w-[6rem]">
+              <div className="relative z-0 mx-auto grid h-[5.25rem] w-full max-w-[5.75rem] place-items-center sm:h-[5.75rem] sm:max-w-[6rem]">
                 <span className={BLOB_BASE} style={{ backgroundColor: `var(${blobVar})` }} aria-hidden />
                 <Icon
                   className="relative z-[1] size-8 text-[color:var(--brand-green)] sm:size-9"

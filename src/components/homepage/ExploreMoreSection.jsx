@@ -69,7 +69,7 @@ export function ExploreMoreSection() {
 
   return (
     <section
-      className="bg-[color:var(--page-bg)] py-[2rem] md:py-9 lg:py-10"
+      className="bg-[color:var(--page-bg)] py-4 md:py-9 lg:py-10"
       aria-labelledby="explore-more-heading"
     >
       <div className="mx-auto max-w-[1520px] px-4 sm:px-6">

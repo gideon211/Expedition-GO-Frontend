@@ -3,7 +3,7 @@ import { CardSkeleton, DestinationCardSkeleton } from "./CardSkeleton";
 
 export function TourCarouselSkeleton({ delay = 0 }) {
   return (
-    <section className="py-[1.275rem] md:py-4 xl:py-5">
+    <section className="py-4 md:py-4 xl:py-5">
       {/* Section Heading */}
       <div className="mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
         <div className="min-w-0 flex-1 space-y-2">
@@ -40,7 +40,7 @@ export function TourCarouselSkeleton({ delay = 0 }) {
 
 export function DestinationsSkeleton({ delay = 0 }) {
   return (
-    <section className="py-[1.275rem] md:py-4 xl:py-5">
+    <section className="py-4 md:py-4 xl:py-5">
       {/* Section Heading */}
       <div className="mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
         <div className="min-w-0 flex-1">

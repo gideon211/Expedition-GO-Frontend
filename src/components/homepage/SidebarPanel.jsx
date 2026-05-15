@@ -1,6 +1,5 @@
 import { BadgeCheck, CircleDollarSign, Handshake, ShieldCheck, Star, WalletCards } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -8,9 +7,9 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { CompactTourCard } from "./CompactTourCard";
 import { SidebarDealCard } from "./SidebarDealCard";
-import { lastMinuteDeals, sidebarTopRated, trustFeatures } from "./data";
+import { lastMinuteDeals, sidebarTopRated } from "./data";
 
-const icons = [BadgeCheck, CircleDollarSign, ShieldCheck, Handshake, WalletCards, Star];
+const _icons = [BadgeCheck, CircleDollarSign, ShieldCheck, Handshake, WalletCards, Star];
 
 function PanelHeading({ title, linkTo }) {
   const { t } = useTranslation();
@@ -37,7 +36,7 @@ function PanelHeading({ title, linkTo }) {
   );
 }
 
-function SwipeableSection({ children, itemCount, originalChildren, className, scrollClassName }) {
+function SwipeableSection({ children, _itemCount, originalChildren, className, scrollClassName }) {
   const scrollRef = useRef(null);
 
   return (

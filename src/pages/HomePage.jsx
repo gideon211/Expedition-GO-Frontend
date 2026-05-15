@@ -132,7 +132,17 @@ function HomePageContent() {
   if (showPostAuthSplash && splashVisible) {
     const splashLabel =
       splashKind === "register" ? t("auth.successAccountCreated") : t("auth.successWelcomeBack");
-    return <BrandLoader fullScreen splash label={splashLabel} />;
+    return (
+      <div
+        className="fixed inset-0 z-[120] flex cursor-pointer flex-col items-center justify-center bg-white"
+        onClick={() => setSplashVisible(false)}
+      >
+        <BrandLoader fullScreen={false} splash label={splashLabel} />
+        <p className="mt-6 text-xs font-medium tracking-wide text-slate-400 uppercase">
+          Tap anywhere to skip
+        </p>
+      </div>
+    );
   }
 
   if (!homeReady) {
@@ -161,16 +171,14 @@ function HomePageContent() {
           onExternalSearchChange={setSharedSearchQuery}
         />
 
-        <main className="mx-auto max-w-[1520px] overflow-x-hidden px-4 pb-[3.4rem] sm:px-6 sm:pb-14">
+        <main className="mx-auto max-w-[1520px] overflow-x-hidden px-4 pb-14 sm:px-6">
           <div className="grid gap-5 md:gap-8 xl:gap-7 xl:grid-cols-[minmax(0,1fr)_430px]">
-            <div className="space-y-[1.7rem] pt-[1.4875rem] min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
+            <div className="space-y-6 pt-6 min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
               <TourCarouselSection id="tours" title={t('sections.featuredTitle')} items={pickupTours} />
-              <div className="space-y-[1.7rem] pt-0 md:space-y-6 md:pt-4 xl:space-y-4 xl:pt-5">
-                <DestinationsSection />
-                <TourCarouselSection id="recommended" title={t('sections.recommendedTitle')} items={recommendedTours} />
-                <TourCarouselSection id="deals" title={t('sections.topRatedTitle')} items={topRatedTours} />
-                <TourCarouselSection id="leisure" title={t('sections.likelyToSellOut')} items={leisureTours} />
-              </div>
+              <DestinationsSection />
+              <TourCarouselSection id="recommended" title={t('sections.recommendedTitle')} items={recommendedTours} />
+              <TourCarouselSection id="deals" title={t('sections.topRatedTitle')} items={topRatedTours} />
+              <TourCarouselSection id="leisure" title={t('sections.likelyToSellOut')} items={leisureTours} />
             </div>
             <div className="pt-5 min-w-0 md:pt-6 xl:pt-4">
               <SidebarPanel />
@@ -179,16 +187,16 @@ function HomePageContent() {
         </main>
 
         {/* Newsletter Section - Full Width */}
-        <div className="mx-auto max-w-[1520px] px-4 sm:px-6 mb-[3.4rem] md:mb-14 overflow-hidden">
+        <div className="mx-auto max-w-[1520px] px-4 sm:px-6 mb-14 overflow-hidden">
           <NewsletterSection />
         </div>
 
         {/* Features Section - Full Width before footer */}
-        <div className="mx-auto mb-[3.4rem] max-w-[1520px] px-4 sm:px-6 md:mb-14">
+        <div className="mx-auto mb-14 max-w-[1520px] px-4 sm:px-6">
           <FeaturesSection />
         </div>
 
-        <div className="mb-[3.4rem] md:mb-14">
+        <div className="mb-14">
           <ExploreMoreSection />
         </div>
 

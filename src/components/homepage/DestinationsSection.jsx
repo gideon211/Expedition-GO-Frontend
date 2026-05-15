@@ -63,6 +63,7 @@ function smoothScrollTo(element, target, duration, generationRef, generation, on
 export function DestinationsSection() {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const viewAllTriggerRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const mobileScrollRef = useRef(null);
   const isScrollingRef = useRef(false);
@@ -187,7 +188,7 @@ export function DestinationsSection() {
   }, [nudgeMobileInfiniteLoop]);
 
   return (
-    <section id="destinations" className="py-[1.275rem] md:py-4 xl:py-5">
+    <section id="destinations" className="py-4 md:py-4 xl:py-5">
       <div className="mb-[0.6375rem] md:mb-2.5 xl:mb-3 flex items-center justify-between gap-3">
         <h2
           className="whitespace-nowrap font-bold leading-[1.15] tracking-tight text-slate-900"
@@ -199,6 +200,7 @@ export function DestinationsSection() {
         <div className="flex items-center gap-3">
           <button
             type="button"
+            ref={viewAllTriggerRef}
             onClick={() => setIsModalOpen(true)}
             className="group inline-flex shrink-0 touch-manipulation items-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
           >
@@ -264,7 +266,11 @@ export function DestinationsSection() {
         ))}
       </div>
 
-      <DestinationsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <DestinationsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        triggerRef={viewAllTriggerRef}
+      />
     </section>
   );
 }

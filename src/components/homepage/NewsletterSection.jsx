@@ -28,7 +28,7 @@ export function NewsletterSection() {
 
   return (
     <section
-      className="py-8 sm:py-12"
+      className="py-4 sm:py-12"
     >
       <div className="grid items-stretch gap-0 overflow-hidden rounded-xl border border-slate-200 shadow-lg sm:rounded-2xl lg:grid-cols-2">
         {/* Image Side */}

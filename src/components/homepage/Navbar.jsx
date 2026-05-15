@@ -1,16 +1,14 @@
-import { Globe, Heart, Headset, Menu, ShoppingCart, UserCircle2, X, ChevronDown, Search, CalendarDays } from "lucide-react";
+import { Globe, Heart, Headset, Menu, ShoppingCart, Settings, UserCircle2, X, ChevronDown, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import companyPic from "@/assets/images/new_logo.png";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useSearchAutocomplete } from "@/hooks/useSearchAutocomplete";
 import { SearchAutocomplete } from "./SearchAutocomplete";
-import { navItems } from "./data";
 
 export function Navbar({
   sharedDateRange,
@@ -42,7 +40,7 @@ export function Navbar({
   const { t, i18n } = useTranslation();
   const { currency, setCurrency, availableCurrencies } = useCurrency();
   const activeMobileDateRange = sharedDateRange ?? mobileDateRange;
-  const setActiveMobileDateRange = onSharedDateRangeChange ?? setMobileDateRange;
+  const _setActiveMobileDateRange = onSharedDateRangeChange ?? setMobileDateRange;
   
   // Determine if we're in external search mode
   const isExternalSearchMode = typeof onExternalSearchChange === "function";
@@ -203,13 +201,13 @@ export function Navbar({
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  const mobileDateLabel = activeMobileDateRange?.from
+  const _mobileDateLabel = activeMobileDateRange?.from
     ? activeMobileDateRange?.to
       ? `${formatDate(activeMobileDateRange.from)} - ${formatDate(activeMobileDateRange.to)}`
       : `${formatDate(activeMobileDateRange.from)}`
     : "";
   const compactSearchValue = isExternalSearchMode ? (externalSearchQuery ?? "") : compactSearchQuery;
-  const compactSearchMaxWidthClass = forceShowCompactSearch ? "max-w-[460px]" : "max-w-[360px]";
+  const _compactSearchMaxWidthClass = forceShowCompactSearch ? "max-w-[460px]" : "max-w-[360px]";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -381,11 +379,11 @@ export function Navbar({
                     <img
                       src={user.photoURL}
                       alt={user.name}
-                      className="size-10 rounded-full border-2 border-slate-200 object-cover transition hover:border-[color:var(--brand-green)]"
+                      className="size-12 rounded-full border-2 border-slate-200 object-cover transition hover:border-[color:var(--brand-green)]"
                     />
                   ) : (
-                    <div className="grid size-10 place-items-center rounded-full border-2 border-slate-200 bg-[color:var(--brand-mist)] text-sm font-semibold text-[color:var(--brand-green)] transition hover:border-[color:var(--brand-green)]">
-                      {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                    <div className="grid size-12 place-items-center rounded-full border-2 border-slate-200 text-slate-400 transition hover:border-[color:var(--brand-green)]">
+                      <UserCircle2 className="size-8" strokeWidth={1.5} />
                     </div>
                   )}
                 </button>
@@ -407,7 +405,7 @@ export function Navbar({
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex w-full items-center gap-3 px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                         >
-                          <UserCircle2 className="size-4" />
+                          <Settings className="size-4" />
                           <span>{t('nav.settings')}</span>
                         </Link>
                         <Link 
@@ -444,11 +442,9 @@ export function Navbar({
               <div className="relative">
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-2 xl:px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[color:var(--brand-green)] hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)]"
+                  className="grid size-12 place-items-center rounded-full border-2 border-slate-200 text-slate-400 transition hover:border-[color:var(--brand-green)]"
                 >
-                  <UserCircle2 className="size-4" />
-                  <span className="hidden xl:inline">{t('nav.profile')}</span>
-                  <ChevronDown className="hidden xl:block size-4" />
+                  <UserCircle2 className="size-8" strokeWidth={1.5} />
                 </button>
                 {isUserMenuOpen && (
                   <>
@@ -650,7 +646,14 @@ export function Navbar({
                 <Headset className="size-4" />
                 <span className="text-sm">{t('nav.support')}</span>
               </Link>
-              
+
+              {!loading && user && (
+                <Link to="/settings" onClick={closeMobileMenu} className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950">
+                  <Settings className="size-4" />
+                  <span className="text-sm">{t('nav.settings')}</span>
+                </Link>
+              )}
+
               {!loading && (
                 user ? (
                   <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -659,11 +662,11 @@ export function Navbar({
                         <img
                           src={user.photoURL}
                           alt={user.name}
-                          className="size-12 rounded-full border-2 border-[color:var(--brand-green)] object-cover"
+                          className="size-14 rounded-full border-2 border-[color:var(--brand-green)] object-cover"
                         />
                       ) : (
-                        <div className="grid size-12 place-items-center rounded-full border-2 border-[color:var(--brand-green)] bg-[color:var(--brand-mist)] text-lg font-semibold text-[color:var(--brand-green)]">
-                          {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                        <div className="grid size-14 place-items-center rounded-full border-2 border-slate-300 text-slate-400">
+                          <UserCircle2 className="size-9" strokeWidth={1.5} />
                         </div>
                       )}
                       <div className="flex-1">
@@ -671,21 +674,21 @@ export function Navbar({
                         <p className="text-xs text-slate-500">{user.email}</p>
                       </div>
                     </div>
-                    <Button 
-                      asChild 
-                      variant="outline" 
+                    <Button
+                      asChild
+                      variant="outline"
                       className="mt-3 w-full justify-start border-slate-300 bg-white text-slate-950 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
                     >
                       <Link to="/signout" onClick={closeMobileMenu}>
-                        <UserCircle2 className="size-4" />
+                        <X className="size-4" />
                         {t('nav.signOut')}
                       </Link>
                     </Button>
                   </div>
                 ) : (
-                  <Button 
-                    asChild 
-                    variant="outline" 
+                  <Button
+                    asChild
+                    variant="outline"
                     className="mt-2 w-full justify-start border-slate-300 bg-white text-slate-950 hover:border-[color:var(--brand-green)] hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)]"
                   >
                     <Link to="/signin" onClick={closeMobileMenu}>

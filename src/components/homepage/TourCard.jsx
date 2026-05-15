@@ -15,7 +15,7 @@ export function TourCard({
   reviews,
   image,
   discount,
-  disableTracking = false,
+  _disableTracking = false,
   variant = "default",
   badge = "duration",
 }) {
