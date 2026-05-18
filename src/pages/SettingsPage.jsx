@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -15,7 +16,6 @@ import {
   Shield,
   Check,
   ChevronRight,
-  CalendarDays,
 } from "lucide-react";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
@@ -121,18 +121,19 @@ function SelectInput({ value, onChange, name, placeholder, options }) {
 /* ------------------------------------------------------------------ */
 /*  Tab definitions                                                    */
 /* ------------------------------------------------------------------ */
-const TABS = [
-  { id: "personal", label: "Personal Details", icon: User },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "payment", label: "Payment Methods", icon: CreditCard },
-];
-
 /* ------------------------------------------------------------------ */
 /*  Main page                                                          */
 /* ------------------------------------------------------------------ */
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  const TABS = [
+    { id: "personal", label: t("settings.tabPersonal"), icon: User },
+    { id: "notifications", label: t("settings.tabNotifications"), icon: Bell },
+    { id: "payment", label: t("settings.tabPayment"), icon: CreditCard },
+  ];
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const [isMobile, setIsMobile] = useState(false);
@@ -143,9 +144,6 @@ export default function SettingsPage() {
     lastName: user?.name?.split(" ")[1] || "",
     email: user?.email || "",
     phone: "",
-    day: "",
-    month: "",
-    year: "",
   });
   const [notifications, setNotifications] = useState({
     email: true,
@@ -155,6 +153,7 @@ export default function SettingsPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [notificationChanges, setNotificationChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [photoLoaded, setPhotoLoaded] = useState(false);
 
   /* viewport */
   useEffect(() => {
@@ -182,6 +181,10 @@ export default function SettingsPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    setPhotoLoaded(false);
+  }, [user?.photoURL]);
+
   if (loading || !isAuthorized) return null;
 
   const handleInputChange = (e) => {
@@ -197,19 +200,6 @@ export default function SettingsPage() {
 
   const handleSave = () => setHasChanges(false);
   const handleNotificationSave = () => setNotificationChanges(false);
-
-  const days = Array.from({ length: 31 }, (_, i) => ({
-    value: String(i + 1),
-    label: String(i + 1),
-  }));
-  const months = [
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December",
-  ].map((m, i) => ({ value: String(i + 1), label: m }));
-  const years = Array.from({ length: 100 }, (_, i) => {
-    const y = new Date().getFullYear() - i;
-    return { value: String(y), label: String(y) };
-  });
 
   const userInitial = user?.name?.charAt(0).toUpperCase() || "U";
 
@@ -230,10 +220,10 @@ export default function SettingsPage() {
               Back
             </button>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              Account Settings
+              {t("settings.title")}
             </h1>
             <p className="mt-2 max-w-lg text-sm font-medium text-slate-500">
-              Manage your personal details, notification preferences, and payment methods.
+              {t("settings.subtitle")}
             </p>
           </div>
         </div>
@@ -250,18 +240,23 @@ export default function SettingsPage() {
                   <div className="absolute inset-x-0 top-[6.5rem] h-12 bg-white rounded-t-[2rem]" />
 
                   {/* Avatar — centered, larger */}
-                  <div className="relative mx-auto mb-4">
-                    {user?.photoURL ? (
+                  <div className="relative mx-auto mb-4 size-28">
+                    {/* Skeleton / fallback placeholder */}
+                    <div
+                      className={`absolute inset-0 grid place-items-center rounded-full border-[6px] border-white bg-slate-200 shadow-lg transition-opacity duration-300 ${photoLoaded ? "opacity-0" : "opacity-100"}`}
+                    >
+                      <User className="size-16 text-black" strokeWidth={1.5} />
+                    </div>
+
+                    {user?.photoURL && (
                       <img
                         src={user.photoURL}
                         alt={user.name}
-                        className="mx-auto size-28 rounded-full border-[6px] border-white object-cover shadow-lg"
+                        onLoad={() => setPhotoLoaded(true)}
+                        className={`absolute inset-0 size-28 rounded-full border-[6px] border-white object-cover shadow-lg transition-opacity duration-300 ${photoLoaded ? "opacity-100" : "opacity-0"}`}
                       />
-                    ) : (
-                      <div className="mx-auto grid size-28 place-items-center rounded-full border-[6px] border-white bg-slate-200 shadow-lg">
-                        <User className="size-16 text-slate-500" strokeWidth={1.5} />
-                      </div>
                     )}
+
                     {/* Online / verified dot */}
                     <div className="absolute bottom-1 right-1/2 translate-x-10 grid size-6 place-items-center rounded-full border-2 border-white bg-emerald-500">
                       <Shield className="size-3 text-white" />
@@ -271,7 +266,7 @@ export default function SettingsPage() {
                   <h2 className="text-lg font-bold text-slate-900">{user?.name || "User"}</h2>
                   <p className="mt-0.5 text-sm text-slate-500">{user?.email}</p>
                   <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    Verified Account
+                    {t("settings.verifiedAccount")}
                   </div>
                 </div>
               </div>
@@ -326,15 +321,15 @@ export default function SettingsPage() {
                             <User className="size-5" />
                           </div>
                           <div>
-                            <h2 className="text-lg font-bold text-slate-900">Profile Details</h2>
-                            <p className="text-sm text-slate-500">Update your name and contact information</p>
+                            <h2 className="text-lg font-bold text-slate-900">{t("settings.profileDetails")}</h2>
+                            <p className="text-sm text-slate-500">{t("settings.profileDetailsDesc")}</p>
                           </div>
                         </div>
                       </div>
 
                       <div className="space-y-6 p-6 sm:p-8">
                         <div className="grid gap-6 sm:grid-cols-2">
-                          <FormField label="First Name">
+                          <FormField label={t("settings.firstName")}>
                             <TextInput
                               name="firstName"
                               value={formData.firstName}
@@ -342,7 +337,7 @@ export default function SettingsPage() {
                               placeholder="Enter your first name"
                             />
                           </FormField>
-                          <FormField label="Last Name">
+                          <FormField label={t("settings.lastName")}>
                             <TextInput
                               name="lastName"
                               value={formData.lastName}
@@ -353,7 +348,7 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="grid gap-6 sm:grid-cols-2">
-                          <FormField label="Email Address" hint="Email cannot be changed">
+                          <FormField label={t("settings.email")} hint={t("settings.emailHint")}>
                             <TextInput
                               name="email"
                               value={formData.email}
@@ -362,7 +357,7 @@ export default function SettingsPage() {
                               disabled
                             />
                           </FormField>
-                          <FormField label="Mobile Phone">
+                          <FormField label={t("settings.mobilePhone")}>
                             <TextInput
                               name="phone"
                               type="tel"
@@ -373,35 +368,9 @@ export default function SettingsPage() {
                           </FormField>
                         </div>
 
-                        <FormField label="Date of Birth">
-                          <div className="grid gap-4 sm:grid-cols-3">
-                            <SelectInput
-                              name="day"
-                              value={formData.day}
-                              onChange={handleInputChange}
-                              placeholder="Day"
-                              options={days}
-                            />
-                            <SelectInput
-                              name="month"
-                              value={formData.month}
-                              onChange={handleInputChange}
-                              placeholder="Month"
-                              options={months}
-                            />
-                            <SelectInput
-                              name="year"
-                              value={formData.year}
-                              onChange={handleInputChange}
-                              placeholder="Year"
-                              options={years}
-                            />
-                          </div>
-                        </FormField>
-
                         <div className="flex items-center justify-between border-t border-slate-100 pt-6">
                           <p className="text-sm text-slate-500">
-                            {hasChanges ? "You have unsaved changes" : "All changes saved"}
+                            {hasChanges ? t("settings.unsavedChanges") : t("settings.allSaved")}
                           </p>
                           <button
                             onClick={handleSave}
@@ -413,7 +382,7 @@ export default function SettingsPage() {
                             }`}
                           >
                             <Check className="size-4" />
-                            Save Changes
+                            {t("settings.saveChanges")}
                           </button>
                         </div>
                       </div>
@@ -427,8 +396,8 @@ export default function SettingsPage() {
                             <Trash2 className="size-5" />
                           </div>
                           <div>
-                            <h2 className="text-lg font-bold text-slate-900">Delete Account</h2>
-                            <p className="text-sm text-slate-500">Permanently remove your account and data</p>
+                            <h2 className="text-lg font-bold text-slate-900">{t("settings.deleteAccount")}</h2>
+                            <p className="text-sm text-slate-500">{t("settings.deleteAccountDesc")}</p>
                           </div>
                         </div>
                       </div>
@@ -442,7 +411,7 @@ export default function SettingsPage() {
                             className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:bg-rose-50 hover:shadow active:scale-[0.98]"
                           >
                             <Trash2 className="size-4" />
-                            Delete Account
+                            {t("settings.deleteAccountBtn")}
                           </button>
                         ) : (
                           <motion.div
@@ -487,8 +456,8 @@ export default function SettingsPage() {
                             <Bell className="size-5" />
                           </div>
                           <div>
-                            <h2 className="text-lg font-bold text-slate-900">Notification Preferences</h2>
-                            <p className="text-sm text-slate-500">Choose how you want to be notified</p>
+                            <h2 className="text-lg font-bold text-slate-900">{t("settings.notificationPrefs")}</h2>
+                            <p className="text-sm text-slate-500">{t("settings.notificationPrefsDesc")}</p>
                           </div>
                         </div>
                       </div>
@@ -510,8 +479,8 @@ export default function SettingsPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-4">
                               <div>
-                                <p className="font-semibold text-slate-900">Email Notifications</p>
-                                <p className="mt-0.5 text-sm text-slate-500">Receive booking confirmations, reminders, and trip updates</p>
+                                <p className="font-semibold text-slate-900">{t("settings.emailNotifications")}</p>
+                                <p className="mt-0.5 text-sm text-slate-500">{t("settings.emailNotificationsDesc")}</p>
                               </div>
                               <ToggleSwitch
                                 checked={notifications.email}
@@ -532,8 +501,8 @@ export default function SettingsPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-4">
                               <div>
-                                <p className="font-semibold text-slate-900">SMS Alerts</p>
-                                <p className="mt-0.5 text-sm text-slate-500">Get text alerts for last-minute changes and urgent updates</p>
+                                <p className="font-semibold text-slate-900">{t("settings.smsAlerts")}</p>
+                                <p className="mt-0.5 text-sm text-slate-500">{t("settings.smsAlertsDesc")}</p>
                               </div>
                               <ToggleSwitch
                                 checked={notifications.sms}
@@ -554,8 +523,8 @@ export default function SettingsPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-4">
                               <div>
-                                <p className="font-semibold text-slate-900">Marketing & Promotions</p>
-                                <p className="mt-0.5 text-sm text-slate-500">Exclusive deals, seasonal offers, and travel inspiration</p>
+                                <p className="font-semibold text-slate-900">{t("settings.marketing")}</p>
+                                <p className="mt-0.5 text-sm text-slate-500">{t("settings.marketingDesc")}</p>
                               </div>
                               <ToggleSwitch
                                 checked={notifications.marketing}
@@ -568,7 +537,7 @@ export default function SettingsPage() {
 
                       <div className="flex items-center justify-between border-t border-slate-100 px-6 py-5 sm:px-8">
                         <p className="text-sm text-slate-500">
-                          {notificationChanges ? "You have unsaved changes" : "Preferences saved"}
+                          {notificationChanges ? t("settings.unsavedChanges") : t("settings.preferencesSaved")}
                         </p>
                         <button
                           onClick={handleNotificationSave}
@@ -580,7 +549,7 @@ export default function SettingsPage() {
                           }`}
                         >
                           <Check className="size-4" />
-                          Save Preferences
+                            {t("settings.savePreferences")}
                         </button>
                       </div>
                     </section>
@@ -600,8 +569,8 @@ export default function SettingsPage() {
                             <CreditCard className="size-5" />
                           </div>
                           <div>
-                            <h2 className="text-lg font-bold text-slate-900">Payment Methods</h2>
-                            <p className="text-sm text-slate-500">Manage your saved cards for faster checkout</p>
+                            <h2 className="text-lg font-bold text-slate-900">{t("settings.paymentMethods")}</h2>
+                            <p className="text-sm text-slate-500">{t("settings.paymentMethodsDesc")}</p>
                           </div>
                         </div>
                       </div>
@@ -641,7 +610,7 @@ export default function SettingsPage() {
 
                         <button className="group flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/50 py-5 text-sm font-semibold text-slate-600 transition hover:border-[color:var(--brand-green)]/40 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] active:scale-[0.99]">
                           <Plus className="size-4 transition group-hover:scale-110" />
-                          Add New Payment Method
+                          {t("settings.addPaymentMethod")}
                         </button>
                       </div>
                     </section>

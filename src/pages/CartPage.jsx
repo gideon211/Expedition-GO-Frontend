@@ -8,6 +8,7 @@ import { Footer } from "@/components/homepage/Footer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import BrandLoader from "@/components/ui/BrandLoader";
 
 const formatCartDate = (dateString) =>
   new Date(dateString).toLocaleDateString("en-US", {
@@ -36,6 +37,7 @@ function CartPage() {
   const { cart, removeFromCart, clearCart } = useCart();
   const { convertPrice } = useCurrency();
   const [now, setNow] = useState(Date.now());
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setNow(Date.now()), 1000);
@@ -222,7 +224,39 @@ function CartPage() {
                   <span className="text-lg font-bold text-slate-900 sm:text-xl">{convertPrice(total).formatted}</span>
                 </div>
 
-                <Button className="mt-6 w-full bg-[color:var(--brand-green)] py-6 text-base font-semibold !text-white shadow-lg shadow-[color:var(--brand-green)]/20 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30">
+                <Button
+                  onClick={() => {
+                    setShowSplash(true);
+                    const item = cart[0];
+                    const totalTravelers =
+                      (item.adults || 0) +
+                      (item.seniors || 0) +
+                      (item.youths || 0) +
+                      (item.children || 0) +
+                      (item.infants || 0);
+                    window.setTimeout(() => {
+                      navigate("/booking", {
+                        state: {
+                          tour: {
+                            title: item.title,
+                            image: item.image,
+                            provider: item.provider || "Expedition GO Tours",
+                            rating: item.rating || 4.8,
+                            reviews: item.reviews || 120,
+                            date: formatBookingDateLabel(item.selectedDate, item.selectedDateEnd),
+                            time: item.time || "9:00 AM",
+                            duration: item.duration,
+                            travelers: `${totalTravelers} ${totalTravelers === 1 ? "adult" : "travelers"}`,
+                            price: typeof item.price === "number" ? item.price : Number.parseFloat(String(item.price).replace(/[^\d.]/g, "")) || 0,
+                            cancellation: item.cancellation || "Free cancellation up to 24 hours before",
+                            language: item.language || "English - Guide",
+                          },
+                        },
+                      });
+                    }, 1200);
+                  }}
+                  className="mt-6 w-full bg-[color:var(--brand-green)] py-6 text-base font-semibold !text-white shadow-lg shadow-[color:var(--brand-green)]/20 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30"
+                >
                   Continue to Checkout
                 </Button>
 
@@ -247,6 +281,10 @@ function CartPage() {
           </div>
         )}
       </main>
+
+      {showSplash && (
+        <BrandLoader fullScreen splash label="Loading checkout..." />
+      )}
 
       <Footer />
     </div>

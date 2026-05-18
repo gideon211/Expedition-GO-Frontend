@@ -30,6 +30,7 @@ export function Navbar({
   );
   const [mobileDateRange, setMobileDateRange] = useState({ from: null, to: null });
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
+  const [photoLoaded, setPhotoLoaded] = useState(false);
   const mobileCalendarRef = useRef(null);
   const mobileDateButtonRef = useRef(null);
   const navSearchInputRef = useRef(null);
@@ -37,6 +38,10 @@ export function Navbar({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    setPhotoLoaded(false);
+  }, [user?.photoURL]);
   const { t, i18n } = useTranslation();
   const { currency, setCurrency, availableCurrencies } = useCurrency();
   const activeMobileDateRange = sharedDateRange ?? mobileDateRange;
@@ -375,17 +380,21 @@ export function Navbar({
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="group"
                 >
-                  {user.photoURL ? (
-                    <img
-                      src={user.photoURL}
-                      alt={user.name}
-                      className="size-12 rounded-full border-2 border-slate-200 object-cover transition hover:border-[color:var(--brand-green)]"
-                    />
-                  ) : (
-                    <div className="grid size-12 place-items-center rounded-full border-2 border-slate-200 text-slate-400 transition hover:border-[color:var(--brand-green)]">
-                      <UserCircle2 className="size-8" strokeWidth={1.5} />
+                  <div className="relative size-12">
+                    <div
+                      className={`absolute inset-0 grid place-items-center rounded-full border-2 border-slate-200 bg-white transition-opacity duration-300 ${photoLoaded ? "opacity-0" : "opacity-100"}`}
+                    >
+                      <UserCircle2 className="size-8 text-black" strokeWidth={1.5} />
                     </div>
-                  )}
+                    {user.photoURL && (
+                      <img
+                        src={user.photoURL}
+                        alt={user.name}
+                        onLoad={() => setPhotoLoaded(true)}
+                        className={`absolute inset-0 size-12 rounded-full border-2 border-slate-200 object-cover transition hover:border-[color:var(--brand-green)] ${photoLoaded ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}
+                      />
+                    )}
+                  </div>
                 </button>
                 {isUserMenuOpen && (
                   <>
@@ -400,10 +409,10 @@ export function Navbar({
                         <p className="text-xs text-slate-500">{user.email}</p>
                       </div>
                       <div className="py-2">
-                        <Link 
+                        <Link
                           to="/settings"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex w-full items-center gap-3 px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
+                          className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                         >
                           <Settings className="size-4" />
                           <span>{t('nav.settings')}</span>
@@ -658,17 +667,21 @@ export function Navbar({
                 user ? (
                   <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
-                      {user.photoURL ? (
-                        <img
-                          src={user.photoURL}
-                          alt={user.name}
-                          className="size-14 rounded-full border-2 border-[color:var(--brand-green)] object-cover"
-                        />
-                      ) : (
-                        <div className="grid size-14 place-items-center rounded-full border-2 border-slate-300 text-slate-400">
-                          <UserCircle2 className="size-9" strokeWidth={1.5} />
+                      <div className="relative size-14">
+                        <div
+                          className={`absolute inset-0 grid place-items-center rounded-full border-2 border-slate-300 bg-white transition-opacity duration-300 ${photoLoaded ? "opacity-0" : "opacity-100"}`}
+                        >
+                          <UserCircle2 className="size-9 text-black" strokeWidth={1.5} />
                         </div>
-                      )}
+                        {user.photoURL && (
+                          <img
+                            src={user.photoURL}
+                            alt={user.name}
+                            onLoad={() => setPhotoLoaded(true)}
+                            className={`absolute inset-0 size-14 rounded-full border-2 border-[color:var(--brand-green)] object-cover transition-opacity duration-300 ${photoLoaded ? "opacity-100" : "opacity-0"}`}
+                          />
+                        )}
+                      </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-slate-900">{user.name}</p>
                         <p className="text-xs text-slate-500">{user.email}</p>

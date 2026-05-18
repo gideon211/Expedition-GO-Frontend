@@ -19,6 +19,7 @@ import SignInPage from "@/pages/SignInPage";
 import SignOutPage from "@/pages/SignOutPage";
 import SupportPage from "@/pages/SupportPage";
 import SettingsPage from "@/pages/SettingsPage";
+import BookingPage from "@/pages/BookingPage";
 
 function AppContent() {
   useScrollRestoration();
@@ -54,6 +55,7 @@ function AppContent() {
             <Route path="/signout" element={<SignOutPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/booking" element={<BookingPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </CartProvider>

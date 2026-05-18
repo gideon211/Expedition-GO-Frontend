@@ -8,6 +8,23 @@ let hooksBound = false;
 function bindDefaultHooks() {
   if (hooksBound || typeof window === "undefined") return;
   hooksBound = true;
+
+  /* ── Prevent Tawk.to from mutating page title with unread badges ── */
+  const titleEl = document.querySelector("title");
+  let lastRealTitle = document.title;
+  if (titleEl) {
+    new MutationObserver(() => {
+      const current = document.title;
+      /* Tawk.to injects patterns like "(1) Page Title" or "1 Message - Page Title" */
+      const isTawkSpam = /^\(\d+\)\s+|\d+\s*Message/i.test(current);
+      if (isTawkSpam) {
+        document.title = lastRealTitle;
+      } else {
+        lastRealTitle = current;
+      }
+    }).observe(titleEl, { childList: true, subtree: true });
+  }
+
   window.Tawk_API = window.Tawk_API || {};
   window.Tawk_API.onLoad = function onLoad() {
     if (typeof window.Tawk_API?.hideWidget === "function") {
