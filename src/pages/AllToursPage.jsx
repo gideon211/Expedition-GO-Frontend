@@ -21,6 +21,7 @@ import { AuthModal } from "@/components/ui/auth-modal";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { ReviewsCarousel } from "@/components/homepage/ReviewsCarousel";
 
 function MobileAllToursCard({ item, badge = "duration" }) {
   const navigate = useNavigate();
@@ -209,10 +210,8 @@ function AllToursPageContent() {
   const [canScrollFiltersLeft, setCanScrollFiltersLeft] = useState(false);
   const [canScrollFiltersRight, setCanScrollFiltersRight] = useState(false);
   const experienceFiltersRef = useRef(null);
-  const [activeReview, setActiveReview] = useState(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentReviewPage, setCurrentReviewPage] = useState(1);
 
   const adultsTriggerRef = useRef(null);
   const travelersPanelRef = useRef(null);
@@ -247,108 +246,6 @@ function AllToursPageContent() {
     destinations: { title: t("sections.destinations"), items: destinations, type: "destinations" },
     all: { title: t("sections.allToursTitle", { defaultValue: "All Tours" }), items: [...pickupTours, ...recommendedTours, ...topRatedTours, ...leisureTours], type: "tours" },
   };
-  const peopleReviews = [
-    {
-      title: "Accra Guided City Tour Cultural and Historical Experience",
-      image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=400&q=80",
-      author: "Marcia_D, Apr 2026",
-      headline: "Enjoyable and Informative tour",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent varius, risus non feugiat accumsan, sem libero ultrices neque...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus porta faucibus sem, vitae convallis magna luctus et. Integer suscipit augue ut neque luctus, quis commodo justo vulputate. Suspendisse potenti. Donec posuere nisl at velit feugiat, a suscipit nisi semper. Curabitur rutrum cursus turpis, ut laoreet sem efficitur vel.",
-    },
-    {
-      title: "Boti Waterfalls, Umbrella Rock, Aburi Gardens & Cocoa Farm",
-      image: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=400&q=80",
-      author: "Kayley_E, Mar 2026",
-      headline: "Unforgettable tour with Emmanuel",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vitae velit in quam posuere pellentesque et ut neque...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas vitae justo sit amet mi condimentum faucibus. Morbi luctus bibendum erat, sed faucibus magna suscipit et. Aliquam erat volutpat. Nunc tincidunt, nisl id dictum bibendum, risus arcu fermentum sem, in facilisis sapien nibh eget lorem.",
-    },
-    {
-      title: "African Drum and Dance Lessons",
-      image: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop&w=400&q=80",
-      author: "Audrey_D, Mar 2026",
-      headline: "Exceptional!!",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ut mauris et risus porttitor tincidunt in sed nibh...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum blandit orci in justo convallis, eget mattis velit malesuada. Donec sit amet urna et lacus rhoncus congue. Fusce in sapien non enim posuere fermentum. Cras commodo, mauris in viverra ultricies, lectus mauris commodo nunc, in posuere est arcu eu elit.",
-    },
-    {
-      title: "Makola Market Walking Tour",
-      image: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?auto=format&fit=crop&w=400&q=80",
-      author: "ZsaZsa_S, Feb 2026",
-      headline: "Sunday shopping trip to Makola ...",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed id leo eget augue tempus faucibus sed eu justo...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc molestie ultrices urna, in laoreet nulla varius nec. Nam in efficitur erat. In feugiat, tortor sed pretium bibendum, purus dui posuere sem, a feugiat sapien justo et augue. Aenean euismod vulputate ligula, eget posuere nibh varius id.",
-    },
-    {
-      title: "Cape Coast Castle Heritage Experience",
-      image: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80",
-      author: "Nora_B, Feb 2026",
-      headline: "History brought to life",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque varius justo non lectus fermentum, in ullamcorper risus dictum...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras a malesuada lorem. Vestibulum ac purus sit amet risus sagittis pellentesque. Morbi mattis libero sed sem luctus, id feugiat justo dignissim. Sed in lorem egestas, imperdiet risus et, faucibus sapien.",
-    },
-    {
-      title: "Volta Region Nature Day Trip",
-      image: "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=400&q=80",
-      author: "Pius_T, Jan 2026",
-      headline: "Worth every minute",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In placerat, sem vel fermentum tristique, tortor tortor tincidunt urna...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur luctus sed purus at aliquet. Integer gravida, est non malesuada vestibulum, lorem justo pretium augue, in egestas risus sem non purus. Etiam eget tellus et augue pretium pretium vel non orci.",
-    },
-    {
-      title: "Kakum Canopy Walk and Forest Tour",
-      image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-      author: "Eddy_W, Jan 2026",
-      headline: "Fantastic and well organized",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent ullamcorper, erat id faucibus tristique, erat nunc gravida enim...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse interdum, erat ut pulvinar luctus, mi arcu faucibus nisl, eget suscipit nibh mi at enim. Sed non massa id lorem faucibus convallis. Integer id lectus in lorem consequat fringilla.",
-    },
-    {
-      title: "Aburi Gardens Relaxation Tour",
-      image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=400&q=80",
-      author: "Clara_A, Dec 2025",
-      headline: "Peaceful and refreshing",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse condimentum tincidunt dolor, id ultrices ligula lacinia non...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean eu risus malesuada, pellentesque nisi at, vulputate velit. Sed eget urna in dui posuere iaculis at vitae odio. Vivamus pharetra ultrices egestas. Aliquam erat volutpat.",
-    },
-    {
-      title: "Wli Waterfalls and Village Experience",
-      image: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=400&q=80",
-      author: "Jared_K, Dec 2025",
-      headline: "Refreshing and memorable",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent congue volutpat augue, sit amet tempus arcu tempor sed...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vitae posuere massa. Morbi volutpat nunc at justo vestibulum, in facilisis nibh feugiat. Integer ac pulvinar mi, vitae feugiat lorem. Cras at lorem vitae magna sollicitudin eleifend.",
-    },
-    {
-      title: "Bojo Beach and Sunset Canoe Tour",
-      image: "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=400&q=80",
-      author: "Selina_P, Nov 2025",
-      headline: "Perfect end to our trip",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur efficitur, sapien eget faucibus bibendum, nibh leo feugiat purus...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque euismod, odio at hendrerit tincidunt, magna neque pretium arcu, eget porta tortor libero id ante. Sed luctus, justo at fringilla malesuada, mauris justo varius felis, non porttitor ipsum velit id leo.",
-    },
-    ...Array.from({ length: 20 }, (_, index) => ({
-      title: `Traveller Review Spotlight ${index + 1}`,
-      image: `https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=400&q=80&sig=review${index + 1}`,
-      author: `Guest_${index + 1}, 2026`,
-      headline: "Great experience from start to finish",
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer congue neque vitae justo iaculis, id porta sem commodo...",
-      fullText:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer dignissim, enim vitae facilisis egestas, neque augue mattis mi, in faucibus sem leo vitae risus. Vivamus luctus, justo quis congue pulvinar, turpis nibh pulvinar magna, vel semper quam justo ac turpis.",
-    })),
-  ];
-
   const experienceFilters = [
     "All",
     "Multi-day",
@@ -407,11 +304,6 @@ function AllToursPageContent() {
   const paginatedItems = filteredItems.slice(
     (currentPage - 1) * CARDS_PER_PAGE,
     currentPage * CARDS_PER_PAGE
-  );
-  const totalReviewPages = Math.max(1, Math.ceil(peopleReviews.length / CARDS_PER_PAGE));
-  const paginatedReviews = peopleReviews.slice(
-    (currentReviewPage - 1) * CARDS_PER_PAGE,
-    currentReviewPage * CARDS_PER_PAGE
   );
 
   useEffect(() => {
@@ -606,20 +498,10 @@ function AllToursPageContent() {
   }, [category, searchQuery, selectedExperienceFilter]);
 
   useEffect(() => {
-    setCurrentReviewPage(1);
-  }, [category]);
-
-  useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
-
-  useEffect(() => {
-    if (currentReviewPage > totalReviewPages) {
-      setCurrentReviewPage(totalReviewPages);
-    }
-  }, [currentReviewPage, totalReviewPages]);
 
   return (
     <>
@@ -820,69 +702,7 @@ function AllToursPageContent() {
               </div>
             )}
 
-            <section className="relative mt-12 px-2 sm:px-4 pb-2">
-              <h2 className="mb-6 font-semibold tracking-tight text-slate-900 text-center" style={{ fontSize: 'clamp(1.5rem, 2.5vw + 0.5rem, 2.25rem)' }}>What are people saying about Ghana</h2>
-              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:grid sm:overflow-visible sm:pb-0 sm:snap-none sm:gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                {paginatedReviews.map((review, idx) => (
-                  <article
-                    key={`${review.title}-${idx}`}
-                    className="min-h-[390px] w-[86%] shrink-0 snap-start rounded-xl border border-slate-300 bg-white p-4 sm:p-5 md:p-6 sm:w-auto sm:shrink"
-                  >
-                    <div className="mb-4 flex items-start gap-3 sm:gap-4">
-                      <img 
-                        src={review.image} 
-                        alt={review.title} 
-                        className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 rounded-lg object-cover shrink-0" 
-                      />
-                      <h3 className="line-clamp-3 font-semibold leading-tight text-slate-900" style={{ fontSize: 'clamp(0.9375rem, 1.2vw + 0.5rem, 1.125rem)' }}>{review.title}</h3>
-                    </div>
-
-                    <p className="mb-2 text-xl text-emerald-500">★★★★★</p>
-                    <p className="mb-4 text-xs sm:text-sm text-slate-600">{review.author}</p>
-                    <p className="mb-1 font-semibold text-slate-800" style={{ fontSize: 'clamp(0.875rem, 0.8vw + 0.4rem, 0.9375rem)' }}>{review.headline}</p>
-                    <p className="line-clamp-3 text-slate-700" style={{ fontSize: 'clamp(0.8125rem, 0.6vw + 0.4rem, 0.875rem)' }}>{review.body}</p>
-                    <button
-                      type="button"
-                      onClick={() => setActiveReview(review)}
-                      className="mt-2 font-semibold text-slate-900 underline" style={{ fontSize: 'clamp(0.8125rem, 0.6vw + 0.4rem, 0.875rem)' }}
-                    >
-                      Read more
-                    </button>
-                    <div className="mt-4">
-                      <button
-                        type="button"
-                        className="rounded-xl bg-emerald-700 px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 font-semibold text-white transition hover:bg-emerald-800" style={{ fontSize: 'clamp(0.875rem, 0.8vw + 0.5rem, 1rem)' }}
-                      >
-                        View Experience
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              {totalReviewPages > 1 && (
-                <div className="mt-6 flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentReviewPage((value) => Math.max(1, value - 1))}
-                    disabled={currentReviewPage === 1}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Prev
-                  </button>
-                  <span className="text-sm font-medium text-slate-700">
-                    Page {currentReviewPage} of {totalReviewPages}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentReviewPage((value) => Math.min(totalReviewPages, value + 1))}
-                    disabled={currentReviewPage === totalReviewPages}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </section>
+            <ReviewsCarousel />
           </div>
         </main>
 
@@ -1104,33 +924,6 @@ function AllToursPageContent() {
       )}
 
       <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
-
-      {activeReview && (
-        <div className="fixed inset-0 z-[300] grid place-items-center p-4">
-          <button
-            type="button"
-            aria-label="Close review details"
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setActiveReview(null)}
-          />
-          <div className="relative z-[301] w-full max-w-[700px] rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <h3 className="text-2xl font-semibold text-slate-900">{activeReview.title}</h3>
-              <button
-                type="button"
-                onClick={() => setActiveReview(null)}
-                className="rounded-md px-2 py-1 text-slate-600 transition hover:bg-slate-100"
-              >
-                Close
-              </button>
-            </div>
-            <p className="mb-2 text-emerald-500">★★★★★</p>
-            <p className="mb-4 text-sm text-slate-600">{activeReview.author}</p>
-            <p className="mb-3 text-lg font-semibold text-slate-800">{activeReview.headline}</p>
-            <p className="text-base leading-7 text-slate-700">{activeReview.fullText}</p>
-          </div>
-        </div>
-      )}
 
       {showBackToTop && (
         <button

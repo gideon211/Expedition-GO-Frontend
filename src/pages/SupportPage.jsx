@@ -93,19 +93,19 @@ export default function SupportPage() {
             <h2 className="font-bold text-slate-900 mb-6" style={{ fontSize: 'clamp(1.375rem, 2vw + 0.5rem, 1.875rem)' }}>{t("support.helpTopicsTitle")}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-lg border border-slate-200 p-4 hover:border-[color:var(--brand-green)] transition cursor-pointer">
-                <h3 className="font-semibold text-slate-900">{t("support.topic1Title")}</h3>
+                <h3 className="text-base font-semibold text-slate-900">{t("support.topic1Title")}</h3>
                 <p className="text-sm text-slate-600 mt-1">{t("support.topic1Desc")}</p>
               </div>
               <div className="rounded-lg border border-slate-200 p-4 hover:border-[color:var(--brand-green)] transition cursor-pointer">
-                <h3 className="font-semibold text-slate-900">{t("support.topic2Title")}</h3>
+                <h3 className="text-base font-semibold text-slate-900">{t("support.topic2Title")}</h3>
                 <p className="text-sm text-slate-600 mt-1">{t("support.topic2Desc")}</p>
               </div>
               <div className="rounded-lg border border-slate-200 p-4 hover:border-[color:var(--brand-green)] transition cursor-pointer">
-                <h3 className="font-semibold text-slate-900">{t("support.topic3Title")}</h3>
+                <h3 className="text-base font-semibold text-slate-900">{t("support.topic3Title")}</h3>
                 <p className="text-sm text-slate-600 mt-1">{t("support.topic3Desc")}</p>
               </div>
               <div className="rounded-lg border border-slate-200 p-4 hover:border-[color:var(--brand-green)] transition cursor-pointer">
-                <h3 className="font-semibold text-slate-900">{t("support.topic4Title")}</h3>
+                <h3 className="text-base font-semibold text-slate-900">{t("support.topic4Title")}</h3>
                 <p className="text-sm text-slate-600 mt-1">{t("support.topic4Desc")}</p>
               </div>
             </div>

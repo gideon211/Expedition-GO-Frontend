@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { destinations } from "./data";
 import { DestinationCard } from "./DestinationCard";
@@ -198,10 +199,9 @@ export function DestinationsSection() {
         </h2>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            ref={viewAllTriggerRef}
-            onClick={() => setIsModalOpen(true)}
+          <Link
+            to="/tours?category=destinations"
+            onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
             className="group inline-flex shrink-0 touch-manipulation items-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
           >
             <span className="relative">
@@ -209,7 +209,7 @@ export function DestinationsSection() {
               <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-[color:var(--brand-green)] transition-all duration-300 group-hover:w-full" />
             </span>
             <ChevronRight className="size-4 text-slate-500 transition group-hover:text-[color:var(--brand-green)]" />
-          </button>
+          </Link>
           <div className="hidden items-center gap-2 xl:flex">
             <button
               type="button"

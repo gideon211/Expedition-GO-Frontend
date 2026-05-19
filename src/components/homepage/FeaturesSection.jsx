@@ -1,33 +1,26 @@
-import { Phone, Gift, Star, CalendarDays } from "lucide-react";
+import { CheckCircle, CreditCard, Star, MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-const BLOB_BASE =
-  "pointer-events-none absolute left-1/2 top-1/2 size-[5.25rem] sm:size-[5.75rem] -translate-x-1/2 -translate-y-1/2 scale-110 rounded-[45%_55%_48%_52%_/_52%_48%_50%_50%] opacity-[0.94]";
 
 const WHY_BOOK_ITEMS = [
   {
-    blobVar: "--why-book-blob-1",
-    Icon: Phone,
-    titleKey: "whyBookSupportTitle",
-    descKey: "whyBookSupportDesc",
+    Icon: CheckCircle,
+    titleKey: "whyBookVerifiedTitle",
+    descKey: "whyBookVerifiedDesc",
   },
   {
-    blobVar: "--why-book-blob-2",
-    Icon: Gift,
-    titleKey: "whyBookRewardsTitle",
-    descKey: "whyBookRewardsDesc",
+    Icon: CreditCard,
+    titleKey: "whyBookPaymentsTitle",
+    descKey: "whyBookPaymentsDesc",
   },
   {
-    blobVar: "--why-book-blob-3",
     Icon: Star,
     titleKey: "whyBookReviewsTitle",
     descKey: "whyBookReviewsDesc",
   },
   {
-    blobVar: "--why-book-blob-4",
-    Icon: CalendarDays,
-    titleKey: "whyBookPlanTitle",
-    descKey: "whyBookPlanDesc",
+    Icon: MessageCircle,
+    titleKey: "whyBookSupportTitle",
+    descKey: "whyBookSupportDesc",
   },
 ];
 
@@ -35,47 +28,42 @@ export function FeaturesSection() {
   const { t } = useTranslation();
 
   return (
-    <section className="bg-white py-4 md:py-10 lg:py-12">
-      <h2
-        className="mx-auto mb-9 max-w-3xl px-0 text-center font-bold tracking-tight text-slate-900 md:mb-11"
-        style={{ fontSize: "clamp(1.35rem, 2.2vw + 0.45rem, 1.875rem)" }}
-      >
-        {t("features.whyBookHeading")}
-      </h2>
+    <section className="relative overflow-hidden bg-white py-16 sm:py-20 lg:py-24">
+      <div className="relative mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-10 text-center sm:mb-12 lg:mb-14">
+          <h5
+            className="font-semibold tracking-tight text-slate-900"
+            style={{ fontSize: "clamp(1.75rem, 3vw + 0.5rem, 2.5rem)" }}
+          >
+            {t("features.whyBookHeading")}
+         </h5>
+        </div>
 
-      {/* Below lg: one full-width snap slide per view; lg+: static 4-column grid */}
-      <div
-        className="-mx-4 flex gap-4 overflow-x-auto overflow-y-hidden scroll-px-4 px-4 pb-4 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] snap-x snap-mandatory sm:-mx-6 sm:gap-5 sm:scroll-px-6 sm:px-6 md:gap-6 md:pb-5 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:scroll-p-0 lg:px-0 lg:pb-0 lg:pt-0 lg:snap-none [&::-webkit-scrollbar]:hidden"
-        style={{ WebkitOverflowScrolling: "touch" }}
-      >
-          {WHY_BOOK_ITEMS.map(({ blobVar, Icon, titleKey, descKey }) => (
+        {/* Cards grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+          {WHY_BOOK_ITEMS.map(({ Icon, titleKey, descKey }) => (
             <div
               key={titleKey}
-              className="isolate flex w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] shrink-0 snap-center snap-always flex-col items-center px-1 text-center sm:w-[calc(100vw-3rem)] sm:max-w-[calc(100vw-3rem)] lg:w-auto lg:max-w-none lg:min-w-0 lg:snap-none lg:px-0"
+              className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 transition hover:border-emerald-200 hover:bg-emerald-50/30 sm:p-6"
             >
-              <div className="relative z-0 mx-auto grid h-[5.25rem] w-full max-w-[5.75rem] place-items-center sm:h-[5.75rem] sm:max-w-[6rem]">
-                <span className={BLOB_BASE} style={{ backgroundColor: `var(${blobVar})` }} aria-hidden />
+              <div className="mx-auto grid size-14 place-items-center rounded-xl bg-[color:var(--brand-mist)]">
                 <Icon
-                  className="relative z-[1] size-8 text-[color:var(--brand-green)] sm:size-9"
-                  strokeWidth={1.65}
+                  className="size-7 text-[color:var(--brand-green)]"
+                  strokeWidth={1.8}
                   aria-hidden
                 />
               </div>
-              <h3
-                className="mt-5 max-w-[15.5rem] font-bold leading-snug text-slate-900"
-                style={{ fontSize: "clamp(0.8125rem, 0.75vw + 0.45rem, 0.9375rem)" }}
-              >
+              <h5 className="mt-4 text-center text-[10px] font-bold text-slate-900 sm:text-lg">
                 {t(`features.${titleKey}`)}
-              </h3>
-              <p
-                className="mt-2 max-w-[16.5rem] leading-relaxed text-slate-600"
-                style={{ fontSize: "clamp(0.75rem, 0.55vw + 0.42rem, 0.875rem)" }}
-              >
+              </h5>
+              <p className="mt-2 text-center text-sm leading-relaxed text-slate-600">
                 {t(`features.${descKey}`)}
               </p>
             </div>
           ))}
         </div>
+      </div>
     </section>
   );
 }

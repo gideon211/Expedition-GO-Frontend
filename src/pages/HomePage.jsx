@@ -11,6 +11,8 @@ import { SidebarPanel } from "@/components/homepage/SidebarPanel";
 import { TourCarouselSection } from "@/components/homepage/TourCarouselSection";
 import { NewsletterSection } from "@/components/homepage/NewsletterSection";
 import { FeaturesSection } from "@/components/homepage/FeaturesSection";
+import { ReviewsCarousel } from "@/components/homepage/ReviewsCarousel";
+import { SupplierSection } from "@/components/homepage/SupplierSection";
 import { ExploreMoreSection } from "@/components/homepage/ExploreMoreSection";
 import { HomePageSkeleton } from "@/components/homepage/skeletons/HomePageSkeleton";
 import BrandLoader from "@/components/ui/BrandLoader";
@@ -194,6 +196,14 @@ function HomePageContent() {
         {/* Features Section - Full Width before footer */}
         <div className="mx-auto mb-14 max-w-[1520px] px-4 sm:px-6">
           <FeaturesSection />
+        </div>
+
+        <div className="mb-14">
+          <ReviewsCarousel />
+        </div>
+
+        <div className="mb-14">
+          <SupplierSection />
         </div>
 
         <div className="mb-14">

@@ -27,6 +27,7 @@ export function SectionHeading({ title, subtitle, categoryId, onScrollLeft, onSc
       <div className="relative z-[1] flex shrink-0 items-center gap-3">
         <Link
           to={`/tours?category=${encodeURIComponent(categoryId || "all")}`}
+          onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
           className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
         >
           <span className="relative">
