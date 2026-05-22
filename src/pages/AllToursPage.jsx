@@ -22,6 +22,8 @@ import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { ReviewsCarousel } from "@/components/homepage/ReviewsCarousel";
+import { TourFiltersPanel } from "@/components/homepage/TourFiltersPanel";
+import { matchesTourFilters } from "@/components/homepage/tourFiltersData";
 
 function MobileAllToursCard({ item, badge = "duration" }) {
   const navigate = useNavigate();
@@ -207,6 +209,9 @@ function AllToursPageContent() {
   const [showRatingMenu, setShowRatingMenu] = useState(false);
   const [selectedRating, setSelectedRating] = useState(null);
   const [selectedExperienceFilter, setSelectedExperienceFilter] = useState("All");
+  const [showFiltersMenu, setShowFiltersMenu] = useState(false);
+  const [selectedSpecials, setSelectedSpecials] = useState([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState([]);
   const [canScrollFiltersLeft, setCanScrollFiltersLeft] = useState(false);
   const [canScrollFiltersRight, setCanScrollFiltersRight] = useState(false);
   const experienceFiltersRef = useRef(null);
@@ -233,6 +238,10 @@ function AllToursPageContent() {
   const ratingTriggerRef = useRef(null);
   const ratingMenuRef = useRef(null);
   const [ratingMenuPosition, setRatingMenuPosition] = useState({ top: 0, left: 0 });
+
+  const filtersTriggerRef = useRef(null);
+  const filtersMenuRef = useRef(null);
+  const [filtersMenuPosition, setFiltersMenuPosition] = useState({ top: 0, left: 0 });
 
   const sidebarNewExperiences = [...sidebarTopRated, ...sidebarTopRated.slice(0, 2)];
 
@@ -298,7 +307,11 @@ function AllToursPageContent() {
       Object.values(item).some((value) =>
         typeof value === "string" ? value.toLowerCase().includes(normalizedQuery) : false
       );
-    return matchesSearch && matchesExperienceFilter(item);
+    return (
+      matchesSearch &&
+      matchesExperienceFilter(item) &&
+      matchesTourFilters(item, selectedSpecials, selectedSubcategories)
+    );
   });
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / CARDS_PER_PAGE));
   const paginatedItems = filteredItems.slice(
@@ -320,22 +333,25 @@ function AllToursPageContent() {
       const clickedPriceMenu = priceMenuRef.current?.contains(event.target);
       const clickedRatingTrigger = ratingTriggerRef.current?.contains(event.target);
       const clickedRatingMenu = ratingMenuRef.current?.contains(event.target);
+      const clickedFiltersTrigger = filtersTriggerRef.current?.contains(event.target);
+      const clickedFiltersMenu = filtersMenuRef.current?.contains(event.target);
 
       if (!clickedDesktopDateTrigger && !clickedMobileDateTrigger && !clickedDateCalendar) setShowDateCalendar(false);
       if (!clickedAdultsTrigger && !clickedTravelersPanel) setShowTravelers(false);
       if (!clickedTimeTrigger && !clickedTimeMenu) setShowTimeOfDayMenu(false);
       if (!clickedPriceTrigger && !clickedPriceMenu) setShowPriceMenu(false);
       if (!clickedRatingTrigger && !clickedRatingMenu) setShowRatingMenu(false);
+      if (!clickedFiltersTrigger && !clickedFiltersMenu) setShowFiltersMenu(false);
     };
 
-    if (showDateCalendar || showTravelers || showTimeOfDayMenu || showPriceMenu || showRatingMenu) {
+    if (showDateCalendar || showTravelers || showTimeOfDayMenu || showPriceMenu || showRatingMenu || showFiltersMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showDateCalendar, showTravelers, showTimeOfDayMenu, showPriceMenu, showRatingMenu]);
+  }, [showDateCalendar, showTravelers, showTimeOfDayMenu, showPriceMenu, showRatingMenu, showFiltersMenu]);
 
   const formatDate = (date) => {
     if (!date) return "";
@@ -390,6 +406,19 @@ function AllToursPageContent() {
       setRatingMenuPosition({ top: rect.bottom + 8, left: rect.left });
     }
     setShowRatingMenu((value) => !value);
+  };
+
+  const toggleFiltersMenu = () => {
+    if (!showFiltersMenu && filtersTriggerRef.current) {
+      const rect = filtersTriggerRef.current.getBoundingClientRect();
+      setFiltersMenuPosition({ top: rect.bottom + 8, left: rect.left });
+    }
+    setShowFiltersMenu((value) => !value);
+    setShowDateCalendar(false);
+    setShowTravelers(false);
+    setShowTimeOfDayMenu(false);
+    setShowPriceMenu(false);
+    setShowRatingMenu(false);
   };
 
   const totalTravelers = adults + children;
@@ -495,7 +524,7 @@ function AllToursPageContent() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [category, searchQuery, selectedExperienceFilter]);
+  }, [category, searchQuery, selectedExperienceFilter, selectedSpecials, selectedSubcategories]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -515,8 +544,7 @@ function AllToursPageContent() {
           />
         </div>
         
-        {/* Navbar spacer */}
-        <div className="h-[76px] sm:h-[104px] md:h-[120px] lg:h-[116px]" />
+        <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
 
         <main className="mx-auto flex-1 w-full max-w-[1520px] overflow-x-hidden bg-white px-4 pt-2 pb-6 sm:px-6 lg:px-8 lg:py-6">
           <div className="mb-8 mt-4">
@@ -535,8 +563,16 @@ function AllToursPageContent() {
               <div className="mb-6 overflow-y-visible pb-1">
                 <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 scrollbar-hide overscroll-x-contain lg:min-w-0 lg:overflow-visible lg:pb-0">
                   <button
+                    ref={filtersTriggerRef}
                     type="button"
-                    className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+                    onClick={toggleFiltersMenu}
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      showFiltersMenu || selectedSpecials.length > 0 || selectedSubcategories.length > 0
+                        ? "bg-slate-900 text-white hover:bg-slate-800"
+                        : "bg-slate-100 text-slate-900 hover:bg-slate-200"
+                    }`}
+                    aria-expanded={showFiltersMenu}
+                    aria-haspopup="dialog"
                   >
                     <SlidersHorizontal className="size-4" />
                     <span>Filter</span>
@@ -546,7 +582,7 @@ function AllToursPageContent() {
                     <button
                       ref={desktopDateTriggerRef}
                       onClick={toggleDateCalendar}
-                      className="hidden items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-100 lg:inline-flex"
+                      className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 lg:inline-flex"
                     >
                       <CalendarDays className="size-4" />
                       <span>{dateLabel ? `Date ${dateLabel}` : "Date"}</span>
@@ -556,7 +592,7 @@ function AllToursPageContent() {
                   <button
                     ref={adultsTriggerRef}
                     onClick={toggleTravelersPanel}
-                    className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-900 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                    className="inline-flex shrink-0 items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
                   >
                     <span>{travelerLabel}</span>
                     <ChevronDown className="size-4" />
@@ -565,7 +601,7 @@ function AllToursPageContent() {
                   <button
                     ref={timeTriggerRef}
                     onClick={toggleTimeOfDayMenu}
-                    className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+                    className="inline-flex shrink-0 items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
                   >
                     <span>{timeOfDayLabel}</span>
                     <ChevronDown className="size-4" />
@@ -574,7 +610,7 @@ function AllToursPageContent() {
                   <button
                     ref={priceTriggerRef}
                     onClick={togglePriceMenu}
-                    className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+                    className="inline-flex shrink-0 items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
                   >
                     <span>{priceLabel}</span>
                     <ChevronDown className="size-4" />
@@ -583,7 +619,7 @@ function AllToursPageContent() {
                   <button
                     ref={ratingTriggerRef}
                     onClick={toggleRatingMenu}
-                    className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+                    className="inline-flex shrink-0 items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
                   >
                     <span>{ratingLabel}</span>
                     <ChevronDown className="size-4" />
@@ -720,6 +756,21 @@ function AllToursPageContent() {
             selected={selectedDates}
             onSelect={setSelectedDates}
             onClose={() => setShowDateCalendar(false)}
+          />
+        </div>
+      )}
+
+      {showFiltersMenu && (
+        <div
+          className="fixed z-[250]"
+          style={{ top: `${filtersMenuPosition.top}px`, left: `${filtersMenuPosition.left}px` }}
+        >
+          <TourFiltersPanel
+            panelRef={filtersMenuRef}
+            selectedSpecials={selectedSpecials}
+            onSelectedSpecialsChange={setSelectedSpecials}
+            selectedSubcategories={selectedSubcategories}
+            onSelectedSubcategoriesChange={setSelectedSubcategories}
           />
         </div>
       )}

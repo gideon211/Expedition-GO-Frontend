@@ -47,9 +47,9 @@ export function FeaturesSection() {
               key={titleKey}
               className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 transition hover:border-emerald-200 hover:bg-emerald-50/30 sm:p-6"
             >
-              <div className="mx-auto grid size-14 place-items-center rounded-xl bg-[color:var(--brand-mist)]">
+              <div className="mx-auto grid size-16 place-items-center rounded-xl bg-[color:var(--brand-mist)] sm:size-[4.5rem]">
                 <Icon
-                  className="size-7 text-[color:var(--brand-green)]"
+                  className="size-8 text-[color:var(--brand-green)] sm:size-9"
                   strokeWidth={1.8}
                   aria-hidden
                 />

@@ -17,8 +17,7 @@ export default function SupportPage() {
         <Navbar />
       </div>
       
-      {/* Navbar spacer */}
-      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
+      <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
 
       <main className="flex-1 bg-white">
         <div className="mx-auto max-w-[1520px] px-4 py-12 sm:px-6 lg:px-8">

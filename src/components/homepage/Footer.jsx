@@ -125,7 +125,7 @@ export function Footer() {
   ];
   
   return (
-    <footer id="contact" className="mt-[2.55rem] bg-[color:var(--brand-green)] text-white md:mt-10">
+    <footer id="contact" className="bg-[color:var(--brand-green)] text-white">
       <div className="mx-auto grid max-w-[1520px] grid-cols-2 gap-[1.7rem] px-3 py-[1.7rem] sm:gap-8 sm:px-4 sm:py-8 lg:px-6 lg:py-10 xl:grid-cols-[180px_200px_200px_1fr_1fr_1fr_190px]">
         {/* Language & Currency Section */}
         <div className="col-span-2 space-y-[1.0625rem] xl:col-span-1 md:space-y-4">

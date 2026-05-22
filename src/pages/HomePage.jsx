@@ -161,8 +161,6 @@ function HomePageContent() {
           externalSearchQuery={sharedSearchQuery}
           onExternalSearchChange={setSharedSearchQuery}
         />
-        {/* Navbar spacer - only on desktop where search moves to navbar */}
-        <div className={`hidden lg:block lg:h-[104px]`} />
         {/* Mobile spacer - for fixed search bar at top */}
         <div className={`lg:hidden ${showCompactSearch ? 'h-[52px]' : 'h-0'}`} />
         <HeroSection

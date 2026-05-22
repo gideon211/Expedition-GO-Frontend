@@ -206,7 +206,7 @@ export default function SettingsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Navbar />
-      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
+      <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
 
       <main className="flex-1">
         {/* Hero header */}

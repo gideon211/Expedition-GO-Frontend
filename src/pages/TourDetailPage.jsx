@@ -1149,8 +1149,7 @@ function TourDetailContent() {
     <div className="min-h-screen bg-[color:var(--page-bg)]">
       <Navbar />
       
-      {/* Navbar spacer */}
-      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
+      <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
 
       <main className="mx-auto max-w-[1520px] px-4 pb-8 pt-6 text-[color:var(--brand-green)] sm:px-6 sm:pt-8 lg:px-8">
         <button

@@ -13,13 +13,12 @@ function WishlistPageContent() {
   const { wishlist } = useWishlist();
 
   return (
-    <div className="min-h-screen bg-[color:var(--page-bg)] text-slate-900">
+    <div className="flex min-h-screen flex-col bg-[color:var(--page-bg)] text-slate-900">
       <Navbar />
       
-      {/* Navbar spacer */}
-      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
+      <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
 
-      <main className="mx-auto w-full max-w-[1520px] px-3 py-5 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
+      <main className="mx-auto flex-1 w-full max-w-[1520px] px-3 py-5 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
         {/* Header */}
         <div className="mb-5 sm:mb-7">
           <Link

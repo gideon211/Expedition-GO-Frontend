@@ -266,17 +266,16 @@ export function Navbar({
   }, [showMobileCalendar]);
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-slate-200/80 shadow-sm backdrop-blur-md bg-white transition-all duration-300">
-      <div className="mx-auto flex max-w-[1520px] items-center justify-between gap-2 px-3 py-1 text-slate-950 sm:gap-4 sm:px-4 sm:py-1.5 lg:px-6 dark:text-slate-950">
+    <header className="fixed top-0 z-50 w-full border-b border-slate-200/80 bg-white transition-all duration-300">
+      <div className="mx-auto flex min-h-[var(--navbar-logo-height)] max-w-[1520px] items-center justify-between gap-2 px-3 py-0 text-slate-950 sm:gap-4 sm:px-4 lg:px-6 dark:text-slate-950">
 <button
   onClick={handleBrandClick}
-  className="flex shrink-0 items-center cursor-pointer transition-opacity hover:opacity-80"
+  className="flex h-[var(--navbar-logo-height)] shrink-0 items-center overflow-hidden leading-none cursor-pointer transition-opacity hover:opacity-80"
 >
 <img
   src={companyPic}
   alt="Expedition-Go Group Limited"
-          className="block w-auto max-h-[52px] sm:max-h-[64px] md:max-h-[72px] lg:max-h-[84px] xl:max-h-[96px] object-contain leading-none"
-
+  className="block h-full w-auto max-w-none object-contain object-left object-top"
 />
 </button>
 

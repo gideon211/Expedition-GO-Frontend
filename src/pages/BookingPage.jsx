@@ -1267,7 +1267,7 @@ export default function BookingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Navbar />
-      <div className="h-[58px] sm:h-[96px] lg:h-[104px]" />
+      <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
 
       <main className="flex-1">
         <div className="mx-auto max-w-[1200px] px-4 pb-16 pt-6 sm:px-6 lg:px-8">

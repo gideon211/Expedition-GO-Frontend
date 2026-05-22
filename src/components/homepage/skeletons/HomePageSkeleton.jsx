@@ -9,7 +9,6 @@ export function HomePageSkeleton() {
   return (
     <div className="min-h-[100svh] min-h-screen overflow-x-hidden bg-[color:var(--page-bg)] pb-[env(safe-area-inset-bottom,0)] text-slate-900 supports-[min-height:100dvh]:min-h-[100dvh]">
       <Navbar />
-      <div className="hidden lg:block lg:h-[104px]" />
       <div className="h-0 lg:hidden" />
       <HeroSkeleton />
 
