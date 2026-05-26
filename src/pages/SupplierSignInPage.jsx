@@ -12,6 +12,7 @@ import {
   XCircle,
   FileText,
   UserCheck,
+  Wallet,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -33,20 +34,27 @@ function GoogleIcon() {
 }
 
 function SupplierStatusDashboard({ status }) {
-  const reviewStatus = status?.data?.reviewStatus || status?.reviewStatus || "PENDING";
+  const navigate = useNavigate();
+  const profile = status?.data?.supplierProfile || status?.data || {};
+  const reviewStatus = profile.status || "PENDING";
   const isApproved = reviewStatus === "APPROVED";
   const isRejected = reviewStatus === "REJECTED";
-  const adminNotes = status?.data?.adminNotes || status?.adminNotes;
-  const businessInfo = status?.data?.businessInfo || status?.businessInfo;
-  const reviewedAt = status?.data?.reviewedAt || status?.reviewedAt;
-  const reviewedBy = status?.data?.reviewedBy || status?.reviewedBy;
+  const isActive = reviewStatus === "ACTIVE";
+  const adminNotes = profile.adminNotes;
+  const businessInfo = profile.businessInfo;
+  const reviewedAt = profile.reviewedAt;
+  const reviewedBy = profile.reviewedBy;
 
   return (
     <div className="w-full max-w-[520px] space-y-5">
       {/* Status Card */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-center gap-4">
-          {isApproved ? (
+          {isActive ? (
+            <div className="flex size-14 items-center justify-center rounded-full bg-emerald-100">
+              <CheckCircle2 className="size-7 text-emerald-600" />
+            </div>
+          ) : isApproved ? (
             <div className="flex size-14 items-center justify-center rounded-full bg-emerald-100">
               <CheckCircle2 className="size-7 text-emerald-600" />
             </div>
@@ -63,11 +71,13 @@ function SupplierStatusDashboard({ status }) {
           <div>
             <p className="text-xl font-bold text-slate-900">{reviewStatus}</p>
             <p className="text-sm text-slate-500">
-              {isApproved
-                ? "Your application has been approved!"
-                : isRejected
-                  ? "Your application was not approved."
-                  : "Your application is under review."}
+              {isActive
+                ? "Your supplier account is active. You can start receiving bookings and payouts."
+                : isApproved
+                  ? "Your application has been approved! Set up your payout method to get activated."
+                  : isRejected
+                    ? "Your application was not approved."
+                    : "Your application is under review."}
             </p>
           </div>
         </div>
@@ -80,14 +90,62 @@ function SupplierStatusDashboard({ status }) {
         )}
       </div>
 
-      {/* Admin Notes - Only when APPROVED */}
-      {isApproved && adminNotes && (
+      {/* Admin Notes - When APPROVED or ACTIVE */}
+      {(isApproved || isActive) && adminNotes && (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
           <div className="mb-2 flex items-center gap-2">
             <UserCheck className="size-5 text-emerald-600" />
             <h4 className="text-sm font-bold text-emerald-800">Admin Notes</h4>
           </div>
           <p className="text-sm leading-relaxed text-emerald-700">{adminNotes}</p>
+        </div>
+      )}
+
+      {/* ACTIVE supplier dashboard CTA */}
+      {isActive && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
+          <div className="mb-3 flex justify-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-emerald-100">
+              <Wallet className="size-6 text-emerald-600" />
+            </div>
+          </div>
+          <h3 className="mb-1 text-base font-bold text-emerald-900">
+            View Your Earnings
+          </h3>
+          <p className="mb-4 text-sm text-emerald-700">
+            Track your bookings, commissions, and payout history.
+          </p>
+          <Button
+            onClick={() => navigate("/supplier/earnings")}
+            className="h-11 rounded-lg px-6 text-sm font-semibold"
+          >
+            Go to Earnings
+            <ArrowRight className="ml-2 size-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Payout CTA - Only when APPROVED but not yet ACTIVE */}
+      {isApproved && !isActive && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
+          <div className="mb-3 flex justify-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-emerald-100">
+              <Wallet className="size-6 text-emerald-600" />
+            </div>
+          </div>
+          <h3 className="mb-1 text-base font-bold text-emerald-900">
+            Set Up Your Payout Method
+          </h3>
+          <p className="mb-4 text-sm text-emerald-700">
+            You&apos;re approved! Add a bank, mobile money, or PayPal account to get activated.
+          </p>
+          <Button
+            onClick={() => navigate("/supplier/payout")}
+            className="h-11 rounded-lg px-6 text-sm font-semibold"
+          >
+            Add Payout Method
+            <ArrowRight className="ml-2 size-4" />
+          </Button>
         </div>
       )}
 

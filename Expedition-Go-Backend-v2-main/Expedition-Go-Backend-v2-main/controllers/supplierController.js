@@ -200,7 +200,9 @@ exports.getApplicationStatus = catchAsync(async (req, res, next) => {
     select: {
       id: true,
       status: true,
+      businessInfo: true,
       adminNotes: true,
+      reviewedBy: true,
       reviewedAt: true,
       createdAt: true,
       updatedAt: true

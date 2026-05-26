@@ -18,6 +18,8 @@ import RegisterPage from "@/pages/RegisterPage";
 import SignInPage from "@/pages/SignInPage";
 import SupplierSignInPage from "@/pages/SupplierSignInPage";
 import SupplierRegisterPage from "@/pages/SupplierRegisterPage";
+import SupplierPayoutPage from "@/pages/SupplierPayoutPage";
+import SupplierEarningsPage from "@/pages/SupplierEarningsPage";
 import SignOutPage from "@/pages/SignOutPage";
 import SupportPage from "@/pages/SupportPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -56,6 +58,8 @@ function AppContent() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/supplier/signin" element={<SupplierSignInPage />} />
             <Route path="/supplier/register" element={<SupplierRegisterPage />} />
+            <Route path="/supplier/payout" element={<SupplierPayoutPage />} />
+            <Route path="/supplier/earnings" element={<SupplierEarningsPage />} />
             <Route path="/signout" element={<SignOutPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/settings" element={<SettingsPage />} />
