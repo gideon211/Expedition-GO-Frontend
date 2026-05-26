@@ -17,7 +17,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signInWithEmail, signInWithGoogle } from "@/lib/auth";
+import { signInWithEmail, signInWithGoogle, getAuthToken } from "@/lib/auth";
 import { getSupplierApplicationStatus } from "@/api/supplier";
 import { useAuth } from "@/components/auth/AuthProvider";
 import companyLogo from "@/assets/images/new_logo.png";
@@ -118,7 +118,14 @@ function SupplierStatusDashboard({ status }) {
               : "You\'re approved! Head to your dashboard to set up payouts and start earning."}
           </p>
           <Button
-            onClick={() => navigate("/supplier/dashboard")}
+            onClick={async () => {
+              const token = await getAuthToken();
+              if (token) {
+                window.location.href = `https://supplier.travioafrica.com/auth/callback?token=${encodeURIComponent(token)}`;
+              } else {
+                window.location.href = "https://supplier.travioafrica.com";
+              }
+            }}
             className="h-11 rounded-lg px-6 text-sm font-semibold"
           >
             Go to Dashboard

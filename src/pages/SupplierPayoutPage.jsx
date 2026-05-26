@@ -19,6 +19,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getAuthToken } from "@/lib/auth";
 import {
   getMyPayoutMethods,
   addPayoutMethod,
@@ -442,8 +443,13 @@ export default function SupplierPayoutPage() {
       await addPayoutMethod(payload);
       setSuccess("Payout method added successfully. Redirecting to dashboard...");
       await loadMethods();
-      setTimeout(() => {
-        navigate("/supplier/dashboard");
+      setTimeout(async () => {
+        const token = await getAuthToken();
+        if (token) {
+          window.location.href = `https://supplier.travioafrica.com/auth/callback?token=${encodeURIComponent(token)}`;
+        } else {
+          window.location.href = "https://supplier.travioafrica.com";
+        }
       }, 1200);
     } catch (err) {
       setError(err?.message || "Failed to add payout method. Please try again.");
