@@ -16,6 +16,8 @@ import CartPage from "@/pages/CartPage";
 import TourDetailPage from "@/pages/TourDetailPage";
 import RegisterPage from "@/pages/RegisterPage";
 import SignInPage from "@/pages/SignInPage";
+import SupplierSignInPage from "@/pages/SupplierSignInPage";
+import SupplierRegisterPage from "@/pages/SupplierRegisterPage";
 import SignOutPage from "@/pages/SignOutPage";
 import SupportPage from "@/pages/SupportPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -52,6 +54,8 @@ function AppContent() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/supplier/signin" element={<SupplierSignInPage />} />
+            <Route path="/supplier/register" element={<SupplierRegisterPage />} />
             <Route path="/signout" element={<SignOutPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/settings" element={<SettingsPage />} />

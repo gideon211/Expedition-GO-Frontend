@@ -32,8 +32,9 @@ const SelectContent = React.forwardRef(function SelectContent({ className, child
       <SelectPrimitive.Content
         ref={ref}
         position={position}
+        avoidCollisions={false}
         className={cn(
-          "relative z-50 min-w-[8rem] overflow-hidden rounded-xl border border-[#dbe8f8] bg-white text-black shadow-[0_16px_40px_rgba(16,24,40,0.14)]",
+          "relative z-50 max-h-[300px] min-w-[8rem] overflow-hidden rounded-xl border border-[#dbe8f8] bg-white text-black shadow-[0_16px_40px_rgba(16,24,40,0.14)]",
           position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
           className,
         )}
@@ -43,7 +44,7 @@ const SelectContent = React.forwardRef(function SelectContent({ className, child
           <ChevronUp className="size-4" />
         </SelectPrimitive.ScrollUpButton>
         <SelectPrimitive.Viewport
-          className={cn("p-1", position === "popper" && "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]")}
+          className={cn("max-h-[280px] overflow-y-auto p-1", position === "popper" && "w-full min-w-[var(--radix-select-trigger-width)]")}
         >
           {children}
         </SelectPrimitive.Viewport>

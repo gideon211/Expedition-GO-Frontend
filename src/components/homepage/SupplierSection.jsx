@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { ArrowRight, UserCheck, Upload, Wallet } from "lucide-react";
 
 const STEPS = [
@@ -54,12 +55,12 @@ export function SupplierSection() {
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
-                <button
-                  type="button"
+                <Link
+                  to="/supplier/signin"
                   className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-sm font-bold text-slate-900 shadow-lg transition hover:bg-amber-300 hover:shadow-xl active:scale-[0.98]"
                 >
                   {t("supplier.ctaPrimary", "Become a supplier")}
-                </button>
+                </Link>
                 <button
                   type="button"
                   className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-transparent px-5 py-3 text-sm font-semibold text-white transition hover:border-slate-400 hover:bg-slate-800 active:scale-[0.98]"

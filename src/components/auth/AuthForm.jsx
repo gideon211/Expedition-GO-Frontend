@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, LoaderCircle, Mail, Lock, UserRound } from "lucide-react";
+import { AlertCircle, LoaderCircle, Mail, Lock, UserRound, Building2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -60,12 +60,14 @@ export function AuthForm({
     password: "",
     confirmPassword: "",
   });
+  const [wantsToBeSupplier, setWantsToBeSupplier] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const isRegister = mode === "register";
+  const isRegister = mode === "register" || mode === "supplierRegister";
+  const isSupplierRegister = mode === "supplierRegister";
 
   function updateField(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -83,6 +85,11 @@ export function AuthForm({
 
     if (isRegister && form.password !== form.confirmPassword) {
       setError(t('auth.errorPasswordMatch'));
+      return;
+    }
+
+    if (isSupplierRegister && !wantsToBeSupplier) {
+      setError(t('supplierAuth.errorConfirmSupplier', 'Please confirm that you want to become a supplier.'));
       return;
     }
 
@@ -177,6 +184,25 @@ export function AuthForm({
           type="password"
           value={form.confirmPassword}
         />
+      ) : null}
+
+      {isSupplierRegister ? (
+        <label className="flex items-start gap-3 rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm cursor-pointer transition hover:border-primary/30">
+          <div className="mt-0.5">
+            <input
+              type="checkbox"
+              checked={wantsToBeSupplier}
+              onChange={(e) => setWantsToBeSupplier(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-[color:var(--brand-green)] focus:ring-[color:var(--brand-green)]"
+            />
+          </div>
+          <div className="flex items-start gap-2">
+            <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+            <span className="text-sm font-semibold text-slate-700">
+              {t('supplierAuth.wantToBecomeSupplier', 'I want to become a supplier and list my tours/experiences')}
+            </span>
+          </div>
+        </label>
       ) : null}
 
       {error ? (
