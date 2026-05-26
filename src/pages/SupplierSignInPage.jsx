@@ -101,8 +101,8 @@ function SupplierStatusDashboard({ status }) {
         </div>
       )}
 
-      {/* ACTIVE supplier dashboard CTA */}
-      {isActive && (
+      {/* Dashboard CTA - for ACTIVE or APPROVED suppliers */}
+      {(isActive || isApproved) && (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
           <div className="mb-3 flex justify-center">
             <div className="flex size-12 items-center justify-center rounded-full bg-emerald-100">
@@ -110,40 +110,18 @@ function SupplierStatusDashboard({ status }) {
             </div>
           </div>
           <h3 className="mb-1 text-base font-bold text-emerald-900">
-            View Your Earnings
+            {isActive ? "Your Supplier Dashboard" : "Application Approved"}
           </h3>
           <p className="mb-4 text-sm text-emerald-700">
-            Track your bookings, commissions, and payout history.
+            {isActive
+              ? "Manage your bookings, earnings, and payouts from your dashboard."
+              : "You\'re approved! Head to your dashboard to set up payouts and start earning."}
           </p>
           <Button
-            onClick={() => navigate("/supplier/earnings")}
+            onClick={() => navigate("/supplier/dashboard")}
             className="h-11 rounded-lg px-6 text-sm font-semibold"
           >
-            Go to Earnings
-            <ArrowRight className="ml-2 size-4" />
-          </Button>
-        </div>
-      )}
-
-      {/* Payout CTA - Only when APPROVED but not yet ACTIVE */}
-      {isApproved && !isActive && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
-          <div className="mb-3 flex justify-center">
-            <div className="flex size-12 items-center justify-center rounded-full bg-emerald-100">
-              <Wallet className="size-6 text-emerald-600" />
-            </div>
-          </div>
-          <h3 className="mb-1 text-base font-bold text-emerald-900">
-            Set Up Your Payout Method
-          </h3>
-          <p className="mb-4 text-sm text-emerald-700">
-            You&apos;re approved! Add a bank, mobile money, or PayPal account to get activated.
-          </p>
-          <Button
-            onClick={() => navigate("/supplier/payout")}
-            className="h-11 rounded-lg px-6 text-sm font-semibold"
-          >
-            Add Payout Method
+            Go to Dashboard
             <ArrowRight className="ml-2 size-4" />
           </Button>
         </div>

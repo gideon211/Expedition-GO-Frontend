@@ -379,7 +379,7 @@ function ExistingMethodCard({ method, onDelete, onSetDefault }) {
           <p className="mt-0.5 text-xs text-slate-500">
             {method.type === "BANK_TRANSFER" && (
               <>
-                {method.accountName} · {method.accountNumber?.slice(-4).padStart(method.accountNumber?.length, "*")}
+                {method.accountName} · {method.accountNumber ? `****${method.accountNumber.slice(-4)}` : "—"}
               </>
             )}
             {method.type === "MOBILE_MONEY" && method.mobileNumber}
@@ -440,8 +440,11 @@ export default function SupplierPayoutPage() {
     setSuccess("");
     try {
       await addPayoutMethod(payload);
-      setSuccess("Payout method added successfully.");
+      setSuccess("Payout method added successfully. Redirecting to dashboard...");
       await loadMethods();
+      setTimeout(() => {
+        navigate("/supplier/dashboard");
+      }, 1200);
     } catch (err) {
       setError(err?.message || "Failed to add payout method. Please try again.");
     } finally {
