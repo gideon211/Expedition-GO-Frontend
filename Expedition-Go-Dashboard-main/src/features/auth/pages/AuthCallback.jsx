@@ -160,7 +160,7 @@ export default function AuthCallback() {
           <div className="space-y-3">
             <button
               onClick={() =>
-                (window.location.href = "https://travioafrica.com/login")
+                (window.location.href = "https://travioafrica.com/supplier/signin")
               }
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#044b3b] text-white rounded-lg text-sm font-medium hover:bg-[#033629] transition-colors"
             >
@@ -168,7 +168,7 @@ export default function AuthCallback() {
               <span>Log in on Main Site</span>
             </button>
             <p className="text-xs text-[#9e9e9e]">
-              After logging in, click "Become a supplier" again.
+              After logging in, click "Go to Dashboard" to access your dashboard.
             </p>
           </div>
         )}

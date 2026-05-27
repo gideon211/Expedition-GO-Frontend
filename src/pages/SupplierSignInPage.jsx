@@ -214,21 +214,6 @@ function SupplierSignInPage() {
       setStatusError("");
       getSupplierApplicationStatus()
         .then((data) => {
-          const profile = data?.data?.supplierProfile || data?.data || {};
-          const reviewStatus = profile.status || "PENDING";
-
-          // Auto-redirect approved/active suppliers to dashboard
-          if (reviewStatus === "APPROVED" || reviewStatus === "ACTIVE") {
-            getAuthToken().then((token) => {
-              if (token) {
-                window.location.href = `https://supplier.travioafrica.com/auth/callback?token=${encodeURIComponent(token)}`;
-              } else {
-                window.location.href = "https://supplier.travioafrica.com";
-              }
-            });
-            return;
-          }
-
           setSupplierStatus(data);
         })
         .catch((err) => {
