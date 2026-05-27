@@ -12,9 +12,9 @@ import { useAuthStore } from "@/stores/authStore";
  * When the main site (travioafrica.com) redirects a logged-in user here
  * with ?token=<firebase_id_token>, this page:
  *  1. Reads the token from the URL
- *  2. POSTs it to /api/auth/verify-token (backend verifies with Firebase Admin)
- *  3. The backend sets an HTTP-only __session cookie
- *  4. We update local auth state and redirect to the dashboard
+ *  2. POSTs it to /api/users/signup with Authorization: Bearer header
+ *     (backend verifies with Firebase Admin and sets HTTP-only session cookie)
+ *  3. We update local auth state and redirect to the dashboard
  *
  * The token is removed from the URL immediately to prevent it from lingering
  * in browser history or referrer headers.
@@ -54,11 +54,17 @@ export default function AuthCallback() {
     setStatus("loading");
 
     // POST token to backend for verification and session cookie creation
+    // Uses /users/signup (existing, deployed endpoint) instead of /auth/verify-token
     api
       .post(
-        "/auth/verify-token",
-        { token },
-        { withCredentials: true } // required: tells browser to accept the __session cookie
+        "/users/signup",
+        {},
+        {
+          withCredentials: true, // required: tells browser to accept the session cookie
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       )
       .then((response) => {
         const { user, token: backendToken } = response.data?.data || {};
