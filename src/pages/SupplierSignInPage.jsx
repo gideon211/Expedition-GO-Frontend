@@ -297,39 +297,41 @@ function SupplierSignInPage() {
 
   // If user is authenticated, show supplier status or prompt to apply
   if (user) {
+    // Minimal loading — no branded flash before redirect
+    if (statusLoading) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-white">
+          <LoaderCircle className="size-6 animate-spin text-[color:var(--brand-green)]" />
+        </div>
+      );
+    }
+
+    if (statusError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-12">
+          <Link to="/" className="mb-8 inline-block">
+            <img src={companyLogo} alt="TravioAfrica" className="h-auto w-[220px] object-contain" />
+          </Link>
+          <div className="flex items-start gap-2 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <span>{statusError}</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (!supplierStatus) {
+      return <NoApplicationView />;
+    }
+
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-12">
         <div className="mb-8 flex justify-center">
           <Link to="/" className="inline-block">
-            <img
-              src={companyLogo}
-              alt="TravioAfrica"
-              className="h-auto w-[220px] object-contain"
-            />
+            <img src={companyLogo} alt="TravioAfrica" className="h-auto w-[220px] object-contain" />
           </Link>
         </div>
-
-        {statusLoading && (
-          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 text-sm text-slate-600">
-            <LoaderCircle className="size-5 animate-spin text-[color:var(--brand-green)]" />
-            Checking your supplier status...
-          </div>
-        )}
-
-        {statusError && (
-          <div className="mb-5 flex items-start gap-2 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            <span>{statusError}</span>
-          </div>
-        )}
-
-        {!statusLoading && !statusError && !supplierStatus && (
-          <NoApplicationView />
-        )}
-
-        {!statusLoading && !statusError && supplierStatus && (
-          <SupplierStatusDashboard status={supplierStatus} />
-        )}
+        <SupplierStatusDashboard status={supplierStatus} />
       </div>
     );
   }
