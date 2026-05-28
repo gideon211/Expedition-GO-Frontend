@@ -7,10 +7,25 @@ import { getSupplierApplicationStatus } from "@/api/supplier";
 import { waitForAuthToken } from "@/lib/auth";
 
 /** Active suppliers manage tours via the external supplier dashboard. */
-export const SUPPLIER_PORTAL_LOGIN_URL = "https://supplier.travioafrica.com/login";
+export const SUPPLIER_PORTAL_ORIGIN =
+  import.meta.env.VITE_SUPPLIER_PORTAL_URL || "https://supplier.travioafrica.com";
+
+export const SUPPLIER_PORTAL_LOGIN_URL = `${SUPPLIER_PORTAL_ORIGIN}/login`;
+
+/** Cross-domain SSO entry — dashboard AuthCallback expects ?token= */
+export const SUPPLIER_PORTAL_AUTH_CALLBACK_URL = `${SUPPLIER_PORTAL_ORIGIN}/auth/callback`;
+
+/** In-app handoff route (passes Firebase token before opening the portal). */
+export const SUPPLIER_PORTAL_PATH = "/supplier/portal";
 
 export const SUPPLIER_PAYOUT_PATH = "/supplier/payout";
 export const SUPPLIER_SIGNIN_PATH = "/supplier/signin";
+
+export function buildSupplierPortalHandoffUrl(idToken) {
+  const token = String(idToken || "").trim();
+  if (!token) return SUPPLIER_PORTAL_LOGIN_URL;
+  return `${SUPPLIER_PORTAL_AUTH_CALLBACK_URL}?token=${encodeURIComponent(token)}`;
+}
 
 /**
  * Normalize API payloads from GET /suppliers/application/status.
@@ -235,8 +250,8 @@ export function getSupplierNavMenuVariant({
 export function getSupplierNavTarget({ hasApplication, portalReady, needsPayout, hasPayout }) {
   if (portalReady) {
     return {
-      href: SUPPLIER_PORTAL_LOGIN_URL,
-      external: true,
+      href: SUPPLIER_PORTAL_PATH,
+      external: false,
       isSupplier: true,
     };
   }
@@ -264,9 +279,13 @@ export function getSupplierNavTarget({ hasApplication, portalReady, needsPayout,
   };
 }
 
-export function redirectToSupplierPortalLogin() {
+export async function redirectToSupplierPortalLogin() {
   if (typeof window === "undefined") return;
-  window.location.replace(SUPPLIER_PORTAL_LOGIN_URL);
+
+  const token = await waitForAuthToken(8000);
+  window.location.replace(
+    token ? buildSupplierPortalHandoffUrl(token) : SUPPLIER_PORTAL_LOGIN_URL
+  );
 }
 
 /**

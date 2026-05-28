@@ -208,7 +208,11 @@ const resources = {
         successAwaitingActivation:
           "Signed in successfully. Your payout is saved — your dashboard unlocks after admin activation.",
         successPortalReady:
-          "Signed in successfully. Opening your supplier dashboard..."
+          "Signed in successfully. Opening your supplier dashboard...",
+        openingDashboard: "Opening your supplier dashboard...",
+        portalHandoffError: "Could not open your supplier dashboard. Please try again.",
+        portalHandoffAuthError: "We could not verify your session. Please sign in again.",
+        openPortalSignIn: "Open supplier portal sign-in"
       },
       footer: {
         waysYouCanPay: "Ways You Can Pay",

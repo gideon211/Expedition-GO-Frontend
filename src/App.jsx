@@ -43,6 +43,7 @@ import SignInPage from "@/pages/SignInPage";
 import SupplierSignInPage from "@/pages/SupplierSignInPage";
 import SupplierRegisterPage from "@/pages/SupplierRegisterPage";
 import SupplierPayoutPage from "@/pages/SupplierPayoutPage";
+import SupplierPortalRedirectPage from "@/pages/SupplierPortalRedirectPage";
 import { SUPPLIER_PORTAL_LOGIN_URL } from "@/lib/supplierPortal";
 
 import SignOutPage from "@/pages/SignOutPage";
@@ -73,7 +74,8 @@ function AppContent() {
             <Route path="/supplier/signin" element={<SupplierSignInPage />} />
             <Route path="/supplier/register" element={<SupplierRegisterPage />} />
             <Route path="/supplier/payout" element={<SupplierPayoutPage />} />
-            <Route path="/supplier/dashboard" element={<Navigate to={SUPPLIER_PORTAL_LOGIN_URL} replace />} />
+            <Route path="/supplier/portal" element={<SupplierPortalRedirectPage />} />
+            <Route path="/supplier/dashboard" element={<Navigate to="/supplier/portal" replace />} />
             <Route path="/supplier/earnings" element={<Navigate to={SUPPLIER_PORTAL_LOGIN_URL} replace />} />
             <Route path="/signout" element={<SignOutPage />} />
             <Route path="/support" element={<SupportPage />} />
