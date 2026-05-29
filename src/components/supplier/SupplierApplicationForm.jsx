@@ -46,6 +46,10 @@ import { invalidateSupplierAccess } from "@/api/supplierAccessQuery";
 import { useAuth } from "@/components/auth/AuthProvider";
 import GhanaDestinationSelect from "@/components/supplier/GhanaDestinationSelect";
 import {
+  filterLanguagesForCountry,
+  getLanguagesForCountry,
+} from "@/lib/countryLanguages";
+import {
   clearSupplierApplicationDraft,
   createEmptySupplierApplicationForm,
   loadSupplierApplicationDraft,
@@ -159,24 +163,6 @@ const TOUR_CATEGORIES_OPTIONS = [
   "Mountain & Hiking",
   "Luxury",
   "Family Friendly",
-];
-
-const LANGUAGE_OPTIONS = [
-  "English",
-  "Spanish",
-  "French",
-  "German",
-  "Dutch",
-  "Portuguese",
-  "Italian",
-  "Arabic",
-  "Swahili",
-  "Zulu",
-  "Akan",
-  "Yoruba",
-  "Hausa",
-  "Igbo",
-  "Amharic",
 ];
 
 function getStepValidationError(stepKey, form) {
@@ -416,11 +402,40 @@ export function SupplierApplicationForm() {
     });
   }, []);
 
+  const languageOptions = useMemo(
+    () => getLanguagesForCountry(form.businessInfo.country),
+    [form.businessInfo.country]
+  );
+
   const stepCompleted = useMemo(
     () =>
       STEPS.map((s) => getStepValidationError(s.key, form) === null),
     [form]
   );
+
+  const handleCountryChange = useCallback((countryCode) => {
+    setForm((prev) => ({
+      ...prev,
+      businessInfo: { ...prev.businessInfo, country: countryCode },
+      operatingInfo: {
+        ...prev.operatingInfo,
+        languages: filterLanguagesForCountry(prev.operatingInfo.languages, countryCode),
+      },
+    }));
+  }, []);
+
+  useEffect(() => {
+    const filtered = filterLanguagesForCountry(
+      form.operatingInfo.languages,
+      form.businessInfo.country
+    );
+    if (filtered.length === form.operatingInfo.languages.length) return;
+
+    setForm((prev) => ({
+      ...prev,
+      operatingInfo: { ...prev.operatingInfo, languages: filtered },
+    }));
+  }, [form.businessInfo.country]);
 
   const isFormComplete = useMemo(
     () => stepCompleted.every(Boolean),
@@ -612,7 +627,7 @@ export function SupplierApplicationForm() {
           <FieldLabel required>Country</FieldLabel>
           <Select
             value={form.businessInfo.country}
-            onValueChange={(value) => updateForm("businessInfo", "country", value)}
+            onValueChange={handleCountryChange}
           >
             <SelectTrigger className="h-12 w-full rounded-[1.4rem] border border-slate-300 bg-white text-slate-900 shadow-sm">
               <SelectValue placeholder="Select country" />
@@ -734,11 +749,16 @@ export function SupplierApplicationForm() {
 
       <MultiSelect
         label="Languages Offered"
-        options={LANGUAGE_OPTIONS}
+        options={languageOptions}
         selected={form.operatingInfo.languages}
         onChange={(value) => updateForm("operatingInfo", "languages", value)}
         required
       />
+      <p className="-mt-3 text-xs text-slate-500">
+        {form.businessInfo.country
+          ? "English and French are always available, plus local languages for your country."
+          : "Select your business country (step 1) to see local language options. English and French are always available."}
+      </p>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
