@@ -173,15 +173,21 @@ function SupplierSignInPage() {
   const [statusError, setStatusError] = useState("");
   const signInToastShownRef = useRef(false);
 
-  function showSupplierSignInSuccessToast(snapshot) {
+  function showSupplierSignInToast(snapshot) {
     if (signInToastShownRef.current) return;
 
     const toastContent = resolveSupplierSignInToast(snapshot, user);
     if (!toastContent) return;
 
-    toast.success(t(toastContent.key, toastContent.defaultMessage), {
-      id: "supplier-signin-success",
-    });
+    const message = t(toastContent.key, toastContent.defaultMessage);
+    const options = { id: "supplier-signin-toast" };
+
+    if (toastContent.variant === "info") {
+      toast.info(message, options);
+    } else {
+      toast.success(message, options);
+    }
+
     signInToastShownRef.current = true;
   }
 
@@ -192,7 +198,7 @@ function SupplierSignInPage() {
       setStatusError("");
       fetchSupplierAccessSnapshot()
         .then((snapshot) => {
-          showSupplierSignInSuccessToast(snapshot);
+          showSupplierSignInToast(snapshot);
 
           if (snapshot.statusError) {
             const message =

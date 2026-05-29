@@ -207,6 +207,12 @@ const resources = {
           "Signed in successfully. Set up your payout method to access the dashboard.",
         successAwaitingActivation:
           "Signed in successfully. Your payout is saved — your dashboard unlocks after admin activation.",
+        infoSetupPayout:
+          "Add your payout method to access the supplier dashboard. Dashboard access is enabled after admin approval.",
+        infoAwaitingActivation:
+          "Your payout method is saved. Your supplier dashboard will be available after admin approval.",
+        infoPendingApproval:
+          "Your application is under review. Your supplier dashboard will be available after admin approval.",
         successPortalReady:
           "Signed in successfully. Opening your supplier dashboard...",
         openingDashboard: "Opening your supplier dashboard...",

@@ -290,7 +290,7 @@ export async function redirectToSupplierPortalLogin() {
 
 /**
  * Context-aware sign-in toast for supplier portal (avoids generic "apply" for active suppliers).
- * @returns {{ key: string, defaultMessage: string } | null}
+ * @returns {{ key: string, defaultMessage: string, variant: "success" | "info" } | null}
  */
 export function resolveSupplierSignInToast(snapshot, user) {
   if (!snapshot || snapshot.statusError) return null;
@@ -302,6 +302,7 @@ export function resolveSupplierSignInToast(snapshot, user) {
     return {
       key: "supplierAuth.successPortalReady",
       defaultMessage: "Signed in successfully. Opening your supplier dashboard...",
+      variant: "success",
     };
   }
 
@@ -310,28 +311,41 @@ export function resolveSupplierSignInToast(snapshot, user) {
       key: "supplierAuth.successApplyRequired",
       defaultMessage:
         "Signed in successfully. Apply to become a supplier to access the dashboard.",
+      variant: "success",
     };
   }
 
-  if (requiresPayoutSetup(reviewStatus) && !hasPayout) {
+  if (!hasPayout) {
     return {
-      key: "supplierAuth.successSetupPayout",
+      key: "supplierAuth.infoSetupPayout",
       defaultMessage:
-        "Signed in successfully. Set up your payout method to access the dashboard.",
+        "Add your payout method to access the supplier dashboard. Dashboard access is enabled after admin approval.",
+      variant: "info",
     };
   }
 
-  if (isSupplierApproved(reviewStatus) && hasPayout) {
+  if (!isSupplierActive(reviewStatus)) {
+    if (isSupplierApproved(reviewStatus)) {
+      return {
+        key: "supplierAuth.infoAwaitingActivation",
+        defaultMessage:
+          "Your payout method is saved. Your supplier dashboard will be available after admin approval.",
+        variant: "info",
+      };
+    }
+
     return {
-      key: "supplierAuth.successAwaitingActivation",
+      key: "supplierAuth.infoPendingApproval",
       defaultMessage:
-        "Signed in successfully. Your payout is saved — your dashboard unlocks after admin activation.",
+        "Your application is under review. Your supplier dashboard will be available after admin approval.",
+      variant: "info",
     };
   }
 
   return {
     key: "supplierAuth.successSignedIn",
     defaultMessage: "Signed in successfully.",
+    variant: "success",
   };
 }
 
