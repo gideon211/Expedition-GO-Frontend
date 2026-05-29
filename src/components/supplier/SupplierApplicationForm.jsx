@@ -25,7 +25,6 @@ import {
   Phone,
   MapPin,
   Link as LinkIcon,
-  Calendar,
   ShieldCheck,
   BadgeCheck,
   Upload,
@@ -33,6 +32,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -860,15 +860,13 @@ export function SupplierApplicationForm() {
 
         <div>
           <FieldLabel required>Date of Birth</FieldLabel>
-          <div className="flex items-center rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 shadow-sm focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10">
-            <Calendar className="size-4 text-slate-400" />
-            <Input
-              className="border-0 bg-transparent shadow-none focus:ring-0"
-              type="date"
-              value={form.representativeInfo.dateOfBirth}
-              onChange={(e) => updateForm("representativeInfo", "dateOfBirth", e.target.value)}
-            />
-          </div>
+          <DatePicker
+            value={form.representativeInfo.dateOfBirth}
+            onChange={(value) => updateForm("representativeInfo", "dateOfBirth", value)}
+            placeholder="dd-mm-yyyy"
+            maxDate={new Date()}
+            minDate={new Date(1920, 0, 1)}
+          />
         </div>
 
         <div>
