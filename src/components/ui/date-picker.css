@@ -1,4 +1,9 @@
 /* Brand styling for react-day-picker (DatePicker) */
+/* body uses color: #fff globally — day buttons must set text color explicitly */
+.brand-day-picker {
+  color: #0f172a;
+}
+
 .brand-day-picker .rdp-root {
   --rdp-accent-color: var(--brand-green, #01311a);
   --rdp-accent-background-color: color-mix(in srgb, var(--brand-green, #01311a) 12%, white);
@@ -19,24 +24,50 @@
   border-radius: 0.65rem;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
+  color: #0f172a;
+}
+
+.brand-day-picker .rdp-day_button {
+  color: #0f172a;
+}
+
+.brand-day-picker .rdp-outside .rdp-day_button {
+  color: #94a3b8;
+}
+
+.brand-day-picker .rdp-today:not(.rdp-outside) .rdp-day_button {
+  color: var(--brand-green, #01311a);
+  font-weight: 700;
 }
 
 .brand-day-picker .rdp-day_button:hover:not(:disabled) {
   background: color-mix(in srgb, var(--brand-green, #01311a) 10%, white);
+  color: #0f172a;
 }
 
 .brand-day-picker .rdp-selected .rdp-day_button {
   background: var(--brand-green, #01311a);
-  color: white;
+  color: #ffffff;
   font-weight: 600;
 }
 
 .brand-day-picker .rdp-disabled .rdp-day_button {
-  opacity: 0.35;
+  color: #94a3b8;
+  opacity: 0.45;
 }
 
 .brand-day-picker .rdp-weekday {
   color: #64748b;
+  opacity: 1;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.brand-day-picker .rdp-button_next,
+.brand-day-picker .rdp-button_previous {
+  color: #0f172a;
+}
+
+.brand-day-picker .rdp-chevron {
+  fill: var(--brand-green, #01311a);
 }
