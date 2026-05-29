@@ -3,7 +3,7 @@
  * @description Polished single-date picker (react-day-picker) with dd-MM-yyyy display.
  */
 import { useMemo, useState } from "react";
-import { format, isValid, parse } from "date-fns";
+import { format, isAfter, isBefore, isValid, parse, startOfDay } from "date-fns";
 import { CalendarDays, ChevronDown } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
@@ -103,9 +103,18 @@ export function DatePicker({
 }) {
   const [open, setOpen] = useState(false);
   const selected = useMemo(() => parseStoredDate(value), [value]);
+  const todayStart = useMemo(() => startOfDay(new Date()), []);
 
   const fromYear = minDate.getFullYear();
   const toYear = maxDate.getFullYear();
+
+  const dayModifiers = useMemo(
+    () => ({
+      passed: (date) => isBefore(startOfDay(date), todayStart),
+      upcoming: (date) => isAfter(startOfDay(date), todayStart),
+    }),
+    [todayStart]
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -147,6 +156,11 @@ export function DatePicker({
               if (date) setOpen(false);
             }}
             disabled={{ after: maxDate, before: minDate }}
+            modifiers={dayModifiers}
+            modifiersClassNames={{
+              passed: "rdp-passed",
+              upcoming: "rdp-upcoming",
+            }}
             captionLayout="dropdown"
             fromYear={fromYear}
             toYear={toYear}

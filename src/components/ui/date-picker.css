@@ -12,6 +12,8 @@
   --rdp-day_button-border-radius: 0.65rem;
   --rdp-selected-border: none;
   --rdp-today-color: var(--brand-green, #01311a);
+  --rdp-disabled-opacity: 0.4;
+  --rdp-outside-opacity: 0.55;
   padding: 0.75rem;
 }
 
@@ -44,33 +46,54 @@
   display: none;
 }
 
-.brand-day-picker .rdp-day_button {
+/* Default selectable day in month */
+.brand-day-picker .rdp-day:not(.rdp-disabled):not(.rdp-outside) .rdp-day_button {
   color: #0f172a;
 }
 
-.brand-day-picker .rdp-outside .rdp-day_button {
+/* Days that have already passed — greyed out */
+.brand-day-picker .rdp-passed:not(.rdp-outside) .rdp-day_button {
   color: #94a3b8;
+  opacity: 0.9;
 }
 
-.brand-day-picker .rdp-today:not(.rdp-outside) .rdp-day_button {
+/* Days yet to come — black (disabled for date of birth) */
+.brand-day-picker .rdp-upcoming:not(.rdp-outside) .rdp-day_button {
+  color: #0f172a;
+  opacity: 0.4;
+}
+
+.brand-day-picker .rdp-outside .rdp-day_button {
+  color: #cbd5e1;
+  opacity: 0.55;
+}
+
+/* Today — accent when still selectable */
+.brand-day-picker .rdp-today:not(.rdp-outside):not(.rdp-upcoming) .rdp-day_button {
   color: var(--brand-green, #01311a);
   font-weight: 700;
+  opacity: 1;
 }
 
 .brand-day-picker .rdp-day_button:hover:not(:disabled) {
   background: color-mix(in srgb, var(--brand-green, #01311a) 10%, white);
-  color: #0f172a;
+}
+
+.brand-day-picker .rdp-passed:not(.rdp-disabled) .rdp-day_button:hover:not(:disabled) {
+  color: #64748b;
 }
 
 .brand-day-picker .rdp-selected .rdp-day_button {
   background: var(--brand-green, #01311a);
-  color: #ffffff;
+  color: #ffffff !important;
   font-weight: 600;
+  opacity: 1 !important;
 }
 
-.brand-day-picker .rdp-disabled .rdp-day_button {
-  color: #94a3b8;
-  opacity: 0.45;
+/* Too old / out of range */
+.brand-day-picker .rdp-disabled:not(.rdp-upcoming) .rdp-day_button {
+  color: #cbd5e1;
+  opacity: 0.35;
 }
 
 .brand-day-picker .rdp-weekday {
