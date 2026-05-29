@@ -6,7 +6,7 @@
  * @see api/supplier.js
  * @see pages/SupplierRegisterPage.jsx
  */
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -45,6 +45,16 @@ import { applyAsSupplier } from "@/api/supplier";
 import { invalidateSupplierAccess } from "@/api/supplierAccessQuery";
 import { useAuth } from "@/components/auth/AuthProvider";
 import GhanaDestinationSelect from "@/components/supplier/GhanaDestinationSelect";
+import {
+  clearSupplierApplicationDraft,
+  createEmptySupplierApplicationForm,
+  loadSupplierApplicationDraft,
+  mergeSupplierApplicationDraft,
+  migrateAnonymousDraftToUser,
+  rememberDraftUserId,
+  resolveDraftUserId,
+  saveSupplierApplicationDraft,
+} from "@/lib/supplierApplicationDraft";
 
 const STEPS = [
   { key: "business", label: "Business Info", icon: Building2 },
@@ -341,60 +351,45 @@ export function SupplierApplicationForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const draftUserId = resolveDraftUserId(user);
+  const restoredForIdRef = useRef(null);
+
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState({
-    businessInfo: {
-      legalBusinessName: "",
-      displayName: "",
-      businessType: "",
-      country: "",
-      address: {
-        line1: "",
-        line2: "",
-        city: "",
-        state: "",
-        postalCode: "",
-      },
-      website: "",
-      phoneNumber: "",
-    },
-    operatingInfo: {
-      tourCategories: [],
-      destinations: [],
-      languages: [],
-      yearsInBusiness: "",
-      cancellationPolicy: "",
-      meetingStyle: "",
-    },
-    representativeInfo: {
-      fullName: "",
-      email: "",
-      dateOfBirth: "",
-      address: {
-        line1: "",
-        line2: "",
-        city: "",
-        state: "",
-        postalCode: "",
-      },
-      idType: "",
-      idDocument: null,
-    },
-    businessDocuments: {
-      registrationDocument: null,
-      taxDocument: null,
-      proofOfAddress: null,
-      licenses: [],
-    },
-    compliance: {
-      acceptedTerms: false,
-      agreedToPayoutTerms: false,
-    },
-  });
+  const [form, setForm] = useState(createEmptySupplierApplicationForm);
+
+  useEffect(() => {
+    if (user?.uid || user?.email) {
+      const signedInId = user.uid ?? user.email;
+      rememberDraftUserId(signedInId);
+      migrateAnonymousDraftToUser(signedInId);
+    }
+  }, [user?.uid, user?.email]);
+
+  useEffect(() => {
+    const id = draftUserId || "anonymous";
+    if (restoredForIdRef.current === id) return;
+    restoredForIdRef.current = id;
+
+    const draft = loadSupplierApplicationDraft(draftUserId);
+    if (!draft) return;
+
+    setStep(draft.step);
+    setForm(mergeSupplierApplicationDraft(draft.form));
+  }, [draftUserId]);
+
+  useEffect(() => {
+    if (success) return;
+
+    const timeoutId = window.setTimeout(() => {
+      saveSupplierApplicationDraft(draftUserId, { step, form });
+    }, 350);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [step, form, draftUserId, success]);
 
   const updateForm = useCallback((section, key, value) => {
     setForm((prev) => {
@@ -554,6 +549,7 @@ export function SupplierApplicationForm() {
 
         await applyAsSupplier(payload);
         await invalidateSupplierAccess(queryClient, user);
+        clearSupplierApplicationDraft(draftUserId);
         setSuccess("Your supplier application has been submitted successfully! Our team will review it and get back to you within 3-5 business days.");
       } catch (err) {
         setError(err?.message || "Failed to submit application. Please try again.");
