@@ -4,18 +4,13 @@
  *
  * @see lib/tawk.js
  */
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
-import { hideTawkWidget, loadTawkScript, openTawkChat } from "@/lib/tawk";
+import { openTawkChat } from "@/lib/tawk";
 
 export default function SupportPage() {
   const { t } = useTranslation();
-  useEffect(() => {
-    loadTawkScript();
-    return () => hideTawkWidget();
-  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -15,8 +15,8 @@ function bindDefaultHooks() {
   if (titleEl) {
     new MutationObserver(() => {
       const current = document.title;
-      /* Tawk.to injects patterns like "(1) Page Title" or "1 Message - Page Title" */
-      const isTawkSpam = /^\(\d+\)\s+|\d+\s*Message/i.test(current);
+      /* Tawk.to injects patterns like "(1) Page Title", "[1] Page", "1 New Message - Page Title" */
+      const isTawkSpam = /^[(\[\d\s]+\d+[\s)\]]|Message/i.test(current);
       if (isTawkSpam) {
         document.title = lastRealTitle;
       } else {

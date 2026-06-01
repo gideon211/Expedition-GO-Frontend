@@ -1,12 +1,7 @@
 /**
  * @file AllToursPage.jsx
- * @description Tour catalog with filters (/tours). Lists all static tours from data.js
+ * @description Tour catalog with filters (/tours). Lists tours from backend API
  *   with desktop filter panel and mobile swipe-card UX.
- *
- * Features: TourFiltersPanel, destination grid, date picker, wishlist, reviews carousel
- * Local provider: AuthModalProvider (login prompt for wishlist actions)
- *
- * @see components/homepage/tourFiltersData.js — filter matching logic
  */
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -17,15 +12,6 @@ import { Footer } from "@/components/homepage/Footer";
 import { TourCard } from "@/components/homepage/TourCard";
 import { DestinationCard } from "@/components/homepage/DestinationCard";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  pickupTours,
-  recommendedTours,
-  topRatedTours,
-  leisureTours,
-  destinations,
-  lastMinuteDeals,
-  sidebarTopRated,
-} from "@/components/homepage/data";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { AuthModal } from "@/components/ui/auth-modal";
 import { useAuthModal } from "@/contexts/AuthModalContext";
@@ -33,7 +19,8 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { ReviewsCarousel } from "@/components/homepage/ReviewsCarousel";
 import { TourFiltersPanel } from "@/components/homepage/TourFiltersPanel";
-import { matchesTourFilters } from "@/components/homepage/tourFiltersData";
+import { useAllTours } from "@/hooks/useAllTours";
+import { useFilterOptions } from "@/hooks/useFilterOptions";
 
 function MobileAllToursCard({ item, badge = "duration" }) {
   const navigate = useNavigate();
@@ -45,7 +32,7 @@ function MobileAllToursCard({ item, badge = "duration" }) {
   /** After a horizontal swipe (show/hide description), block the synthetic click so the tour link does not fire. */
   const blockNextLinkClickRef = useRef(false);
   const isFavorited = isInWishlist(item.title);
-  const detailTo = `/tour/${encodeURIComponent(item.title)}`;
+  const detailTo = item.slug ? `/tour/${item.slug}` : `/tour/${encodeURIComponent(item.title)}`;
   const convertedPrice = convertPrice(item.price);
 
   const descriptionText = `Visit the castles of cape coast and explore the adventures of Kakum National Park with this guided tour from Accra. You'll learn and discover the history of Cape Coast Castle and Elmina Castle and also undertake the canopy walkway experience at Kakum National Park.`;
@@ -107,17 +94,19 @@ function MobileAllToursCard({ item, badge = "duration" }) {
               </span>
               <button
                 type="button"
-                onClick={() =>
+                onClick={(e) => {
+                  e.preventDefault();
                   toggleWishlist({
                     title: item.title,
+                    slug: item.slug,
                     duration: item.duration,
                     price: item.price,
                     rating: item.rating,
                     reviews: item.reviews,
                     image: item.image,
                     discount: item.discount,
-                  })
-                }
+                  });
+                }}
                 className="absolute right-2 top-2 z-10 grid size-7 place-items-center rounded-full bg-white/92 text-slate-700 shadow"
               >
                 <Heart className={`size-4 ${isFavorited ? "fill-[color:var(--brand-green)] text-[color:var(--brand-green)]" : ""}`} />
@@ -169,7 +158,7 @@ function MobileAllToursCard({ item, badge = "duration" }) {
           {showReadMore && (
             <button
               type="button"
-              onClick={() => navigate(`/tour/${encodeURIComponent(item.title)}`)}
+              onClick={() => navigate(item.slug ? `/tour/${item.slug}` : `/tour/${encodeURIComponent(item.title)}`)}
               className="mt-2 text-[11px] font-semibold text-slate-800 underline"
             >
               Read more
@@ -253,81 +242,45 @@ function AllToursPageContent() {
   const filtersMenuRef = useRef(null);
   const [filtersMenuPosition, setFiltersMenuPosition] = useState({ top: 0, left: 0 });
 
-  const sidebarNewExperiences = [...sidebarTopRated, ...sidebarTopRated.slice(0, 2)];
-
-  const categoryMap = {
-    tours: { title: t("sections.featuredTitle"), items: pickupTours, type: "tours" },
-    recommended: { title: t("sections.recommendedTitle"), items: recommendedTours, type: "tours" },
-    deals: { title: t("sections.topRatedTitle"), items: topRatedTours, type: "tours" },
-    leisure: { title: t("sections.likelyToSellOut"), items: leisureTours, type: "tours" },
-    "last-minute-deals": { title: t("sections.lastMinuteDeals"), items: lastMinuteDeals, type: "tours" },
-    "new-experiences": { title: t("sections.newExperiences"), items: sidebarNewExperiences, type: "tours" },
-    destinations: { title: t("sections.destinations"), items: destinations, type: "destinations" },
-    all: { title: t("sections.allToursTitle", { defaultValue: "All Tours" }), items: [...pickupTours, ...recommendedTours, ...topRatedTours, ...leisureTours], type: "tours" },
+  const sortMapping = {
+    featured: { sortBy: "popularity", sortOrder: "desc" },
+    "price-low": { sortBy: "price", sortOrder: "asc" },
+    "price-high": { sortBy: "price", sortOrder: "desc" },
+    rating: { sortBy: "rating", sortOrder: "desc" },
   };
-  const experienceFilters = [
-    "All",
-    "Multi-day",
-    "Day trips",
-    "Plantations & farms",
-    "Quads & ATVs",
-    "Monkeys",
-    "Cooking classes",
-    "African-American heritage",
-    "Wellness & spas",
-    "Safaris & wildlife",
-    "Jungle",
-    "Canopy walks",
-    "Boat cruises",
-    "Waterfalls",
-    "Prohibition",
-    "Bus tours",
-  ];
+  const { sortBy: apiSortBy, sortOrder: apiSortOrder } = sortMapping[sortBy] || sortMapping.featured;
 
-  const { title, items, type } = categoryMap[category] || categoryMap.all;
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-  const getExperienceKeywords = (filterLabel) => {
-    const map = {
-      "multi-day": ["expedition", "safari", "adventure", "heritage"],
-      "day trips": ["city", "tour", "castle", "coast", "waterfall", "park"],
-      "plantations & farms": ["farm", "cocoa", "plantation"],
-      "quads & atvs": ["atv", "quad"],
-      monkeys: ["monkey", "forest", "wildlife"],
-      "cooking classes": ["cooking", "food", "culinary"],
-      "african-american heritage": ["heritage", "history", "castle", "museum"],
-    };
-
-    return map[filterLabel.toLowerCase()] || [];
+  const tourParams = {
+    page: currentPage,
+    limit: CARDS_PER_PAGE,
+    category: category !== "all" && category !== "destinations" && category !== "last-minute-deals" && category !== "new-experiences" ? category : undefined,
+    minRating: selectedRating || undefined,
+    minPrice: priceMin > 0 ? priceMin : undefined,
+    maxPrice: priceMax < 500 ? priceMax : undefined,
+    search: searchQuery || undefined,
+    sortBy: apiSortBy,
+    sortOrder: apiSortOrder,
   };
 
-  const matchesExperienceFilter = (item) => {
-    if (selectedExperienceFilter === "All") return true;
-    const keywords = getExperienceKeywords(selectedExperienceFilter);
-    if (!keywords.length) return true;
-    const haystack = Object.values(item)
-      .filter((value) => typeof value === "string")
-      .join(" ")
-      .toLowerCase();
-    return keywords.some((keyword) => haystack.includes(keyword));
-  };
+  const { data: tourData, isLoading } = useAllTours(tourParams);
+  const { data: filterOptions } = useFilterOptions();
 
-  const filteredItems = items.filter((item) => {
-    const matchesSearch =
-      !normalizedQuery ||
-      Object.values(item).some((value) =>
-        typeof value === "string" ? value.toLowerCase().includes(normalizedQuery) : false
-      );
-    return (
-      matchesSearch &&
-      matchesExperienceFilter(item) &&
-      matchesTourFilters(item, selectedSpecials, selectedSubcategories)
-    );
-  });
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / CARDS_PER_PAGE));
-  const paginatedItems = filteredItems.slice(
-    (currentPage - 1) * CARDS_PER_PAGE,
-    currentPage * CARDS_PER_PAGE
-  );
+  const tours = tourData?.tours || [];
+  const pagination = tourData?.pagination || { currentPage: 1, totalPages: 1, totalCount: 0, hasNextPage: false, hasPrevPage: false, limit: CARDS_PER_PAGE };
+  const totalPages = pagination.totalPages || 1;
+  const totalCount = pagination.totalCount || 0;
+
+  const categoryLabels = {
+    tours: t("sections.featuredTitle"),
+    recommended: t("sections.recommendedTitle"),
+    deals: t("sections.topRatedTitle"),
+    leisure: t("sections.likelyToSellOut"),
+    "last-minute-deals": t("sections.lastMinuteDeals"),
+    "new-experiences": t("sections.newExperiences"),
+    destinations: t("sections.destinations"),
+  };
+  const title = categoryLabels[category] || t("sections.allToursTitle", { defaultValue: "All Tours" });
+  const type = category === "destinations" ? "destinations" : "tours";
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -550,7 +503,7 @@ function AllToursPageContent() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [category, searchQuery, selectedExperienceFilter, selectedSpecials, selectedSubcategories]);
+  }, [category, searchQuery, selectedRating, priceMin, priceMax, sortBy]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -705,7 +658,7 @@ function AllToursPageContent() {
 
             <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
               <p className="text-sm font-medium text-slate-600">
-                {filteredItems.length} {type === "destinations" ? t("common.destinations") : t("common.tours")} available
+                {isLoading ? "..." : totalCount} {type === "destinations" ? t("common.destinations") : t("common.tours")} available
               </p>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-slate-600">Sort by:</span>
@@ -723,13 +676,13 @@ function AllToursPageContent() {
             </div>
 
             <div className="grid grid-cols-1 gap-3 pb-2 sm:pb-0 sm:gap-x-1.5 sm:gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {paginatedItems.map((item, index) =>
-                type === "destinations" ? (
-                  <div key={`${item.title}-${index}`} className="w-full">
-                    <DestinationCard {...item} variant="allTours" />
-                  </div>
-                ) : (
-                  <div key={`${item.title}-${index}`} className="w-full">
+              {isLoading ? (
+                <div className="col-span-full py-20 text-center text-sm text-slate-500">Loading tours...</div>
+              ) : tours.length === 0 ? (
+                <div className="col-span-full py-20 text-center text-sm text-slate-500">No tours found matching your criteria.</div>
+              ) : (
+                tours.map((item, index) => (
+                  <div key={`${item.slug || item.title}-${index}`} className="w-full">
                     <div className="sm:hidden">
                       <MobileAllToursCard item={item} badge={tourListBadge} />
                     </div>
@@ -737,7 +690,7 @@ function AllToursPageContent() {
                       <TourCard {...item} variant="allTours" badge={tourListBadge} />
                     </div>
                   </div>
-                )
+                ))
               )}
             </div>
             {totalPages > 1 && (
@@ -745,7 +698,7 @@ function AllToursPageContent() {
                 <button
                   type="button"
                   onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
-                  disabled={currentPage === 1}
+                  disabled={!pagination.hasPrevPage}
                   className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Prev
@@ -756,7 +709,7 @@ function AllToursPageContent() {
                 <button
                   type="button"
                   onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
-                  disabled={currentPage === totalPages}
+                  disabled={!pagination.hasNextPage}
                   className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next
@@ -797,6 +750,7 @@ function AllToursPageContent() {
             onSelectedSpecialsChange={setSelectedSpecials}
             selectedSubcategories={selectedSubcategories}
             onSelectedSubcategoriesChange={setSelectedSubcategories}
+            filterOptions={filterOptions}
           />
         </div>
       )}

@@ -34,7 +34,9 @@ export function RecentlyViewedProvider({ children }) {
     const stored = localStorage.getItem(storageKey);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // Migration: discard old entries without a slug so carousel links are valid
+        return Array.isArray(parsed) ? parsed.filter((item) => item.slug) : [];
       } catch (error) {
         devWarn("[recentlyViewed] Failed to parse localStorage", error);
         return [];

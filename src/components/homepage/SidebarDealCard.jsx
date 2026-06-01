@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
-export function SidebarDealCard({ title, oldPrice, price, discount, countdown, image }) {
+export function SidebarDealCard({ title, slug, oldPrice, price, discount, countdown, image }) {
   const { t } = useTranslation();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
@@ -90,7 +90,7 @@ export function SidebarDealCard({ title, oldPrice, price, discount, countdown, i
     }
   };
 
-  const detailTo = `/tour/${encodeURIComponent(title)}`;
+  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
 
   return (
     <Card 

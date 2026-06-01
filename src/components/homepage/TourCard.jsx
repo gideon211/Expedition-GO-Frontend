@@ -14,6 +14,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 
 export function TourCard({
   title,
+  slug,
   duration,
   price,
   rating,
@@ -97,7 +98,7 @@ export function TourCard({
     }
   };
 
-  const detailTo = `/tour/${encodeURIComponent(title)}`;
+  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
   
   const imageHeightClass =
     variant === "allTours" ? "h-[10.25rem] xl:h-[11.1rem]" : "h-40 xl:h-44";

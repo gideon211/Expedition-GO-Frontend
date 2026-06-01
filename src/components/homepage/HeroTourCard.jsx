@@ -10,7 +10,7 @@ import { useRef } from "react";
 
 import { useCurrency } from "@/contexts/CurrencyContext";
 
-export function HeroTourCard({ title, duration, price, rating, reviews, image, _disableTracking = false }) {
+export function HeroTourCard({ title, slug, duration, price, rating, reviews, image, _disableTracking = false }) {
   const { t } = useTranslation();
   const { convertPrice } = useCurrency();
 
@@ -72,7 +72,7 @@ export function HeroTourCard({ title, duration, price, rating, reviews, image, _
     }
   };
 
-  const detailTo = `/tour/${encodeURIComponent(title)}`;
+  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
 
   return (
     <div

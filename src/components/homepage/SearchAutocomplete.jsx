@@ -17,7 +17,8 @@ export function SearchAutocomplete({ results, onSelect, isVisible, searchQuery }
   }
 
   const handleTourClick = (tour) => {
-    navigate(`/tour/${encodeURIComponent(tour.title)}`);
+    const path = tour.slug ? `/tour/${tour.slug}` : `/tour/${encodeURIComponent(tour.title)}`;
+    navigate(path);
     onSelect();
   };
 

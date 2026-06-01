@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { CompactTourCard } from "./CompactTourCard";
 import { SidebarDealCard } from "./SidebarDealCard";
-import { lastMinuteDeals, sidebarTopRated } from "./data";
+import { lastMinuteDeals as staticDeals, sidebarTopRated as staticTopRated } from "./data";
 
 const _icons = [BadgeCheck, CircleDollarSign, ShieldCheck, Handshake, WalletCards, Star];
 
@@ -71,9 +71,11 @@ function SwipeableSection({ children, _itemCount, originalChildren, className, s
   );
 }
 
-export function SidebarPanel() {
+export function SidebarPanel({ topRatedTours = [], allTours = [] }) {
   const { t } = useTranslation();
-  const sidebarNewExperiences = [...sidebarTopRated, ...sidebarTopRated.slice(0, 2)];
+  const deals = staticDeals;
+  const topRated = topRatedTours.length > 0 ? topRatedTours : staticTopRated;
+  const sidebarNewExperiences = [...topRated, ...topRated.slice(0, 2)];
   
   return (
     <aside className="space-y-[1.7rem] overflow-hidden md:space-y-6 xl:mt-13 xl:space-y-5">
@@ -81,14 +83,14 @@ export function SidebarPanel() {
         <CardContent className="p-4 overflow-hidden">
           <PanelHeading title={t('sections.lastMinuteDeals')} linkTo="/tours?category=last-minute-deals" />
           <SwipeableSection 
-            itemCount={lastMinuteDeals.length}
-            originalChildren={lastMinuteDeals.map((deal) => (
+            itemCount={deals.length}
+            originalChildren={deals.map((deal) => (
               <div key={deal.title} className="xl:w-auto">
                 <SidebarDealCard {...deal} />
               </div>
             ))}
           >
-            {lastMinuteDeals.map((deal, index) => (
+            {deals.map((deal, index) => (
               <div key={`${deal.title}-${index}`} className="w-[280px] flex-shrink-0 snap-start">
                 <div className="pointer-events-auto">
                   <SidebarDealCard {...deal} />

@@ -17,6 +17,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
  */
 export function CompactTourCard({
   title,
+  slug,
   duration,
   price,
   rating,
@@ -95,7 +96,7 @@ export function CompactTourCard({
     }
   };
 
-  const detailTo = `/tour/${encodeURIComponent(title)}`;
+  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
 
   return (
     <div 

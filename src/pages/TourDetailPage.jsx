@@ -51,8 +51,9 @@ import { RecentlyViewedProvider, useRecentlyViewed } from "@/contexts/RecentlyVi
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useCart } from "@/contexts/CartContext";
-import { getTourByTitle } from "@/lib/tourData";
-import { loadTawkScript, openTawkChat } from "@/lib/tawk";
+import { useTourById } from "@/hooks/useTourById";
+import { adaptTourDetail, buildOverviewHighlights, buildDescriptionSteps, extractAgePrices, parseItineraryStops } from "@/lib/tourDetailAdapter";
+import { openTawkChat } from "@/lib/tawk";
 import fallbackTourImage from "@/assets/images/hero_pic.jpg";
 
 const EXTERNAL_FALLBACK_IMAGES = [
@@ -401,148 +402,7 @@ function BookingCalendarPopover({
   );
 }
 
-// Mock data - In production, this would come from an API
-const tourData = {
-  name: "7D6N Private Tours - United Kingdom + London + Oxford + Cambridge + Windsor",
-  price: 120,
-  duration: "7 days / 6 nights",
-  groupType: "Private tour",
-  location: "London",
-  language: "Mandarin and English",
-  transferInfo: "Airport/station pick-up and drop-off included",
-  summaryTags: ["Departure guaranteed", "Car-type options available", "Self-selected hotels"],
-  imageCover: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1800&q=80",
-  images: [
-    "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=80",
-    "https://images.unsplash.com/photo-1505765050516-f72dcac9c60f?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1512706604291-210a56c3b6e9?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1543791184-6f160248f1f2?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=80",
-  ],
-  ratingsAverage: 4.8,
-  ratingsQuantity: 685,
-  highlight:
-    "Enjoy exclusive 4-diamond hotel accommodations throughout your journey, dedicated car service, and concierge one-on-one service.",
-  itinerary: [
-    "Arrive in London - 24-hour pick-up service at the airport/station",
-    "Hotel pick-up - Discover Windsor Castle (admission included) - Prestigious Oxford University - Return to hotel",
-    "Pick-up from hotel - Explore historic Cambridge University - See the iconic Tower Bridge - Return to hotel",
-    "London - Free day (Westminster area & The British Museum)",
-    "London - Free day (Hyde Park, Natural History Museum & Notting Hill)",
-    "London - Free day (National Gallery, London Eye & Thames cruise)",
-    "Enjoy 24-hour dedicated car service for airport/train station transfer - End of the trip",
-  ],
-  includesByTraveler: {
-    adults: {
-      notice: "The following instructions only apply to adults (12 years or over).",
-      included: [
-        {
-          title: "Accommodation",
-          description:
-            "Accommodation at your self-selected hotels. The number of guests allowed depends on room type and hotel policy.",
-        },
-        {
-          title: "Meals",
-          description:
-            "Breakfast details are based on your selected hotel room. Adults are responsible for their own meals during free time.",
-        },
-        {
-          title: "Tour staff",
-          description:
-            "Local Mandarin and English-speaking driver transportation is included throughout the itinerary.",
-        },
-        {
-          title: "Tickets and activities",
-          description:
-            "Admission ticket to the main entrance of the attractions listed in the itinerary, including Windsor Castle.",
-        },
-        {
-          title: "Pick-up and drop-off",
-          description:
-            "Private vehicle pick-up and drop-off service on the first and last day of your itinerary.",
-        },
-      ],
-      excluded: [
-        {
-          title: "Transportation",
-          description:
-            "Round-trip transportation from your departure city to London is not included.",
-        },
-        {
-          title: "Additional fees",
-          description:
-            "Personal expenses such as laundry, excess baggage charges, phone calls, and optional activities are excluded.",
-        },
-      ],
-    },
-    children: {
-      notice: "Child pricing and inclusions apply to travelers aged 2-11 years.",
-      included: [
-        {
-          title: "Accommodation",
-          description:
-            "Children can stay in selected room types according to each hotel's family occupancy policy.",
-        },
-        {
-          title: "Tour staff",
-          description:
-            "Driver-assisted transfers and itinerary transport are included for children.",
-        },
-        {
-          title: "Tickets and activities",
-          description:
-            "Included attractions follow package policy. Some attractions may require age-based upgrades at check-in.",
-        },
-      ],
-      excluded: [
-        {
-          title: "Meals",
-          description:
-            "Children's meal inclusions vary by hotel and venue; extra meals are paid separately.",
-        },
-        {
-          title: "Additional fees",
-          description:
-            "Optional experiences, personal purchases, and insurance are not included.",
-        },
-      ],
-    },
-  },
-  startDates: [
-    "2026-05-09T00:00:00.000Z",
-    "2026-05-10T00:00:00.000Z",
-    "2026-05-11T00:00:00.000Z",
-    "2026-05-12T00:00:00.000Z",
-    "2026-05-13T00:00:00.000Z",
-    "2026-05-14T00:00:00.000Z",
-    "2026-05-15T00:00:00.000Z",
-    "2026-05-16T00:00:00.000Z",
-    "2026-05-17T00:00:00.000Z",
-    "2026-05-18T00:00:00.000Z",
-    "2026-05-19T00:00:00.000Z",
-    "2026-05-20T00:00:00.000Z",
-    "2026-05-21T00:00:00.000Z",
-    "2026-05-22T00:00:00.000Z",
-    "2026-05-23T00:00:00.000Z",
-    "2026-05-24T00:00:00.000Z",
-    "2026-05-25T00:00:00.000Z",
-    "2026-05-26T00:00:00.000Z",
-    "2026-05-27T00:00:00.000Z",
-    "2026-05-28T00:00:00.000Z",
-    "2026-05-29T00:00:00.000Z",
-    "2026-05-30T00:00:00.000Z",
-    "2026-05-31T00:00:00.000Z",
-  ],
-};
 
-/** Overview tab: Highlights + Full description (accordion bodies). */
-const OVERVIEW_HIGHLIGHTS_DEFAULT = [
-  "Explore Kakum National Park",
-  "Discover Elmina Castle",
-  "Explore Cape Coast Castle",
-  "Walk on the Kakum Canopy Walkway Experience",
-  "Experience the Culture and History of Cape Coast",
-];
 
 const OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT = [
   {
@@ -575,16 +435,15 @@ function TourDetailContent() {
   const { convertPrice } = useCurrency();
   const { addToCart } = useCart();
   const { addToRecentlyViewed } = useRecentlyViewed();
-  const fallbackImagePool = useMemo(
-    () => dedupeImages([...tourData.images, ...EXTERNAL_FALLBACK_IMAGES, fallbackTourImage]),
-    []
-  );
+  const { data: rawTour, isLoading, error } = useTourById(id);
+  const tourData = useMemo(() => adaptTourDetail(rawTour), [rawTour]);
+  const OVERVIEW_HIGHLIGHTS_DEFAULT = useMemo(() => buildOverviewHighlights(rawTour), [rawTour]);
+  const OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT = useMemo(() => buildDescriptionSteps(rawTour), [rawTour]);
   const mergedImages = useMemo(() => {
-    return dedupeImages([...tourData.images, ...EXTERNAL_FALLBACK_IMAGES, fallbackTourImage]);
-  }, []);
-  const [selectedImage, setSelectedImage] = useState(0);
+    return dedupeImages([...(tourData?.images || []), ...EXTERNAL_FALLBACK_IMAGES, fallbackTourImage]);
+  }, [tourData]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isGalleryDialogOpen, setIsGalleryDialogOpen] = useState(false);
-  const [galleryPreviewIndex, setGalleryPreviewIndex] = useState(0);
   const [gallerySlideDirection, setGallerySlideDirection] = useState(0);
   const [galleryModalView, setGalleryModalView] = useState("grid");
   const mainImageTouchStartXRef = useRef(null);
@@ -592,12 +451,19 @@ function TourDetailContent() {
     () => mergedImages.slice(0, 4).map((image, index) => ({ image, index })),
     [mergedImages]
   );
-  const selectedTourDuration = tourData.duration;
-  const selectedTourPriceNumber = tourData.price;
-  const selectedTourTitle = useMemo(() => safeDecodeRouteParam(id) || tourData.name, [id]);
-  const currentTour = useMemo(() => getTourByTitle(selectedTourTitle), [selectedTourTitle]);
-  const selectedTourRatingNumber = Number.parseFloat(currentTour?.rating) || tourData.ratingsAverage;
-  const selectedTourReviewsNumber = parseReviewCount(currentTour?.reviews) || tourData.ratingsQuantity;
+  const selectedTourDuration = tourData?.duration || "Flexible";
+  const selectedTourPriceNumber = tourData?.price || 0;
+  const selectedTourTitle = useMemo(() => rawTour?.metaTitle || safeDecodeRouteParam(id) || tourData?.name || id, [id, rawTour, tourData]);
+  const selectedTourRatingNumber = tourData?.ratingsAverage ?? 4.8;
+  const selectedTourReviewsNumber = tourData?.ratingsQuantity ?? 0;
+
+  const agePrices = useMemo(() => extractAgePrices(rawTour), [rawTour]);
+  const adultPrice = agePrices['adult'] || selectedTourPriceNumber;
+  const seniorPrice = agePrices['senior'] || adultPrice;
+  const youthPrice = agePrices['youth'] || Math.round(adultPrice * 0.7);
+  const childPrice = agePrices['child'] || Math.round(adultPrice * 0.6);
+  const infantPrice = agePrices['infant'] || 0;
+
   const [bookingDateRange, setBookingDateRange] = useState(null);
   const [isDateCalendarOpen, setIsDateCalendarOpen] = useState(false);
   const [isTravelerPickerOpen, setIsTravelerPickerOpen] = useState(false);
@@ -626,40 +492,42 @@ function TourDetailContent() {
   const [_travelerType, _setTravelerType] = useState("adults");
   const [overviewAccordionOpen, setOverviewAccordionOpen] = useState({
     highlights: true,
-    fullDescription: true,
   });
-  const [fullDescriptionExpanded, setFullDescriptionExpanded] = useState(false);
+  const [fullDescriptionExpanded, setFullDescriptionExpanded] = useState(true);
   const reviewBreakdown = useMemo(
     () => buildReviewBreakdown(selectedTourRatingNumber, selectedTourReviewsNumber),
     [selectedTourRatingNumber, selectedTourReviewsNumber]
   );
 
   useEffect(() => {
-    setSelectedImage(0);
+    setCurrentImageIndex(0);
   }, [id]);
 
   useEffect(() => {
-    loadTawkScript();
-  }, []);
+    const currentPath = window.location.pathname;
+    const expectedPath = rawTour?.slug ? `/tour/${rawTour.slug}` : null;
+    if (expectedPath && currentPath !== expectedPath) {
+      window.history.replaceState(null, "", expectedPath);
+    }
+  }, [rawTour?.slug]);
 
   useEffect(() => {
     setReviewStarFilter(null);
     setReviewSearchQuery("");
-    setOverviewAccordionOpen({ highlights: true, fullDescription: true });
-    setFullDescriptionExpanded(false);
+    setOverviewAccordionOpen({ highlights: true });
+    setFullDescriptionExpanded(true);
   }, [id]);
 
   useEffect(() => {
-    // Only add to recently viewed once when the page loads
-    // Try to get the actual tour data from homepage
-    const tourImage = currentTour?.image || mergedImages[0] || tourData.imageCover;
+    const tourImage = tourData?.imageCover || mergedImages[0] || fallbackTourImage;
     
     const recentTourData = {
-      title: selectedTourTitle, // This is the actual tour title from URL
-      duration: currentTour?.duration || selectedTourDuration,
-      price: currentTour?.price || selectedTourPriceNumber,
-      rating: currentTour?.rating || String(selectedTourRatingNumber),
-      reviews: currentTour?.reviews || String(selectedTourReviewsNumber),
+      title: selectedTourTitle,
+      slug: rawTour?.slug || "",
+      duration: tourData?.duration || selectedTourDuration,
+      price: tourData?.price || selectedTourPriceNumber,
+      rating: String(tourData?.ratingsAverage || selectedTourRatingNumber),
+      reviews: String(tourData?.ratingsQuantity || selectedTourReviewsNumber),
       image: tourImage,
     };
 
@@ -676,7 +544,7 @@ function TourDetailContent() {
       price: selectedTourPriceNumber,
       rating: String(selectedTourRatingNumber),
       reviews: String(selectedTourReviewsNumber),
-      image: mergedImages[0] || tourData.imageCover,
+      image: mergedImages[0] || tourData?.imageCover || fallbackTourImage,
     });
   };
 
@@ -698,21 +566,22 @@ function TourDetailContent() {
     }
   };
 
-  const _selectedTravelerMeta = tourData.includesByTraveler[_travelerType];
+  const _selectedTravelerMeta = tourData?.includesByTraveler?.[_travelerType];
   const totalTravelers = adults + seniors + youths + children + infants;
   const totalPrice = useMemo(
     () => (
-      adults * selectedTourPriceNumber +
-      seniors * 200 +
-      youths * 140 +
-      children * 120
+      adults * adultPrice +
+      seniors * seniorPrice +
+      youths * youthPrice +
+      children * childPrice +
+      infants * infantPrice
     ),
-    [adults, children, selectedTourPriceNumber, seniors, youths]
+    [adults, adultPrice, seniors, seniorPrice, youths, youthPrice, children, childPrice, infants, infantPrice]
   );
   const convertedUnitPrice = convertPrice(selectedTourPriceNumber);
   const convertedTotalPrice = convertPrice(totalPrice);
   const today = useMemo(() => new Date(), []);
-  const nextAvailableQuickPickDates = tourData.startDates.filter((iso) => (
+  const nextAvailableQuickPickDates = (tourData?.startDates || []).filter((iso) => (
     startOfLocalDay(new Date(iso)).getTime() > startOfLocalDay(new Date()).getTime()
   )).slice(0, 4);
   const selectedDateLabel = useMemo(() => {
@@ -758,7 +627,7 @@ function TourDetailContent() {
       unitPrice: selectedTourPriceNumber,
       rating: String(selectedTourRatingNumber),
       reviews: String(selectedTourReviewsNumber),
-      image: mergedImages[0] || tourData.imageCover,
+      image: mergedImages[0] || tourData?.imageCover || fallbackTourImage,
       selectedDate: bookingDateRange.start.toISOString(),
       ...( !isSameCalendarDay(bookingDateRange.start, bookingDateRange.end) && {
         selectedDateEnd: bookingDateRange.end.toISOString(),
@@ -849,7 +718,7 @@ function TourDetailContent() {
     {
       label: "Seniors",
       age: "Age 61 - 80",
-      price: convertPrice(200).formatted,
+      price: convertPrice(seniorPrice).formatted,
       count: seniors,
       decrement: () => setSeniors((prev) => Math.max(0, prev - 1)),
       increment: () => setSeniors((prev) => Math.min(9, prev + 1)),
@@ -857,7 +726,7 @@ function TourDetailContent() {
     {
       label: "Youths",
       age: "Age 15 - 17",
-      price: convertPrice(140).formatted,
+      price: convertPrice(youthPrice).formatted,
       count: youths,
       decrement: () => setYouths((prev) => Math.max(0, prev - 1)),
       increment: () => setYouths((prev) => Math.min(9, prev + 1)),
@@ -865,7 +734,7 @@ function TourDetailContent() {
     {
       label: "Children",
       age: "Age 4 - 14",
-      price: convertPrice(120).formatted,
+      price: convertPrice(childPrice).formatted,
       count: children,
       decrement: () => setChildren((prev) => Math.max(0, prev - 1)),
       increment: () => setChildren((prev) => Math.min(9, prev + 1)),
@@ -873,14 +742,16 @@ function TourDetailContent() {
     {
       label: "Infants",
       age: "Age 1 - 3",
-      price: "Free",
+      price: infantPrice > 0 ? convertPrice(infantPrice).formatted : "Free",
       count: infants,
       decrement: () => setInfants((prev) => Math.max(0, prev - 1)),
       increment: () => setInfants((prev) => Math.min(9, prev + 1)),
     },
   ];
 
-  const handleImageError = (event) => {
+  const handleImageError = useCallback((event) => {
+    if (event.currentTarget.dataset.exhausted) return;
+
     const currentSrc = event.currentTarget.src;
     const startOffset = Number(event.currentTarget.dataset.fallbackOffset || 0);
     const triedKeys = new Set(
@@ -889,8 +760,8 @@ function TourDetailContent() {
         .filter(Boolean)
     );
 
-    for (let step = 0; step < fallbackImagePool.length; step += 1) {
-      const candidate = fallbackImagePool[(startOffset + step) % fallbackImagePool.length];
+    for (let step = 0; step < mergedImages.length; step += 1) {
+      const candidate = mergedImages[(startOffset + step) % mergedImages.length];
       const candidateKey = normalizeImageKey(candidate);
       const currentKey = normalizeImageKey(currentSrc);
 
@@ -902,12 +773,12 @@ function TourDetailContent() {
       return;
     }
 
-    event.currentTarget.onerror = null;
+    event.currentTarget.dataset.exhausted = "true";
     event.currentTarget.src = fallbackTourImage;
-  };
+  }, [mergedImages]);
 
-  const handleOpenGallery = (index = selectedImage, view = "viewer") => {
-    setGalleryPreviewIndex(index);
+  const handleOpenGallery = (index = currentImageIndex, view = "viewer") => {
+    setCurrentImageIndex(index);
     setGallerySlideDirection(0);
     setGalleryModalView(view);
     setIsGalleryDialogOpen(true);
@@ -926,36 +797,46 @@ function TourDetailContent() {
   };
 
   const handleOpenGalleryViewer = (index) => {
-    setGallerySlideDirection(index > galleryPreviewIndex ? 1 : -1);
-    setSelectedImage(index);
-    setGalleryPreviewIndex(index);
+    setGallerySlideDirection(index > currentImageIndex ? 1 : -1);
+    setCurrentImageIndex(index);
     setGalleryModalView("viewer");
   };
 
-  const showPreviousGalleryImage = () => {
+  const showPreviousGalleryImage = useCallback(() => {
     if (mergedImages.length === 0) return;
-    const previousIndex = (galleryPreviewIndex - 1 + mergedImages.length) % mergedImages.length;
+    const previousIndex = (currentImageIndex - 1 + mergedImages.length) % mergedImages.length;
     setGallerySlideDirection(-1);
-    setSelectedImage(previousIndex);
-    setGalleryPreviewIndex(previousIndex);
-  };
+    setCurrentImageIndex(previousIndex);
+  }, [mergedImages.length, currentImageIndex]);
 
-  const showNextGalleryImage = () => {
+  const showNextGalleryImage = useCallback(() => {
     if (mergedImages.length === 0) return;
-    const nextIndex = (galleryPreviewIndex + 1) % mergedImages.length;
+    const nextIndex = (currentImageIndex + 1) % mergedImages.length;
     setGallerySlideDirection(1);
-    setSelectedImage(nextIndex);
-    setGalleryPreviewIndex(nextIndex);
-  };
+    setCurrentImageIndex(nextIndex);
+  }, [mergedImages.length, currentImageIndex]);
+
+  // Keyboard navigation for gallery viewer
+  useEffect(() => {
+    if (!isGalleryDialogOpen || galleryModalView !== "viewer") return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft") showPreviousGalleryImage();
+      if (e.key === "ArrowRight") showNextGalleryImage();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isGalleryDialogOpen, galleryModalView, showPreviousGalleryImage, showNextGalleryImage]);
 
   const showNextMainImage = () => {
     if (mergedImages.length === 0) return;
-    setSelectedImage((prev) => (prev + 1) % mergedImages.length);
+    setCurrentImageIndex((prev) => (prev + 1) % mergedImages.length);
   };
 
   const showPreviousMainImage = () => {
     if (mergedImages.length === 0) return;
-    setSelectedImage((prev) => (prev - 1 + mergedImages.length) % mergedImages.length);
+    setCurrentImageIndex((prev) => (prev - 1 + mergedImages.length) % mergedImages.length);
   };
 
   const handleMainImageTouchStart = (event) => {
@@ -967,8 +848,12 @@ function TourDetailContent() {
     if (startX === null) return;
     const endX = event.changedTouches[0]?.clientX ?? startX;
     const deltaX = endX - startX;
-    if (deltaX < -45) showNextMainImage();
-    if (deltaX > 45) showPreviousMainImage();
+    const isHorizontalSwipe = Math.abs(deltaX) > 45;
+    if (isHorizontalSwipe) {
+      event.preventDefault();
+      if (deltaX < -45) showNextMainImage();
+      if (deltaX > 45) showPreviousMainImage();
+    }
     mainImageTouchStartXRef.current = null;
   };
 
@@ -995,12 +880,28 @@ function TourDetailContent() {
   };
 
   const ratingDots = Array.from({ length: 5 });
+  const timeSlots = rawTour?.schedulesAndPricing?.availability?.timeSlots || [];
+  const pickupAvailable = rawTour?.bookingAndTickets?.pickupAvailable;
+  const pickupDetails = rawTour?.bookingAndTickets?.pickupDetails || "";
+  const languages = rawTour?.productContent?.languages || [];
+
   const quickFacts = [
     { icon: Clock, label: "Duration", value: selectedTourDuration },
-    { icon: Truck, label: "Start time", value: "Check availability" },
-    { icon: MapPin, label: "Pickup", value: "Accra pickup included" },
-    { icon: Languages, label: "Language", value: "English, French" },
+    { icon: Truck, label: "Start time", value: timeSlots.length ? timeSlots.join(", ") : "Check availability" },
+    { icon: MapPin, label: "Pickup", value: pickupAvailable ? (pickupDetails || `${tourData?.location || "Accra"} pickup included`) : "Not available" },
+    { icon: Languages, label: "Language", value: languages.length ? languages.join(", ") : tourData?.language || "English" },
   ];
+
+  const includedItems = rawTour?.productContent?.included || [];
+  const excludedItems = rawTour?.productContent?.excluded || [];
+  const expectText = rawTour?.productContent?.uniqueSellingPoints || rawTour?.description || "";
+  const meetingAddress = rawTour?.bookingAndTickets?.meetingPoint?.address || "";
+  const meetingInstructions = rawTour?.productContent?.meetingInstructions || "";
+  const cancellationPolicy = rawTour?.bookingAndTickets?.cancellationPolicy || {};
+  const refundRules = rawTour?.bookingAndTickets?.refundRules || "";
+  const accessibilityText = rawTour?.productContent?.accessibility || "";
+  const restrictionsText = rawTour?.productContent?.restrictions || "";
+  const travelerReqsText = rawTour?.productContent?.travelerRequirements || "";
 
   const infoSections = [
     {
@@ -1008,95 +909,104 @@ function TourDetailContent() {
       title: "What's included",
       content: (
         <div className="space-y-4">
-          <div>
-            <h4 className="text-sm font-bold text-[#002b11]">What's included</h4>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-[#002b11]/85">
-              <li>Bottled Water</li>
-              <li>Private Tour Guide</li>
-              <li>Hotel Pick up and Drop-off</li>
-              <li>WiFi on board</li>
-              <li>Air-conditioned vehicle</li>
-              <li>Cost of activities in itinerary</li>
-              <li>Entry/Admission - Cape Coast Castle</li>
-              <li>Entry/Admission - Elmina Castle</li>
-              <li>Entry/Admission - Kakum National Park</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-[#002b11]">What's not included</h4>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-[#002b11]/85">
-              <li>Accommodation</li>
-              <li>Lunch</li>
-            </ul>
-          </div>
+          {includedItems.length > 0 && (
+            <div>
+              <h4 className="text-sm font-bold text-[#002b11]">What's included</h4>
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-[#002b11]/85">
+                {includedItems.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <Check className="mt-0.5 size-4 shrink-0 text-green-600" strokeWidth={2.5} />
+                    <span>{typeof item === "string" ? item : item.title || item.description || item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {excludedItems.length > 0 && (
+            <div>
+              <h4 className="text-sm font-bold text-[#002b11]">What's not included</h4>
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-[#002b11]/85">
+                {excludedItems.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <X className="mt-0.5 size-4 shrink-0 text-red-500" strokeWidth={2.5} />
+                    <span>{typeof item === "string" ? item : item.title || item.description || item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {includedItems.length === 0 && excludedItems.length === 0 && (
+            <p className="text-sm leading-7 text-[#002b11]/80">Details not available.</p>
+          )}
         </div>
       ),
     },
     {
       key: "expect",
       title: "What to expect",
-      content: <p className="text-sm leading-7 text-[#002b11]/80">Explore Cape Coast Castle, Elmina Castle, and Kakum National Park on a private day tour from Accra with guided storytelling, cultural context, and flexible pacing.</p>,
+      content: <p className="text-sm leading-7 text-[#002b11]/80">{expectText || "Experience details coming soon."}</p>,
     },
     {
       key: "pickup",
       title: "Meeting and pickup",
-      content: <p className="text-sm leading-7 text-[#002b11]/80">Pickup is available from selected hotels and apartments in Accra. Exact pickup details are confirmed after booking.</p>,
+      content: (
+        <div className="space-y-2 text-sm leading-7 text-[#002b11]/80">
+          {meetingAddress && <p>Meeting point: {meetingAddress}</p>}
+          {meetingInstructions && <p>{meetingInstructions}</p>}
+          {!meetingAddress && !meetingInstructions && <p>Pickup details are confirmed after booking.</p>}
+        </div>
+      ),
     },
     {
       key: "accessibility",
       title: "Accessibility",
-      content: <p className="text-sm leading-7 text-[#002b11]/80">Travelers should have a moderate physical fitness level. Kakum canopy walk may not be suitable for all mobility needs.</p>,
+      content: (
+        <div className="space-y-2 text-sm leading-7 text-[#002b11]/80">
+          {accessibilityText && <p>{accessibilityText}</p>}
+          {restrictionsText && <p>{restrictionsText}</p>}
+          {travelerReqsText && <p>{travelerReqsText}</p>}
+          {!accessibilityText && !restrictionsText && !travelerReqsText && <p>Contact the operator for accessibility information.</p>}
+        </div>
+      ),
     },
     {
       key: "policy",
       title: "Cancellation policy",
-      content: <p className="text-sm leading-7 text-[#002b11]/80">Free cancellation is available up to 24 hours before the experience starts local time.</p>,
+      content: (
+        <div className="space-y-1 text-sm leading-7 text-[#002b11]/80">
+          {cancellationPolicy.cutoffHours ? (
+            <p>Free cancellation is available up to {cancellationPolicy.cutoffHours} hour{cancellationPolicy.cutoffHours !== 1 ? "s" : ""} before the experience starts local time.</p>
+          ) : (
+            <p>{refundRules || "Free cancellation is available up to 24 hours before the experience starts local time."}</p>
+          )}
+          {refundRules && cancellationPolicy.cutoffHours && (
+            <p className="mt-1">{refundRules}</p>
+          )}
+        </div>
+      ),
     },
   ];
 
-  const itineraryStops = [
-    { label: "Start", title: "You'll start at Accra", meta: "Or, you can also get picked up" },
-    { label: "1", title: "Cape Coast Castle", meta: "Stop: 60 minutes - Admission included" },
-    { label: "2", title: "Elmina Castle", meta: "Stop: 60 minutes - Admission included" },
-    { label: "3", title: "Kakum National Park", meta: "Stop: 2 hours - Admission included" },
-    { label: "End", title: "You'll return to the starting point", meta: "" },
-  ];
+  const itineraryStops = useMemo(() => parseItineraryStops(rawTour), [rawTour]);
 
-  const reviewCards = useMemo(
-    () => [
-      {
-        id: "sample-avi",
-        name: "Avi C",
-        tag: "Friends",
-        date: "May 2026",
-        rating: 5,
-        text: "The tour was great especially our guide Thompson was amazing. We liked working with him so much we requested him for our second tour we booked.",
-        photos: [EXTERNAL_FALLBACK_IMAGES[0], EXTERNAL_FALLBACK_IMAGES[1]],
-      },
-      {
-        id: "sample-juliette",
-        name: "Juliette T",
-        tag: "Solo",
-        date: "Apr 2026",
-        rating: 4,
-        text: "It was an amazing experience. The logistics were spot on, the guides were really sweet, informative and professional.",
-        photos: [EXTERNAL_FALLBACK_IMAGES[2]],
-      },
-      {
-        id: "sample-rendolf",
-        name: "Rendolf A",
-        tag: "Families",
-        date: "Apr 2026",
-        rating: 5,
-        text: "Great experience! The tour was great and my husband and I would highly recommend it.",
-      },
-    ],
-    []
-  );
+  const apiReviewCards = useMemo(() => {
+    if (!rawTour?.reviews?.length) return [];
+    return rawTour.reviews.map((review) => ({
+      id: review.id || `review-${Date.now()}-${Math.random()}`,
+      name: review.customer?.name || "Anonymous",
+      tag: review.verified ? "Verified" : "Traveler",
+      date: review.createdAt
+        ? new Date(review.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+        : "",
+      rating: review.rating || 5,
+      text: review.comment || "",
+      photos: review.photos || [],
+    }));
+  }, [rawTour]);
 
   const allReviewCards = useMemo(
-    () => [...reviewCards, ...travelerSubmittedReviews],
-    [reviewCards, travelerSubmittedReviews]
+    () => [...apiReviewCards, ...travelerSubmittedReviews],
+    [apiReviewCards, travelerSubmittedReviews]
   );
 
   const filteredReviewCards = useMemo(() => {
@@ -1161,6 +1071,55 @@ function TourDetailContent() {
     </div>
   );
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[color:var(--page-bg)]">
+        <Navbar />
+        <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
+        <main className="mx-auto max-w-[1520px] px-4 pb-8 pt-6 sm:px-6 sm:pt-8 lg:px-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center space-y-4">
+              <div className="inline-block size-12 animate-spin rounded-full border-[3px] border-current border-t-transparent text-[color:var(--brand-green)]" role="status" aria-label="Loading">
+                <span className="sr-only">Loading...</span>
+              </div>
+              <p className="text-sm text-slate-500">Loading tour details...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !tourData) {
+    return (
+      <div className="min-h-screen bg-[color:var(--page-bg)]">
+        <Navbar />
+        <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
+        <main className="mx-auto max-w-[1520px] px-4 pb-8 pt-6 sm:px-6 sm:pt-8 lg:px-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="max-w-md text-center space-y-4">
+              <div className="mx-auto size-16 rounded-full bg-red-50 flex items-center justify-center">
+                <span className="text-2xl">!</span>
+              </div>
+              <h2 className="text-xl font-bold text-[color:var(--brand-green)]">Tour not found</h2>
+              <p className="text-sm text-slate-500">
+                We couldn't load this tour. It may have been removed or the link is invalid.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--brand-green)] px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[color:var(--page-bg)]">
       <Navbar />
@@ -1218,14 +1177,14 @@ function TourDetailContent() {
         <section className="grid min-w-0 gap-2 lg:grid-cols-[130px_minmax(0,1fr)] 2xl:grid-cols-[150px_minmax(0,1fr)]">
           <div className="hidden h-[520px] grid-rows-4 gap-2 lg:grid">
             {thumbnailStripImages.map(({ image, index }, thumbnailIndex) => {
-              const isSelected = index === selectedImage;
+              const isSelected = index === currentImageIndex;
               const isLastVisibleThumbnail = thumbnailIndex === thumbnailStripImages.length - 1;
 
               return (
                 <button
                   key={`gallery-strip-${index}`}
                   type="button"
-                  onClick={() => (isLastVisibleThumbnail ? handleOpenGallery(index, "grid") : setSelectedImage(index))}
+                  onClick={() => (isLastVisibleThumbnail ? handleOpenGallery(index, "grid") : setCurrentImageIndex(index))}
                   className={`group relative overflow-hidden rounded-lg bg-slate-100 ring-offset-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] ${isSelected ? "ring-2 ring-[color:var(--brand-green)]" : ""}`}
                   aria-label={isLastVisibleThumbnail ? "See more tour photos" : `Show tour image ${index + 1}`}
                 >
@@ -1252,7 +1211,7 @@ function TourDetailContent() {
             onTouchEnd={handleMainImageTouchEnd}
             onTouchCancel={handleMainImageTouchCancel}
           >
-            <div className="flex h-full w-full transition-transform duration-300 ease-out" style={{ transform: `translateX(-${selectedImage * 100}%)` }}>
+            <div className="flex h-full w-full transition-transform duration-300 ease-out" style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}>
               {mergedImages.map((image, index) => (
                 <img
                   key={`featured-slide-${index}`}
@@ -1307,7 +1266,7 @@ function TourDetailContent() {
 
             <button
               type="button"
-              onClick={() => handleOpenGallery(selectedImage, "grid")}
+              onClick={() => handleOpenGallery(currentImageIndex, "grid")}
               className="absolute bottom-3 right-3 rounded-md bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white shadow-sm lg:hidden"
             >
               View all photos
@@ -1322,7 +1281,7 @@ function TourDetailContent() {
                 <button
                   key={`gallery-mobile-strip-${index}`}
                   type="button"
-                  onClick={() => (isLastVisibleThumbnail ? handleOpenGallery(index, "grid") : setSelectedImage(index))}
+                  onClick={() => (isLastVisibleThumbnail ? handleOpenGallery(index, "grid") : setCurrentImageIndex(index))}
                   className="relative overflow-hidden rounded-md bg-slate-100"
                   aria-label={isLastVisibleThumbnail ? "See more tour photos" : `Show tour image ${index + 1}`}
                 >
@@ -1503,11 +1462,7 @@ function TourDetailContent() {
           <div className="min-w-0">
             {activeDetailTab === "overview" && (
             <section id="overview" className="pb-6">
-              <h2 className="text-lg font-black text-[color:var(--brand-green)]">About</h2>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-[color:var(--brand-green)]/85">
-                Visit the castles of Cape Coast and explore the adventures of Kakum National Park with this guided tour from Accra. You'll learn and discover the history of Cape Coast Castle and Elmina Castle and also undertake the canopy walkway experience.
-              </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {quickFacts.map(({ icon: Icon, label, value }) => (
                   <div key={label} className="flex items-start gap-3 text-sm text-[color:var(--brand-green)]">
                     <Icon className="mt-0.5 size-4 shrink-0" />
@@ -1518,6 +1473,35 @@ function TourDetailContent() {
                   </div>
                 ))}
               </div>
+
+              {OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT.length > 0 && (
+                <div className="mt-8 pt-6">
+                  <div className="min-w-0">
+                    <ol className="list-none space-y-4 pl-0">
+                      {(fullDescriptionExpanded
+                        ? OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT
+                        : OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT.slice(0, 2)
+                      ).map((step, index) => (
+                        <li key={step.title}>
+                          <div className="min-w-0 text-sm leading-7 text-slate-700">
+                            <p className="font-bold text-slate-900">{step.title}</p>
+                            <p className="mt-1.5">{step.body}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                    {OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => setFullDescriptionExpanded((v) => !v)}
+                        className="mt-4 text-sm font-semibold text-blue-600 underline decoration-blue-600 underline-offset-2 hover:text-blue-700"
+                      >
+                        {fullDescriptionExpanded ? t("tourDetail.seeLess") : t("tourDetail.seeMore")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-8 space-y-2 pt-6">
                 <div>
@@ -1545,55 +1529,6 @@ function TourDetailContent() {
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOverviewAccordionOpen((p) => ({ ...p, fullDescription: !p.fullDescription }))
-                    }
-                    className="flex w-full items-center justify-between gap-4 py-4 text-left"
-                    aria-expanded={overviewAccordionOpen.fullDescription}
-                  >
-                    <span className="text-sm font-bold text-slate-900">{t("tourDetail.fullDescription")}</span>
-                    <span className="flex shrink-0 justify-end">
-                      {overviewAccordionOpen.fullDescription ? (
-                        <ChevronUp className="size-4 text-[color:var(--brand-green)]" aria-hidden />
-                      ) : (
-                        <ChevronDown className="size-4 text-[color:var(--brand-green)]" aria-hidden />
-                      )}
-                    </span>
-                  </button>
-                  {overviewAccordionOpen.fullDescription && (
-                    <div className="pb-5">
-                      <div className="min-w-0">
-                        <ol className="list-none space-y-4 pl-0">
-                          {(fullDescriptionExpanded
-                            ? OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT
-                            : OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT.slice(0, 2)
-                          ).map((step, index) => (
-                            <li key={step.title} className="flex gap-3">
-                              <span className="mt-0.5 shrink-0 text-sm font-bold text-slate-900">{index + 1}.</span>
-                              <div className="min-w-0 flex-1 text-sm leading-7 text-slate-700">
-                                <p className="font-bold text-slate-900">{step.title}</p>
-                                <p className="mt-1.5">{step.body}</p>
-                              </div>
-                            </li>
-                          ))}
-                        </ol>
-                        {OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT.length > 2 && (
-                          <button
-                            type="button"
-                            onClick={() => setFullDescriptionExpanded((v) => !v)}
-                            className="mt-4 text-sm font-semibold text-blue-600 underline decoration-blue-600 underline-offset-2 hover:text-blue-700"
-                          >
-                            {fullDescriptionExpanded ? t("tourDetail.seeLess") : t("tourDetail.seeMore")}
-                          </button>
-                        )}
-                      </div>
                     </div>
                   )}
                 </div>
@@ -1789,7 +1724,7 @@ function TourDetailContent() {
                             src={item.url}
                             alt={`Photo from ${item.reviewer}`}
                             className="aspect-square w-full object-cover"
-                            data-fallback-offset={0}
+                            data-fallback-offset={travelerPhotoItems.indexOf(item)}
                             onError={handleImageError}
                           />
                           <p className="truncate px-0.5 pt-1 text-[10px] font-semibold text-slate-600">{item.reviewer}</p>
@@ -1839,7 +1774,7 @@ function TourDetailContent() {
                   <p className="mt-3 text-sm font-black">Expedition-Go Tours Ltd</p>
                   <p className="mt-2 text-xs">4.9 • Accra, Ghana</p>
                 </div>
-                {reviewCards.map((review) => (
+                {allReviewCards.map((review) => (
                   <article key={`operator-${review.name}`} className="min-w-[210px] rounded-lg border border-slate-200 p-4">
                     <p className="text-sm font-black">{review.name}</p>
                     <div className="mt-2 flex gap-1 text-emerald-600">{ratingDots.map((_, i) => <Star key={i} className="size-2.5 fill-current" />)}</div>
@@ -1854,7 +1789,15 @@ function TourDetailContent() {
           </div>
         </div>
 
-        <SimilarExperiencesCarousel excludeTitle={selectedTourTitle} onImageError={handleImageError} />
+        <section className="mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-slate-900">Similar Experiences</h2>
+          </div>
+          <SimilarExperiencesCarousel
+            excludeTitle={selectedTourTitle}
+            onImageError={handleImageError}
+          />
+        </section>
 
           <aside className="hidden">
             <div className="text-sm text-[color:var(--brand-green)]">
@@ -2210,7 +2153,7 @@ function TourDetailContent() {
                   className="relative h-[100dvh] bg-white px-3 pb-4 pt-12 sm:px-4 sm:pt-14"
                 >
                   <p className="absolute left-1/2 top-5 z-10 -translate-x-1/2 text-xs font-semibold text-slate-700 sm:top-6">
-                    {galleryPreviewIndex + 1} / {mergedImages.length}
+                    {mergedImages.length > 0 ? `${currentImageIndex + 1} / ${mergedImages.length}` : ""}
                   </p>
                   <button
                     type="button"
@@ -2226,7 +2169,7 @@ function TourDetailContent() {
                     </button>
                     <AnimatePresence custom={gallerySlideDirection} initial={false} mode="wait">
                       <motion.div
-                        key={`modal-image-${galleryPreviewIndex}`}
+                        key={`modal-image-${currentImageIndex}`}
                         custom={gallerySlideDirection}
                         variants={viewerSlideVariants}
                         initial="enter"
@@ -2234,7 +2177,7 @@ function TourDetailContent() {
                         exit="exit"
                         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                         drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
+                        dragConstraints={{ left: -100, right: 100 }}
                         dragElastic={0.18}
                         onDragEnd={(_, info) => {
                           if (info.offset.x < -70) showNextGalleryImage();
@@ -2242,7 +2185,7 @@ function TourDetailContent() {
                         }}
                         className="absolute inset-0 flex items-center justify-center"
                       >
-                        <img src={mergedImages[galleryPreviewIndex] || fallbackTourImage} alt={`Tour gallery image ${galleryPreviewIndex + 1}`} data-fallback-offset={galleryPreviewIndex} onError={handleImageError} className="max-h-[80vh] max-w-full rounded-sm object-contain" />
+                        <img src={mergedImages[currentImageIndex] || fallbackTourImage} alt={`Tour gallery image ${currentImageIndex + 1}`} data-fallback-offset={currentImageIndex} onError={handleImageError} className="max-h-[80vh] max-w-full rounded-sm object-contain" />
                       </motion.div>
                     </AnimatePresence>
                     <button type="button" onClick={showNextGalleryImage} className="absolute -right-2 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm transition hover:bg-white sm:grid sm:-right-3" aria-label="Show next image">

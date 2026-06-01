@@ -1,26 +1,10 @@
-/**
- * @file useHomePageData.js
- * @description HomePage loading orchestration via React Query.
- *
- * Controls skeleton visibility timing:
- *   - Default 250ms delay on first load (unless skipInitialDelay)
- *   - Post-auth handoff uses 150ms delay after splash screen
- *   - handoffNonce busts cache after sign-in so skeleton re-runs
- *
- * @see pages/HomePage.jsx — primary consumer
- */
 import { useQuery } from "@tanstack/react-query";
+import { fetchPopularByCategory, fetchFilterOptions } from "@/api/tours";
+import { adaptTourCard, extractDestinations } from "@/lib/tourAdapter";
 
 const DEFAULT_INITIAL_DELAY_MS = 250;
-/** Slightly longer after auth handoff so the skeleton is visibly distinct from splash. */
 const POST_AUTH_INITIAL_DELAY_MS = 150;
 
-/**
- * HomePage loading orchestration.
- * - Brief skeleton delay on first resolved load (unless `skipInitialDelay`)
- * - Set `enabled: false` until a gate opens (e.g. post-auth splash finished) so the skeleton runs after splash
- * - Pass `handoffNonce` after sign-in so React Query cannot reuse cached "already loaded" data and skip skeleton
- */
 export function useHomePageData({
   skipInitialDelay = false,
   enabled = true,
@@ -50,13 +34,47 @@ export function useHomePageData({
       if (delayMs > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
+
+      const [popularData, filterData] = await Promise.allSettled([
+        fetchPopularByCategory({ perCategory: 8 }),
+        fetchFilterOptions(),
+      ]);
+
+      const categories = {};
+      if (popularData.status === "fulfilled" && popularData.value?.categories) {
+        for (const [cat, tours] of Object.entries(popularData.value.categories)) {
+          categories[cat] = (tours || []).map(adaptTourCard);
+        }
+      }
+
+      let destinations = [];
+      if (filterData.status === "fulfilled" && filterData.value?.filterOptions?.locations) {
+        const locs = filterData.value.filterOptions.locations;
+        const cities = locs.cities || [];
+        const countries = locs.countries || [];
+        destinations = cities.map((city, i) => ({
+          title: city,
+          region: countries[i % countries.length] || "",
+          tours: "",
+          image: "",
+        }));
+      }
+
+      const allTours = Object.values(categories).flat();
+      if (allTours.length > 0 && destinations.length === 0) {
+        destinations = extractDestinations(allTours);
+      }
+
       return {
         loaded: true,
         timestamp: Date.now(),
+        categories,
+        destinations,
+        filterOptions: filterData.status === "fulfilled" ? filterData.value?.filterOptions : null,
       };
     },
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60,
+    staleTime: 1000 * 60 * 2,
+    gcTime: 1000 * 60 * 10,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

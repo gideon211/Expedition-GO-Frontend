@@ -31,7 +31,7 @@ import { SupplierSection } from "@/components/homepage/SupplierSection";
 import { ExploreMoreSection } from "@/components/homepage/ExploreMoreSection";
 import { HomePageSkeleton } from "@/components/homepage/skeletons/HomePageSkeleton";
 import BrandLoader from "@/components/ui/BrandLoader";
-import { leisureTours, pickupTours, recommendedTours, topRatedTours } from "@/components/homepage/data";
+import { pickupTours, recommendedTours, topRatedTours, leisureTours } from "@/components/homepage/data";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { AuthModal } from "@/components/ui/auth-modal";
@@ -66,6 +66,35 @@ function HomePageContent() {
     postAuthHandoff: authHandoffId != null,
   });
   /** Use fetchStatus + fresh handoff nonce so skeleton does not disappear when TanStack skips isLoading during cache quirks. */
+  const categories = homeLoad.data?.categories || {};
+  const apiDestinations = homeLoad.data?.destinations || [];
+  const categoryKeys = Object.keys(categories);
+  const carouselSlots = [
+    ...(categoryKeys.length > 0 ? [
+      { id: categoryKeys[0], title: t('sections.featuredTitle'), items: categories[categoryKeys[0]] },
+      ...(categoryKeys[1] ? [{ id: categoryKeys[1], title: t('sections.recommendedTitle'), items: categories[categoryKeys[1]] }] : []),
+      ...(categoryKeys[2] ? [{ id: categoryKeys[2], title: t('sections.topRatedTitle'), items: categories[categoryKeys[2]] }] : []),
+      ...(categoryKeys[3] ? [{ id: categoryKeys[3], title: t('sections.likelyToSellOut'), items: categories[categoryKeys[3]] }] : []),
+      ...(categoryKeys.length < 4 && leisureTours.length > 0
+        ? [{ id: "leisure", title: t('sections.likelyToSellOut'), items: leisureTours }]
+        : []),
+    ] : [
+      { id: "tours", title: t('sections.featuredTitle'), items: pickupTours },
+      { id: "recommended", title: t('sections.recommendedTitle'), items: recommendedTours },
+      { id: "deals", title: t('sections.topRatedTitle'), items: topRatedTours },
+      { id: "leisure", title: t('sections.likelyToSellOut'), items: leisureTours },
+    ]),
+  ].filter(slot => slot.items && slot.items.length > 0);
+
+  const extraSlots = categoryKeys.slice(4).map((key) => ({
+    id: key,
+    title: key,
+    items: categories[key] || [],
+  })).filter(slot => slot.items.length > 0);
+  const allCarouselSlots = [...carouselSlots, ...extraSlots];
+
+  const sidebarTours = Object.values(categories).flat().slice(0, 6);
+
   const homeReady =
     homeDataEnabled &&
     Boolean(homeLoad.data?.loaded) &&
@@ -189,15 +218,16 @@ function HomePageContent() {
         <main className="mx-auto max-w-[1520px] overflow-x-hidden px-4 pb-14 sm:px-6">
           <div className="grid gap-5 md:gap-8 xl:gap-7 xl:grid-cols-[minmax(0,1fr)_430px]">
             <div className="space-y-6 pt-6 min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
-              <TourCarouselSection id="tours" title={t('sections.featuredTitle')} items={pickupTours} />
-              <DestinationsSection />
-              <TourCarouselSection id="recommended" title={t('sections.recommendedTitle')} items={recommendedTours} />
-              <TourCarouselSection id="deals" title={t('sections.topRatedTitle')} items={topRatedTours} />
-              <TourCarouselSection id="leisure" title={t('sections.likelyToSellOut')} items={leisureTours} />
+              {allCarouselSlots.map((slot) => (
+                <TourCarouselSection key={slot.id} id={slot.id} title={slot.title} items={slot.items} />
+              ))}
             </div>
             <div className="pt-5 min-w-0 md:pt-6 xl:pt-4">
-              <SidebarPanel />
+              <SidebarPanel topRatedTours={sidebarTours} allTours={Object.values(categories).flat()} />
             </div>
+          </div>
+          <div className="mt-6 md:mt-8 xl:mt-7">
+            <DestinationsSection apiDestinations={apiDestinations} />
           </div>
         </main>
 

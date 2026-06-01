@@ -1,9 +1,7 @@
 /**
  * @file TourFiltersPanel.jsx
  * @description Desktop/mobile filter sidebar for AllToursPage.
- *   Filter definitions from tourFiltersData.js; state managed by parent page.
- *
- * @see components/homepage/tourFiltersData.js
+ *   Uses API filter options when available, falls back to static data.
  */
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
@@ -37,6 +35,7 @@ export function TourFiltersPanel({
   onSelectedSpecialsChange,
   selectedSubcategories,
   onSelectedSubcategoriesChange,
+  filterOptions,
 }) {
   const [showMoreSpecials, setShowMoreSpecials] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState([]);
@@ -69,6 +68,16 @@ export function TourFiltersPanel({
         : [...prev, categoryId]
     );
   };
+
+  const apiCategories = filterOptions?.categories || [];
+
+  const dynamicCategories = apiCategories.length > 0
+    ? apiCategories.map((cat) => ({
+        id: cat.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        label: cat,
+        subcategories: [],
+      }))
+    : GHANA_TOUR_CATEGORIES;
 
   return (
     <div
@@ -107,7 +116,7 @@ export function TourFiltersPanel({
       <div className="p-5 pb-4">
         <h3 className="text-base font-bold text-slate-900">All Ghana Tours</h3>
         <ul className="mt-3 divide-y divide-slate-100">
-          {GHANA_TOUR_CATEGORIES.map((category) => {
+          {dynamicCategories.map((category) => {
             const isExpanded = expandedCategories.includes(category.id);
             return (
               <li key={category.id}>
@@ -118,20 +127,22 @@ export function TourFiltersPanel({
                   aria-expanded={isExpanded}
                 >
                   <span>{category.label}</span>
-                  <ChevronDown
-                    className={`size-4 shrink-0 text-slate-500 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                    aria-hidden
-                  />
+                  {(category.subcategories?.length > 0) && (
+                    <ChevronDown
+                      className={`size-4 shrink-0 text-slate-500 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                      aria-hidden
+                    />
+                  )}
                 </button>
-                {isExpanded && (
+                {isExpanded && category.subcategories?.length > 0 && (
                   <div className="space-y-2.5 pb-3 pl-1">
                     {category.subcategories.map((sub) => (
                       <FilterCheckbox
-                        key={sub.id}
-                        id={`category-${category.id}-${sub.id}`}
-                        label={sub.label}
-                        checked={selectedSubcategories.includes(`${category.id}:${sub.id}`)}
-                        onChange={(checked) => toggleSubcategory(category.id, sub.id, checked)}
+                        key={sub.id || sub}
+                        id={`category-${category.id}-${sub.id || sub}`}
+                        label={sub.label || sub}
+                        checked={selectedSubcategories.includes(`${category.id}:${sub.id || sub}`)}
+                        onChange={(checked) => toggleSubcategory(category.id, sub.id || sub, checked)}
                       />
                     ))}
                   </div>

@@ -9,7 +9,7 @@ import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { destinations } from "./data";
+import { destinations as staticDestinations } from "./data";
 import { DestinationCard } from "./DestinationCard";
 import { DestinationsModal } from "./DestinationsModal";
 
@@ -68,7 +68,7 @@ function smoothScrollTo(element, target, duration, generationRef, generation, on
   requestAnimationFrame(step);
 }
 
-export function DestinationsSection() {
+export function DestinationsSection({ apiDestinations = [] }) {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const viewAllTriggerRef = useRef(null);
@@ -77,14 +77,33 @@ export function DestinationsSection() {
   const isScrollingRef = useRef(false);
   const scrollGenerationRef = useRef(0);
 
-  const infiniteDestinations = [...destinations, ...destinations, ...destinations];
+  const mergedDestinations = (() => {
+    if (apiDestinations.length === 0) return staticDestinations;
+    const seen = new Set();
+    const merged = [];
+    for (const d of apiDestinations) {
+      if (!seen.has(d.title)) {
+        seen.add(d.title);
+        merged.push(d);
+      }
+    }
+    for (const d of staticDestinations) {
+      if (!seen.has(d.title)) {
+        seen.add(d.title);
+        merged.push(d);
+      }
+    }
+    return merged;
+  })();
+
+  const infiniteDestinations = [...mergedDestinations, ...mergedDestinations, ...mergedDestinations];
   const cardWidth = 280;
   const gap = 12;
-  const singleSetWidth = destinations.length * (cardWidth + gap);
+  const singleSetWidth = mergedDestinations.length * (cardWidth + gap);
 
   const nudgeMobileInfiniteLoop = useCallback(() => {
     const container = mobileScrollRef.current;
-    if (!container || destinations.length === 0 || isScrollingRef.current) return;
+    if (!container || mergedDestinations.length === 0 || isScrollingRef.current) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
     const maxScroll = scrollWidth - clientWidth;

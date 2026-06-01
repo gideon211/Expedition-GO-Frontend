@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { openTawkChat } from "@/lib/tawk";
 
 // Import payment method images
 import viiviPay from "@/assets/images/Viivi.svg";
@@ -277,7 +278,7 @@ export function Footer() {
           <div className="space-y-2 text-xs text-white/80">
             <a href="#" className="block transition hover:text-white">{t('footer.helpCentre')}</a>
             <a href="#" className="block transition hover:text-white">{t('footer.contactUs')}</a>
-            <a href="#" className="block transition hover:text-white">{t('footer.liveChat')}</a>
+            <button type="button" onClick={() => openTawkChat()} className="block transition hover:text-white">{t('footer.liveChat')}</button>
             <a href="#" className="block transition hover:text-white">{t('footer.bookingSupport')}</a>
             <a href="#" className="block transition hover:text-white">{t('footer.refundPolicy')}</a>
             <a href="#" className="block transition hover:text-white">{t('footer.faq')}</a>
