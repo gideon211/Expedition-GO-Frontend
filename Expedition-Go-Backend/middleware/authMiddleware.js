@@ -82,27 +82,3 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
-
-/** Allow users with supplier role OR an existing supplier application profile. */
-exports.restrictToSupplier = catchAsync(async (req, res, next) => {
-  if (!req.user) {
-    return next(new AppError('You are not logged in! Please log in to get access.', 401));
-  }
-
-  if (req.user.roles?.includes('supplier')) {
-    return next();
-  }
-
-  const profile = await prisma.supplierProfile.findUnique({
-    where: { userId: req.user.id },
-    select: { id: true },
-  });
-
-  if (profile) {
-    return next();
-  }
-
-  return next(
-    new AppError('You do not have permission to perform this action', 403),
-  );
-});
