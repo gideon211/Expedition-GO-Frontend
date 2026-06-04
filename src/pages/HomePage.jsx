@@ -15,6 +15,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useNavigationLoader } from "@/contexts/NavigationContext";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
@@ -47,6 +48,7 @@ const POST_AUTH_SPLASH_MS = 700;
 function HomePageContent() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { navigateWithLoader } = useNavigationLoader();
   const { isAuthModalOpen, closeAuthModal } = useAuthModal();
   const { t } = useTranslation();
   const [skipInitialHomeDelay] = useState(() =>
@@ -328,7 +330,11 @@ function HomePageContent() {
                 <div className="relative z-[1] flex shrink-0 items-center gap-3">
                   <Link
                     to={`/tours?category=last-minute-deals&title=${encodeURIComponent(t('sections.lastMinuteDeals'))}`}
-                    onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: "auto" });
+                      navigateWithLoader(`/tours?category=last-minute-deals&title=${encodeURIComponent(t('sections.lastMinuteDeals'))}`);
+                    }}
                     className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
                   >
                     <span className="relative">
@@ -379,7 +385,11 @@ function HomePageContent() {
                 <div className="relative z-[1] flex shrink-0 items-center gap-3">
                   <Link
                     to={`/tours?category=new-experiences&title=${encodeURIComponent(t('sections.newExperiences'))}`}
-                    onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: "auto" });
+                      navigateWithLoader(`/tours?category=new-experiences&title=${encodeURIComponent(t('sections.newExperiences'))}`);
+                    }}
                     className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
                   >
                     <span className="relative">

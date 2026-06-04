@@ -57,10 +57,12 @@ import { RecentlyViewedProvider, useRecentlyViewed } from "@/contexts/RecentlyVi
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useCart } from "@/contexts/CartContext";
+import { useNavigationLoader } from "@/contexts/NavigationContext";
 import { useTourById } from "@/hooks/useTourById";
 import { adaptTourDetail, buildOverviewHighlights, buildDescriptionSteps, extractAgePrices, parseItineraryStops } from "@/lib/tourDetailAdapter";
 import { getTourByTitle, getAllTours } from "@/lib/tourData";
 import { openTawkChat } from "@/lib/tawk";
+import BrandLoader from "@/components/ui/BrandLoader";
 import fallbackTourImage from "@/assets/images/hero_pic.jpg";
 
 const EXTERNAL_FALLBACK_IMAGES = [
@@ -446,6 +448,14 @@ function TourDetailContent() {
   const { user } = useAuth();
   const { isAuthModalOpen, openAuthModal, closeAuthModal } = useAuthModal();
   const { data: rawTour, isLoading, error } = useTourById(id);
+  const { hideLoader } = useNavigationLoader();
+
+  useEffect(() => {
+    if (!isLoading && (rawTour || error)) {
+      hideLoader();
+    }
+  }, [isLoading, rawTour, error, hideLoader]);
+
   const fallbackTour = useMemo(() => {
     if (!error || rawTour) return null;
     const decoded = safeDecodeRouteParam(id);
@@ -534,6 +544,8 @@ function TourDetailContent() {
   const [expandedInfoSection, setExpandedInfoSection] = useState({ included: true });
   const [supplierInfoOpen, setSupplierInfoOpen] = useState(false);
   const [_travelerType, _setTravelerType] = useState("adults");
+  const [showBackSplash, setShowBackSplash] = useState(false);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [overviewAccordionOpen, setOverviewAccordionOpen] = useState({
     highlights: true,
   });
@@ -689,7 +701,10 @@ function TourDetailContent() {
     });
 
     if (added) {
-      navigate("/cart");
+      setCheckingAvailability(true);
+      setTimeout(() => {
+        navigate("/cart");
+      }, 800);
     }
   };
 
@@ -1145,17 +1160,6 @@ function TourDetailContent() {
       <div className="min-h-screen bg-[color:var(--page-bg)]">
         <Navbar />
         <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
-        <main className="mx-auto max-w-[1520px] px-4 pb-8 pt-6 sm:px-6 sm:pt-8 lg:px-8">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center space-y-4">
-              <div className="inline-block size-12 animate-spin rounded-full border-[3px] border-current border-t-transparent text-[color:var(--brand-green)]" role="status" aria-label="Loading">
-                <span className="sr-only">Loading...</span>
-              </div>
-              <p className="text-sm text-slate-500">Loading tour details...</p>
-            </div>
-          </div>
-        </main>
-        <Footer />
       </div>
     );
   }
@@ -1198,8 +1202,11 @@ function TourDetailContent() {
 
       <main className="mx-auto max-w-[1520px] px-4 pb-8 pt-6 text-[color:var(--brand-green)] sm:px-6 sm:pt-8 lg:px-8">
         <button
-          onClick={() => navigate(-1)}
-          className="group mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-[color:var(--brand-green)]/30 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] hover:shadow-md"
+            onClick={() => {
+              setShowBackSplash(true);
+              setTimeout(() => navigate(-1), 1050);
+            }}
+            className="group mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-[color:var(--brand-green)]/30 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] hover:shadow-md"
         >
           <ArrowLeft className="size-4 text-[color:var(--brand-green)] transition group-hover:-translate-x-0.5" />
           {t("common.back")}
@@ -1469,39 +1476,45 @@ function TourDetailContent() {
                 <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
                   <span className="text-sm font-medium text-slate-600">Total ({totalTravelers} {totalTravelers === 1 ? "traveler" : "travelers"})</span>
                   <span className="text-xl font-bold text-[color:var(--brand-green)]">{convertedTotalPrice.formatted}</span>
+              </div>
+            )}
+
+            <Button
+              onClick={handleCheckAvailability}
+              disabled={!bookingDateRange}
+              className="mt-4 h-12 w-full rounded-full bg-[color:var(--brand-green)] text-base font-black !text-white hover:bg-[color:var(--brand-green)]/90 disabled:opacity-60"
+            >
+              Check availability
+            </Button>
+
+            {checkingAvailability && (
+              <div className="mt-3 flex justify-center">
+                <div className="check-loader" />
+              </div>
+            )}
+
+            {nextAvailableQuickPickDates.length > 0 && (
+              <>
+                <p className="mt-4 font-black">Next Available Dates:</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {nextAvailableQuickPickDates.map((date) => {
+                    const availableDate = new Date(date);
+                    const label = availableDate.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
+
+                    return (
+                      <button
+                        key={date}
+                        type="button"
+                        onClick={() => commitBookingRange(availableDate, availableDate)}
+                        className="rounded-full border border-[color:var(--brand-green)] px-3 py-1.5 text-xs font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
-
-              <Button
-                onClick={handleCheckAvailability}
-                disabled={!bookingDateRange}
-                className="mt-4 h-12 w-full rounded-full bg-[color:var(--brand-green)] text-base font-black !text-white hover:bg-[color:var(--brand-green)]/90 disabled:opacity-60"
-              >
-                Check availability
-              </Button>
-
-              {nextAvailableQuickPickDates.length > 0 && (
-                <>
-                  <p className="mt-4 font-black">Next Available Dates:</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {nextAvailableQuickPickDates.map((date) => {
-                      const availableDate = new Date(date);
-                      const label = availableDate.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
-
-                      return (
-                        <button
-                          key={date}
-                          type="button"
-                          onClick={() => commitBookingRange(availableDate, availableDate)}
-                          className="rounded-full border border-[color:var(--brand-green)] px-3 py-1.5 text-xs font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
+              </>
+            )}
 
               {assistanceAside}
             </div>
@@ -1968,6 +1981,12 @@ function TourDetailContent() {
                 Check availability
               </Button>
 
+              {checkingAvailability && (
+                <div className="mt-3 flex justify-center">
+                  <div className="check-loader" />
+                </div>
+              )}
+
               {nextAvailableQuickPickDates.length > 0 && (
                 <>
                   <p className="mt-4 font-black">Next Available Dates:</p>
@@ -2273,6 +2292,42 @@ function TourDetailContent() {
         title="Sign in to book a tour"
         description="Create an account or sign in to continue with your booking."
       />
+
+      {showBackSplash && (
+        <BrandLoader fullScreen splash label="Loading..." />
+      )}
+
+
+
+      <style>{`
+        .check-loader {
+          width: 50px;
+          aspect-ratio: 1;
+          display: grid;
+        }
+        .check-loader::before,
+        .check-loader::after {
+          content: "";
+          grid-area: 1/1;
+          --c: no-repeat radial-gradient(farthest-side, #25b09b 92%, #0000);
+          background:
+            var(--c) 50% 0,
+            var(--c) 50% 100%,
+            var(--c) 100% 50%,
+            var(--c) 0 50%;
+          background-size: 12px 12px;
+          animation: l12 1s;
+        }
+        .check-loader::before {
+          margin: 4px;
+          filter: hue-rotate(45deg);
+          background-size: 8px 8px;
+          animation-timing-function: linear;
+        }
+        @keyframes l12 {
+          100% { transform: rotate(0.5turn); }
+        }
+      `}</style>
     </>
   );
 }

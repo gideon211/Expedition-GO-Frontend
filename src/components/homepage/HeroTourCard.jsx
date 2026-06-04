@@ -9,10 +9,12 @@ import { useTranslation } from "react-i18next";
 import { useRef } from "react";
 
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useNavigationLoader } from "@/contexts/NavigationContext";
 
 export function HeroTourCard({ title, slug, duration, price, rating, reviews, image, _disableTracking = false }) {
   const { t } = useTranslation();
   const { convertPrice } = useCurrency();
+  const { navigateWithLoader } = useNavigationLoader();
 
   const convertedPrice = convertPrice(price);
 
@@ -69,7 +71,10 @@ export function HeroTourCard({ title, slug, duration, price, rating, reviews, im
     if (lastGestureWasPanRef.current) {
       e.preventDefault();
       lastGestureWasPanRef.current = false;
+      return;
     }
+    e.preventDefault();
+    navigateWithLoader(detailTo);
   };
 
   const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;

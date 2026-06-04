@@ -8,8 +8,8 @@
  * @see hooks/useSearchAutocomplete.js
  * @see contexts/CurrencyContext.jsx, WishlistContext.jsx, CartContext.jsx
  */
-import { Globe, Heart, Headset, Menu, ShoppingCart, Settings, UserCircle2, X, ChevronDown, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Globe, Heart, Headset, LoaderCircle, Menu, ShoppingCart, Settings, UserCircle2, X, ChevronDown, Search } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +21,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useSearchAutocomplete } from "@/hooks/useSearchAutocomplete";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 import { SupplierNavMenuItem } from "./SupplierNavMenuItem";
+import { useNavigationLoader } from "@/contexts/NavigationContext";
 
 export function Navbar({
   sharedDateRange,
@@ -49,7 +50,10 @@ export function Navbar({
   const navAutocompleteRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
+  const { navigateWithLoader } = useNavigationLoader();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isNavigatingToAuth, setIsNavigatingToAuth] = useState(false);
 
   useEffect(() => {
     setPhotoLoaded(false);
@@ -82,6 +86,47 @@ export function Navbar({
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  const handleSignOut = useCallback(async () => {
+    if (isSigningOut) return;
+
+    setIsSigningOut(true);
+    setIsUserMenuOpen(false);
+    setIsMobileMenuOpen(false);
+
+    try {
+      await signOut();
+      navigate("/", { replace: true, state: { showLogoutToast: true } });
+    } catch {
+      setIsSigningOut(false);
+    }
+  }, [isSigningOut, signOut, navigate]);
+
+  useEffect(() => {
+    if (!isNavigatingToAuth) return;
+
+    if (location.pathname === "/signin") {
+      const timer = setTimeout(() => setIsNavigatingToAuth(false), 2100);
+      return () => clearTimeout(timer);
+    }
+
+    if (!["/signin", "/register"].includes(location.pathname)) {
+      setIsNavigatingToAuth(false);
+    }
+  }, [location.pathname, isNavigatingToAuth]);
+
+  const handleAuthLinkClick = useCallback(
+    (event) => {
+      event.preventDefault();
+      if (isNavigatingToAuth) return;
+
+      setIsNavigatingToAuth(true);
+      setIsUserMenuOpen(false);
+      setIsMobileMenuOpen(false);
+      navigateWithLoader("/signin");
+    },
+    [isNavigatingToAuth, navigateWithLoader]
+  );
 
   const handleLanguageChange = (langCode) => {
     i18n.changeLanguage(langCode);
@@ -440,14 +485,24 @@ export function Navbar({
                         </button>
                       </div>
                       <div className="border-t border-slate-100 p-2">
-                        <Link
-                          to="/signout" 
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
+                        <button
+                          type="button"
+                          onClick={handleSignOut}
+                          disabled={isSigningOut}
+                          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50 disabled:cursor-wait disabled:opacity-80"
                         >
-                          <X className="size-4" />
-                          <span>{t('nav.signOut')}</span>
-                        </Link>
+                          {isSigningOut ? (
+                            <>
+                              <LoaderCircle className="size-4 shrink-0 animate-spin text-rose-600" />
+                              <span>{t("nav.signingOut")}</span>
+                            </>
+                          ) : (
+                            <>
+                              <X className="size-4 shrink-0" />
+                              <span>{t("nav.signOut")}</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </>
@@ -489,11 +544,20 @@ export function Navbar({
                       <div className="border-t border-slate-100 p-2">
                         <Link
                           to="/signin"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)]"
+                          onClick={handleAuthLinkClick}
+                          aria-busy={isNavigatingToAuth}
+                          className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)] ${
+                            isNavigatingToAuth ? "pointer-events-none cursor-wait opacity-80" : ""
+                          }`}
                         >
-                          <UserCircle2 className="size-4" />
-                          <span>Sign In / Sign Up</span>
+                          {isNavigatingToAuth ? (
+                            <LoaderCircle className="size-4 shrink-0 animate-spin text-[color:var(--brand-green)]" />
+                          ) : (
+                            <UserCircle2 className="size-4 shrink-0" />
+                          )}
+                          <span>
+                            {isNavigatingToAuth ? t("auth.loadingSignIn") : t("nav.signInSignUp")}
+                          </span>
                         </Link>
                       </div>
                     </div>
@@ -699,27 +763,41 @@ export function Navbar({
                       </div>
                     </div>
                     <Button
-                      asChild
+                      type="button"
                       variant="outline"
-                      className="mt-3 w-full justify-start border-slate-300 bg-white text-slate-950 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
+                      onClick={handleSignOut}
+                      disabled={isSigningOut}
+                      className="mt-3 w-full justify-start gap-2 border-slate-300 bg-white text-slate-950 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 disabled:cursor-wait"
                     >
-                      <Link to="/signout" onClick={closeMobileMenu}>
-                        <X className="size-4" />
-                        {t('nav.signOut')}
-                      </Link>
+                      {isSigningOut ? (
+                        <>
+                          <LoaderCircle className="size-4 shrink-0 animate-spin text-rose-600" />
+                          {t("nav.signingOut")}
+                        </>
+                      ) : (
+                        <>
+                          <X className="size-4 shrink-0" />
+                          {t("nav.signOut")}
+                        </>
+                      )}
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="mt-2 w-full justify-start border-slate-300 bg-white text-slate-950 hover:border-[color:var(--brand-green)] hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)]"
+                  <Link
+                    to="/signin"
+                    onClick={handleAuthLinkClick}
+                    aria-busy={isNavigatingToAuth}
+                    className={`mt-2 inline-flex w-full items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-950 transition hover:border-[color:var(--brand-green)] hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] ${
+                      isNavigatingToAuth ? "pointer-events-none cursor-wait opacity-80" : ""
+                    }`}
                   >
-                    <Link to="/signin" onClick={closeMobileMenu}>
-                      <UserCircle2 className="size-4" />
-                      Sign In / Sign Up
-                    </Link>
-                  </Button>
+                    {isNavigatingToAuth ? (
+                      <LoaderCircle className="size-4 shrink-0 animate-spin text-[color:var(--brand-green)]" />
+                    ) : (
+                      <UserCircle2 className="size-4 shrink-0" />
+                    )}
+                    {isNavigatingToAuth ? t("auth.loadingSignIn") : t("nav.signInSignUp")}
+                  </Link>
                 )
               )}
             </div>

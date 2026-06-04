@@ -300,6 +300,28 @@ button:disabled,
   }
 }
 
+/* Single full wipe before auth pages (pair with BrandLoader `once` + onComplete) */
+.brand-loader--once .brand-loader__fill-wrap {
+  animation: brandLoaderWipeOnce 1.65s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+@keyframes brandLoaderWipeOnce {
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: calc(100% + 1.1ch);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-loader--once .brand-loader__fill-wrap {
+    animation: none;
+    width: calc(100% + 1.1ch);
+  }
+}
+
 /* Short wipe for post–sign-in splash (~1s; pair with JS timeout ≤1200ms) */
 .brand-loader--splash .brand-loader__fill-wrap {
   animation: brandLoaderWipeSplash 0.92s cubic-bezier(0.45, 0, 0.2, 1) forwards;
@@ -344,3 +366,4 @@ button:disabled,
     letter-spacing: -1px;
   }
 }
+

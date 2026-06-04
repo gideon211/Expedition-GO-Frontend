@@ -6,10 +6,19 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useNavigationLoader } from "@/contexts/NavigationContext";
 
 export function SectionHeading({ title, subtitle, categoryId, fallbackKey, hideViewAll, hideTitle, onScrollLeft, onScrollRight }) {
   const { t } = useTranslation();
+  const { navigateWithLoader } = useNavigationLoader();
   const hasScrollButtons = onScrollLeft && onScrollRight;
+
+  const handleViewAll = (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    const to = `/tours?category=${encodeURIComponent(categoryId || "all")}&title=${encodeURIComponent(title)}${fallbackKey ? `&fk=${encodeURIComponent(fallbackKey)}` : ""}`;
+    navigateWithLoader(to);
+  };
 
   return (
     <div className="relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
@@ -35,7 +44,7 @@ export function SectionHeading({ title, subtitle, categoryId, fallbackKey, hideV
         {!hideViewAll && (
           <Link
             to={`/tours?category=${encodeURIComponent(categoryId || "all")}&title=${encodeURIComponent(title)}${fallbackKey ? `&fk=${encodeURIComponent(fallbackKey)}` : ""}`}
-            onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
+            onClick={handleViewAll}
             className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
           >
             <span className="relative">

@@ -27,8 +27,9 @@ import { Toaster } from "sonner";
 
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
-import BrandLoader from "@/components/ui/BrandLoader";
+import Loader from "@/components/ui/Loader";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { NavigationProvider } from "@/contexts/NavigationContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { CartProvider } from "@/contexts/CartContext";
@@ -57,13 +58,14 @@ function AppContent() {
   const { loading } = useAuth();
 
   if (loading) {
-    return <BrandLoader fullScreen label="Loading application" />;
+    return <Loader />;
   }
 
   return (
     <CurrencyProvider>
       <WishlistProvider>
         <CartProvider>
+          <NavigationProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/tours" element={<AllToursPage />} />
@@ -85,6 +87,7 @@ function AppContent() {
             <Route path="/supplier/profile/:tourTitle" element={<SupplierPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </NavigationProvider>
         </CartProvider>
       </WishlistProvider>
     </CurrencyProvider>

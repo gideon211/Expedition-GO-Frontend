@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarDays, Clock3, ShoppingCart, Trash2, ShieldCheck, Users } from "lucide-react";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Navbar } from "@/components/homepage/Navbar";
@@ -15,6 +16,7 @@ import { Footer } from "@/components/homepage/Footer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useNavigationLoader } from "@/contexts/NavigationContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthModal } from "@/components/ui/auth-modal";
 import BrandLoader from "@/components/ui/BrandLoader";
@@ -43,6 +45,7 @@ const formatRemainingTime = (ms) => {
 function CartPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { navigateWithLoader } = useNavigationLoader();
   const { cart, removeFromCart, clearCart } = useCart();
   const { convertPrice } = useCurrency();
   const { user } = useAuth();
@@ -54,6 +57,18 @@ function CartPage() {
     const intervalId = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(intervalId);
   }, []);
+
+  const handleRemove = (key) => {
+    removeFromCart(key);
+    toast.error("Tour removed", {
+      style: {
+        background: "#FEF2F2",
+        color: "#B91C1C",
+        border: "1px solid rgba(185, 28, 28, 0.25)",
+      },
+      duration: 2500,
+    });
+  };
 
   const total = useMemo(() => {
     return cart.reduce((acc, item) => {
@@ -71,7 +86,7 @@ function CartPage() {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigateWithLoader(-1)}
             className="group mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-base font-semibold text-slate-600 shadow-sm transition hover:border-[color:var(--brand-green)]/30 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] hover:shadow-md sm:text-sm"
           >
             <ArrowLeft className="size-4 text-[color:var(--brand-green)] transition group-hover:-translate-x-0.5" />
@@ -153,7 +168,7 @@ function CartPage() {
                           </h5>
                           <button
                             type="button"
-                            onClick={() => removeFromCart(item.key)}
+                            onClick={() => handleRemove(item.key)}
                             className="hidden shrink-0 rounded-full p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 sm:block"
                             aria-label="Remove item"
                           >
@@ -198,7 +213,7 @@ function CartPage() {
                           </p>
                           <button
                             type="button"
-                            onClick={() => removeFromCart(item.key)}
+                            onClick={() => handleRemove(item.key)}
                             className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-base font-medium text-rose-600 transition hover:bg-rose-50 sm:hidden"
                           >
                             <Trash2 className="size-4" />

@@ -7,12 +7,14 @@
 import { useTranslation } from "react-i18next";
 import AuthShell from "@/components/auth/AuthShell";
 import { AuthForm } from "@/components/auth/AuthForm";
+import { AuthPageGate } from "@/components/auth/AuthPageGate";
 import { registerWithEmail } from "@/lib/auth";
 
 function RegisterPage() {
   const { t } = useTranslation();
   
   return (
+    <AuthPageGate label={t("auth.loadingRegister")}>
     <AuthShell
       badgeLabel={t('auth.register')}
       title={t('auth.createYourAccount')}
@@ -27,6 +29,7 @@ function RegisterPage() {
         submitLabel={t('auth.createAccount')}
       />
     </AuthShell>
+    </AuthPageGate>
   );
 }
 

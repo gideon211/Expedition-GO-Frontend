@@ -10,6 +10,7 @@ import { useRef } from "react";
 
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useNavigationLoader } from "@/contexts/NavigationContext";
 
 /**
  * Compact Tour Card - Vertical layout for sidebar sections
@@ -30,6 +31,7 @@ export function CompactTourCard({
   const { t } = useTranslation();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
+  const { navigateWithLoader } = useNavigationLoader();
   const isFavorited = isInWishlist(title);
 
   const convertedPrice = convertPrice(price);
@@ -93,7 +95,10 @@ export function CompactTourCard({
     if (lastGestureWasPanRef.current) {
       e.preventDefault();
       lastGestureWasPanRef.current = false;
+      return;
     }
+    e.preventDefault();
+    navigateWithLoader(detailTo);
   };
 
   const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;

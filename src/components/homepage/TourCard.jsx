@@ -11,6 +11,7 @@ import { useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useNavigationLoader } from "@/contexts/NavigationContext";
 
 export function TourCard({
   title,
@@ -28,6 +29,7 @@ export function TourCard({
   const { t } = useTranslation();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
+  const { navigateWithLoader } = useNavigationLoader();
   const isFavorited = isInWishlist(title);
   /** Tracks this pointer gesture so carousel horizontal scroll does not cancel every tap. */
   const panRef = useRef({
@@ -95,7 +97,10 @@ export function TourCard({
     if (lastGestureWasPanRef.current) {
       e.preventDefault();
       lastGestureWasPanRef.current = false;
+      return;
     }
+    e.preventDefault();
+    navigateWithLoader(detailTo);
   };
 
   const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;

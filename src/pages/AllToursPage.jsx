@@ -19,7 +19,6 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { ReviewsCarousel } from "@/components/homepage/ReviewsCarousel";
 import { TourFiltersPanel } from "@/components/homepage/TourFiltersPanel";
-import { TourCarouselSection } from "@/components/homepage/TourCarouselSection";
 import { useAllTours } from "@/hooks/useAllTours";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { getAllTours } from "@/lib/tourData";
@@ -274,12 +273,13 @@ function AllToursPageContent() {
   const effectiveFallbackKey = (urlFallbackKey && urlFallbackKey in FALLBACK_MAP) ? urlFallbackKey : null;
   const isFallbackCategory = !!(effectiveFallbackKey || categoryInMap);
 
+  const perPage = isFallbackCategory ? 8 : CARDS_PER_PAGE;
   const fallbackKey = effectiveFallbackKey || (categoryInMap ? category : null);
   const fallbackData = isFallbackCategory ? FALLBACK_MAP[fallbackKey] : null;
 
   const tourParams = {
     page: currentPage,
-    limit: CARDS_PER_PAGE,
+    limit: perPage,
     category: !isFallbackCategory && category !== "all" && category !== "destinations" && category !== "last-minute-deals" && category !== "new-experiences" ? category : undefined,
     minRating: selectedRating || undefined,
     minPrice: priceMin > 0 ? priceMin : undefined,
@@ -298,9 +298,10 @@ function AllToursPageContent() {
   }, [filterOptions]);
 
   const isLoading = isFallbackCategory ? false : apiLoading;
-  const tours = fallbackData || tourData?.tours || [];
-  const totalCount = isFallbackCategory ? tours.length : (tourData?.pagination?.totalCount || 0);
-  const totalPages = isFallbackCategory ? 1 : (tourData?.pagination?.totalPages || 1);
+  const allTours = fallbackData || tourData?.tours || [];
+  const tours = isFallbackCategory ? allTours.slice((currentPage - 1) * perPage, currentPage * perPage) : allTours;
+  const totalCount = isFallbackCategory ? allTours.length : (tourData?.pagination?.totalCount || 0);
+  const totalPages = isFallbackCategory ? Math.max(1, Math.ceil(allTours.length / perPage)) : (tourData?.pagination?.totalPages || 1);
 
   const categoryLabels = {
     tours: t("sections.featuredTitle"),
@@ -689,79 +690,68 @@ function AllToursPageContent() {
               </div>
             )}
 
-            {isFallbackCategory ? (
-              <TourCarouselSection
-                id={category}
-                items={fallbackData || []}
-                hideViewAll
-                hideTitle
-                sideArrows
-                badge={tourListBadge}
-              />
-            ) : (
-              <>
-                <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
-                  <p className="text-sm font-medium text-slate-600">
-                    {isLoading ? "..." : totalCount} {type === "destinations" ? t("common.destinations") : t("common.tours")} available
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-600">Sort by:</span>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="rounded px-3 py-2 text-sm font-medium text-slate-900 outline-none"
-                    >
-                      <option value="featured">Featured</option>
-                      <option value="price-low">Price: Low to High</option>
-                      <option value="price-high">Price: High to Low</option>
-                      <option value="rating">Highest Rated</option>
-                    </select>
-                  </div>
+            <>
+              <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
+                <p className="text-sm font-medium text-slate-600">
+                  {isLoading ? "..." : totalCount} {type === "destinations" ? t("common.destinations") : t("common.tours")} available
+                </p>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-600">Sort by:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="rounded px-3 py-2 text-sm font-medium text-slate-900 outline-none"
+                  >
+                    <option value="featured">Featured</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                  </select>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-1 gap-3 pb-2 sm:pb-0 sm:gap-x-1.5 sm:gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {isLoading ? (
-                    <div className="col-span-full py-20 text-center text-sm text-slate-500">Loading tours...</div>
-                  ) : tours.length === 0 ? (
-                    <div className="col-span-full py-20 text-center text-sm text-slate-500">No tours found matching your criteria.</div>
-                  ) : (
-                    tours.map((item, index) => (
-                      <div key={`${item.slug || item.title}-${index}`} className="w-full">
-                        <div className="sm:hidden">
-                          <MobileAllToursCard item={item} badge={tourListBadge} />
-                        </div>
-                        <div className="hidden sm:block">
-                          <TourCard {...item} variant="allTours" badge={tourListBadge} />
-                        </div>
+              <div className="grid grid-cols-1 gap-3 pb-2 sm:pb-0 sm:gap-x-1.5 sm:gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {isLoading ? (
+                  <div className="col-span-full py-20 text-center text-sm text-slate-500">Loading tours...</div>
+                ) : tours.length === 0 ? (
+                  <div className="col-span-full py-20 text-center text-sm text-slate-500">No tours found matching your criteria.</div>
+                ) : (
+                  tours.map((item, index) => (
+                    <div key={`${item.slug || item.title}-${index}`} className="w-full">
+                      <div className="sm:hidden">
+                        <MobileAllToursCard item={item} badge={tourListBadge} />
                       </div>
-                    ))
-                  )}
-                </div>
-                {totalPages > 1 && (
-                  <div className="mt-6 flex items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
-                      disabled={!pagination.hasPrevPage}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Prev
-                    </button>
-                    <span className="text-sm font-medium text-slate-700">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
-                      disabled={!pagination.hasNextPage}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Next
-                    </button>
-                  </div>
+                      <div className="hidden sm:block">
+                        <TourCard {...item} variant="allTours" badge={tourListBadge} />
+                      </div>
+                    </div>
+                  ))
                 )}
-              </>
-            )}
+              </div>
+              {totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
+                    disabled={currentPage <= 1}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-sm font-medium text-slate-700">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
+                    disabled={currentPage >= totalPages}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
 
             <ReviewsCarousel />
           </div>
