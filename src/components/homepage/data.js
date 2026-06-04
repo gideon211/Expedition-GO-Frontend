@@ -150,50 +150,103 @@ export const destinations = [
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    title: "Volta Region",
-    tours: "60+ Tours",
+    title: "Elmina",
+    tours: "55+ Tours",
+    region: "Central Region",
+    image:
+      "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Mole National Park",
+    tours: "30+ Tours",
+    region: "Savannah Region",
+    image:
+      "https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Wli Waterfalls",
+    tours: "25+ Tours",
     region: "Volta Region",
     image:
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    title: "Tamale",
-    tours: "40+ Tours",
-    region: "Northern Region",
+    title: "Aburi Botanical Gardens",
+    tours: "20+ Tours",
+    region: "Eastern Region",
     image:
-      "https://images.unsplash.com/photo-1521401830884-6c03c1c87ebb?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    title: "Axim",
-    tours: "35+ Tours",
+    title: "Ada Foah",
+    tours: "30+ Tours",
+    region: "Greater Accra",
+    image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Boti Falls",
+    tours: "18+ Tours",
+    region: "Eastern Region",
+    image:
+      "https://images.unsplash.com/photo-1494783367193-149034c05e8f?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Busua Beach",
+    tours: "22+ Tours",
     region: "Western Region",
     image:
-      "https://images.unsplash.com/photo-1501959915551-4e8a04b3074d?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
   },
-  ...Array.from({ length: 10 }, (_, index) => {
-    const regionPool = [
-      "Greater Accra",
-      "Central Region",
-      "Eastern Region",
-      "Volta Region",
-      "Ashanti Region",
-      "Brong Ahafo Region",
-      "Western Region",
-      "Upper West Region",
-      "Upper East Region",
-      "Northern Region",
-      "Savannah Region",
-      "North East Region",
-      "Ahafo Region",
-      "Bono Region",
-    ];
-    return {
-      title: `Ghana Destination ${index + 1}`,
-      tours: `${35 + index * 3}+ Tours`,
-      region: regionPool[index % regionPool.length],
-      image: `https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80&sig=destination${index + 1}`,
-    };
-  }),
+  {
+    title: "Larabanga Mosque",
+    tours: "12+ Tours",
+    region: "Savannah Region",
+    image:
+      "https://images.unsplash.com/photo-1590181076255-de1dbbc106ed?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Nzulezu Stilt Village",
+    tours: "15+ Tours",
+    region: "Western Region",
+    image:
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Shai Hills Reserve",
+    tours: "20+ Tours",
+    region: "Greater Accra",
+    image:
+      "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Paga Crocodile Pond",
+    tours: "14+ Tours",
+    region: "Upper East Region",
+    image:
+      "https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Akosombo",
+    tours: "28+ Tours",
+    region: "Eastern Region",
+    image:
+      "https://images.unsplash.com/photo-1473773508845-188df298d2d1?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Tafi Atome Monkey Sanctuary",
+    tours: "10+ Tours",
+    region: "Volta Region",
+    image:
+      "https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Biriwa Beach",
+    tours: "16+ Tours",
+    region: "Central Region",
+    image:
+      "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80",
+  },
 ];
 
 export const recommendedTours = [

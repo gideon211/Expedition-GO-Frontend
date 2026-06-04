@@ -4,7 +4,7 @@
  *   Search navigates to /tours with query params. Uses heroStats from data.js.
  */
 import { MapPin, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -51,6 +51,26 @@ export function HeroSection({
 
   const _cardWidth = 280; // Horizontal card width
   const _gap = 12;
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  const checkOverflow = useCallback(() => {
+    const container = desktopScrollRef.current;
+    if (container) {
+      setIsOverflowing(container.scrollWidth > container.clientWidth + 2);
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    checkOverflow();
+  }, [carouselItems.length, checkOverflow]);
+
+  useLayoutEffect(() => {
+    const container = desktopScrollRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(checkOverflow);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [checkOverflow]);
 
   // Simple scroll function for finite carousel
   const scroll = (direction) => {
@@ -329,7 +349,7 @@ export function HeroSection({
             <div className="overflow-visible">
               {/* Desktop: arrows outside the card strip (not over the cards) */}
               <div className="mx-auto hidden w-full max-w-full items-center gap-2 px-1 sm:gap-3 md:flex lg:gap-4">
-                {carouselItems.length > 1 && (
+                {isOverflowing && (
                   <button
                     type="button"
                     onClick={() => scroll("left")}
@@ -346,20 +366,21 @@ export function HeroSection({
                   style={{
                     WebkitOverflowScrolling: "touch",
                     scrollSnapType: "x mandatory",
+                    justifyContent: isOverflowing ? "flex-start" : "center",
                   }}
                 >
                   {carouselItems.map((item, index) => (
                     <div
                       key={`${item.title}-${index}-desktop`}
                       className="w-[280px] min-w-[280px] shrink-0"
-                      style={{ scrollSnapAlign: "start" }}
+                      style={{ scrollSnapAlign: isOverflowing ? "start" : "none" }}
                     >
                       <HeroTourCard {...item} disableTracking={true} />
                     </div>
                   ))}
                 </div>
 
-                {carouselItems.length > 1 && (
+                {isOverflowing && (
                   <button
                     type="button"
                     onClick={() => scroll("right")}

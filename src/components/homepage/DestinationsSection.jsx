@@ -227,7 +227,10 @@ export function DestinationsSection({ apiDestinations = [] }) {
         <div className="flex items-center gap-3">
           <Link
             to="/tours?category=destinations"
-            onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
+            onClick={(e) => {
+              e.preventDefault();
+              setIsModalOpen(true);
+            }}
             className="group inline-flex shrink-0 touch-manipulation items-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
           >
             <span className="relative">

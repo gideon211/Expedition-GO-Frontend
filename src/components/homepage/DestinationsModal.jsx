@@ -115,7 +115,7 @@ function ModalBody({ onClose }) {
     return result;
   }, [selectedRegion, searchQuery]);
 
-  const popularVisible = filtered.slice(0, 5);
+  const popularVisible = filtered.slice(0, 8);
 
   const handleNavigate = useCallback(
     (title) => {
@@ -143,7 +143,7 @@ function ModalBody({ onClose }) {
     });
     return Array.from(map.entries()).map(([region, items]) => ({
       region,
-      items: items.slice(0, 2),
+      items: items.slice(0, 3),
     }));
   }, [selectedRegion, searchQuery]);
 
@@ -201,7 +201,7 @@ function ModalBody({ onClose }) {
             />
           ) : (
             <div className="py-12 text-center text-sm text-slate-500">
-              No destinations match your search.
+              No Ghanaian destinations match your search.
             </div>
           )}
         </div>
@@ -268,12 +268,17 @@ function SlideOutPanel({ isOpen, onClose, children }) {
           >
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-              <h2
-                id="modal-title"
-                className="text-lg font-bold text-slate-900 sm:text-2xl"
-              >
-                Where to next?
-              </h2>
+              <div>
+                <h2
+                  id="modal-title"
+                  className="text-lg font-bold text-slate-900 sm:text-2xl"
+                >
+                  Explore Ghana
+                </h2>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  Discover amazing destinations across the country
+                </p>
+              </div>
               <button
                 onClick={onClose}
                 className="grid size-10 place-items-center rounded-full transition hover:bg-slate-100"
