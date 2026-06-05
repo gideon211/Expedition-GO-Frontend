@@ -19,15 +19,17 @@ const BRAND_LOADER_ONCE_FALLBACK_MS = BRAND_LOADER_ONCE_MS + BRAND_LOADER_ONCE_H
 
 /**
  * Brand loading / splash visuals.
- * @param {{ fullScreen?: boolean; label?: string; splash?: boolean; once?: boolean; onComplete?: () => void }} props
+ * @param {{ fullScreen?: boolean; label?: string; splash?: boolean; once?: boolean; initial?: boolean; onComplete?: () => void }} props
  * - `splash`: shorter wipe animation (~1s) for post–sign-in handoff (pair with ~1200ms timers).
  * - `once`: full brand reveal once; use `onComplete` to continue (e.g. show auth form).
+ * - `initial`: dramatic single-play splash for first-ever page load.
  */
 export function BrandLoader({
   fullScreen = false,
   label = "Loading...",
   splash = false,
   once = false,
+  initial = false,
   onComplete,
 }) {
   const fillWrapRef = useRef(null);
@@ -69,7 +71,9 @@ export function BrandLoader({
     };
   }, [once, onComplete]);
 
-  const wrapperClass = fullScreen
+  const isFullScreen = initial || fullScreen;
+
+  const wrapperClass = isFullScreen
     ? cn(
         "fixed inset-0 z-[120] flex items-center justify-center bg-white px-4 sm:px-6 min-h-[100dvh] min-h-[100svh]",
         "pt-[env(safe-area-inset-top,0)] pb-[env(safe-area-inset-bottom,0)]",
@@ -78,11 +82,10 @@ export function BrandLoader({
 
   return (
     <div className={wrapperClass} role="status" aria-live="polite" aria-label={label}>
-      <div className={cn("brand-loader", splash && "brand-loader--splash", once && "brand-loader--once")}>
+      <div className={cn("brand-loader", splash && "brand-loader--splash", once && "brand-loader--once", initial && "brand-loader--initial")}>
         <div ref={fillWrapRef} className="brand-loader__fill-wrap">
           <div className="brand-loader__fill">
-            <span className="brand-loader__travio">Travio</span>
-            <span className="brand-loader__africa">Africa</span>
+            <span className="brand-loader__travio">Travio</span><span className="brand-loader__africa">Africa</span>
           </div>
         </div>
       </div>

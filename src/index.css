@@ -316,7 +316,8 @@ button:disabled,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brand-loader--once .brand-loader__fill-wrap {
+  .brand-loader--once .brand-loader__fill-wrap,
+  .brand-loader--initial .brand-loader__fill-wrap {
     animation: none;
     width: calc(100% + 1.1ch);
   }
@@ -333,6 +334,77 @@ button:disabled,
   }
   100% {
     width: calc(100% + 1.1ch);
+  }
+}
+
+/* ============================================
+   INITIAL SPLASH — first-ever page load
+   Dramatic single-play reveal: scale + blur ->
+   crisp wipe -> hold -> fade out
+   ============================================ */
+.brand-loader--initial .brand-loader__fill-wrap {
+  animation: brandLoaderInitialWipe 2.6s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+.brand-loader--initial .brand-loader__fill {
+  animation: brandLoaderInitialReveal 2.6s ease-out forwards;
+}
+
+@keyframes brandLoaderInitialReveal {
+  0% {
+    transform: scale(0.8);
+    filter: blur(10px);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1.05);
+    filter: blur(0);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1);
+  }
+  80% {
+    transform: scale(1);
+    filter: blur(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@keyframes brandLoaderInitialWipe {
+  0% {
+    width: 0%;
+  }
+  55% {
+    width: calc(100% + 1.1ch);
+  }
+  100% {
+    width: calc(100% + 1.1ch);
+  }
+}
+
+/* Larger text & tighter tracking for initial splash */
+.brand-loader--initial .brand-loader__fill {
+  font-size: 110px;
+  letter-spacing: -5px;
+}
+
+@media (max-width: 1024px) {
+  .brand-loader--initial .brand-loader__fill {
+    font-size: clamp(52px, 9vw, 84px);
+    letter-spacing: -3px;
+  }
+}
+
+@media (max-width: 640px) {
+  .brand-loader--initial .brand-loader__fill {
+    font-size: clamp(36px, 11vw, 52px);
+    letter-spacing: -2px;
   }
 }
 

@@ -27,7 +27,7 @@ import { Toaster } from "sonner";
 
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
-import Loader from "@/components/ui/Loader";
+import BrandLoader from "@/components/ui/BrandLoader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NavigationProvider } from "@/contexts/NavigationContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
@@ -58,7 +58,7 @@ function AppContent() {
   const { loading } = useAuth();
 
   if (loading) {
-    return <Loader />;
+    return <BrandLoader fullScreen initial />;
   }
 
   return (
