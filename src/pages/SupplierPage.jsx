@@ -1,49 +1,171 @@
 import { useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { Star, Heart, Phone, Mail, Globe, MapPin, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { getTourByTitle, getAllTours } from "@/lib/tourData";
+import { fetchTourById, fetchTours } from "@/api/tours";
+import { adaptTourCard } from "@/lib/tourAdapter";
+import { mapSupplierProfile, normalizeWebsiteUrl } from "@/lib/supplierProfile";
+
+function SupplierContactRows({ supplierData }) {
+  const websiteHref = normalizeWebsiteUrl(supplierData.website);
+
+  return (
+    <div className="mt-4 space-y-3">
+      {supplierData.phone && (
+        <div className="flex items-start gap-3 text-sm">
+          <Phone className="mt-0.5 size-4 shrink-0 text-[color:var(--brand-green)]" />
+          <a
+            href={`tel:${supplierData.phone.replace(/\s/g, "")}`}
+            className="min-w-0 flex-1 break-words text-slate-700 hover:text-[color:var(--brand-green)]"
+          >
+            {supplierData.phone}
+          </a>
+        </div>
+      )}
+      {supplierData.email && (
+        <div className="flex items-start gap-3 text-sm">
+          <Mail className="mt-0.5 size-4 shrink-0 text-[color:var(--brand-green)]" />
+          <a
+            href={`mailto:${supplierData.email}`}
+            className="min-w-0 flex-1 break-all text-[color:var(--brand-green)] underline-offset-2 hover:underline"
+          >
+            {supplierData.email}
+          </a>
+        </div>
+      )}
+      {websiteHref && (
+        <div className="flex items-start gap-3 text-sm">
+          <Globe className="mt-0.5 size-4 shrink-0 text-[color:var(--brand-green)]" />
+          <a
+            href={websiteHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="min-w-0 flex-1 break-all text-[color:var(--brand-green)] underline-offset-2 hover:underline"
+          >
+            {supplierData.website}
+          </a>
+        </div>
+      )}
+      {supplierData.address && (
+        <div className="flex items-start gap-3 text-sm">
+          <MapPin className="mt-0.5 size-4 shrink-0 text-[color:var(--brand-green)]" />
+          <span className="min-w-0 flex-1 break-words text-slate-700">{supplierData.address}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SupplierPage() {
   const { tourTitle } = useParams();
+  const location = useLocation();
   const { t } = useTranslation();
   const decodedTitle = decodeURIComponent(tourTitle);
   const { convertPrice } = useCurrency();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const [supplierInfoOpen, setSupplierInfoOpen] = useState(false);
+  const [supplierInfoOpen, setSupplierInfoOpen] = useState(true);
+
+  const tourLookupId =
+    location.state?.tourId || location.state?.tourSlug || decodedTitle;
+
+  const { data: tour, isLoading: tourLoading } = useQuery({
+    queryKey: ["tour", "supplier-profile", tourLookupId],
+    queryFn: async () => {
+      const data = await fetchTourById(tourLookupId);
+      return data?.tour || data || null;
+    },
+    enabled: !!tourLookupId,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const supplierData = useMemo(() => {
-    const tour = getTourByTitle(decodedTitle);
-    if (!tour) return null;
-    const src = tour;
-    const companyName = src?.supplierName || src?.operatorName || "Expedition-Go Tours Ltd";
-    return {
-      name: companyName,
-      logo: "",
-      email: src?.supplierEmail || src?.operatorEmail || "contact@expeditiongo.com",
-      phone: src?.supplierPhone || src?.operatorPhone || "+233 123 456 789",
-      website: src?.supplierWebsite || src?.operatorWebsite || "https://expeditiongo.com",
-      address: src?.supplierAddress || src?.operatorAddress || src?.city || "Accra, Ghana",
-      description: src?.supplierDescription || src?.operatorDescription || "Expedition-Go Tours is a trusted tour operator based in Accra, Ghana, offering curated cultural, wildlife, and adventure experiences across West Africa.",
-      rating: src?.rating || 4.9,
-      toursCount: 0,
-    };
+    if (tour) {
+      return mapSupplierProfile({
+        tour,
+        fallback: location.state?.supplierData,
+      });
+    }
+    if (location.state?.supplierData) {
+      return location.state.supplierData;
+    }
+    const staticTour = getTourByTitle(decodedTitle);
+    if (!staticTour) return null;
+    return mapSupplierProfile({
+      fallback: {
+        name: staticTour.supplierName || staticTour.operatorName,
+        address: staticTour.city,
+        rating: staticTour.rating,
+      },
+    });
+  }, [tour, location.state?.supplierData, decodedTitle]);
+
+  const { data: apiResponse, isLoading: apiLoading } = useQuery({
+    queryKey: ["tours", "supplier", supplierData?.supplierId],
+    queryFn: () => {
+      const params = supplierData?.supplierId
+        ? { supplierId: supplierData.supplierId, limit: 100 }
+        : { limit: 100 };
+      return fetchTours(params);
+    },
+    enabled: !!supplierData,
+    staleTime: 1000 * 30,
+  });
+
+  const apiTours = useMemo(() => {
+    if (!apiResponse?.tours) return [];
+    const tours = apiResponse.tours;
+    if (supplierData?.supplierId) return tours.map(adaptTourCard);
+    const name = supplierData?.name?.toLowerCase().trim();
+    if (!name) return [];
+    return tours
+      .filter((t) => {
+        const sn = (t.supplier?.name || t.supplier?.companyName || t.operator?.companyName || "").toLowerCase().trim();
+        return sn === name;
+      })
+      .map(adaptTourCard);
+  }, [apiResponse, supplierData]);
+
+  const staticFallback = useMemo(() => {
+    return getAllTours().filter((t) => t.title !== decodedTitle);
   }, [decodedTitle]);
 
   const supplierTours = useMemo(() => {
-    if (!supplierData) return [];
-    return getAllTours().filter(t => t.title !== decodedTitle);
-  }, [supplierData, decodedTitle]);
+    if (apiTours.length > 0) return apiTours;
+    return staticFallback;
+  }, [apiTours, staticFallback]);
+
+  const ratingDisplay =
+    supplierData?.rating != null && !Number.isNaN(Number(supplierData.rating))
+      ? Number(supplierData.rating).toFixed(1)
+      : null;
+
+  if (!supplierData && tourLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navbar />
+        <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
+        <div className="flex min-h-[calc(100vh-var(--navbar-offset))] flex-col items-center justify-center gap-4 px-4">
+          <p className="text-sm text-slate-500">Loading supplier...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!supplierData) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white">
-        <p className="text-sm text-slate-500">Supplier not found</p>
-        <Link to="/" state={{ postAuthSplash: true }} className="text-sm font-semibold text-[color:var(--brand-green)] hover:underline">Back to Home</Link>
+      <div className="min-h-screen bg-white">
+        <Navbar />
+        <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
+        <div className="flex min-h-[calc(100vh-var(--navbar-offset))] flex-col items-center justify-center gap-4 px-4">
+          <p className="text-sm text-slate-500">Supplier not found</p>
+          <Link to="/" state={{ postAuthSplash: true }} className="text-sm font-semibold text-[color:var(--brand-green)] hover:underline">Back to Home</Link>
+        </div>
       </div>
     );
   }
@@ -51,7 +173,8 @@ function SupplierPage() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <main className="mx-auto max-w-[1520px] px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
+      <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
+      <main className="mx-auto max-w-[1520px] overflow-x-clip px-4 pb-8 pt-6 text-slate-900 sm:px-6 lg:px-8 lg:pt-10">
         <Link
           to="/"
           state={{ postAuthSplash: true }}
@@ -61,16 +184,24 @@ function SupplierPage() {
           Back to Home
         </Link>
 
-        <div className="flex items-center gap-4">
-          <div className="grid size-16 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xs font-black text-[color:var(--brand-green)]">
-            {supplierData.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
+        <div className="flex min-w-0 items-start gap-4 sm:items-center">
+          <div className="grid size-16 shrink-0 place-items-center rounded-full border border-slate-200 bg-white px-1 text-xs font-black text-[color:var(--brand-green)]">
+            {supplierData.logo ? (
+              <img src={supplierData.logo} alt="" className="size-full rounded-full object-cover" />
+            ) : (
+              supplierData.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+            )}
           </div>
-          <div>
-            <h1 className="text-xl font-black text-slate-900 sm:text-2xl">{supplierData.name}</h1>
-            <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
-              <Star className="size-3.5 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-slate-900">{supplierData.rating}</span>
-              <span>•</span>
+          <div className="min-w-0 flex-1">
+            <h1 className="break-words text-xl font-black text-slate-900 sm:text-2xl">{supplierData.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+              {ratingDisplay && (
+                <>
+                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                  <span className="font-semibold text-slate-900">{ratingDisplay}</span>
+                  <span>•</span>
+                </>
+              )}
               <span>{supplierTours.length} tours</span>
             </div>
           </div>
@@ -87,34 +218,22 @@ function SupplierPage() {
           </button>
           {supplierInfoOpen && (
             <div className="pb-5">
-              <p className="text-sm leading-7 text-slate-600">{supplierData.description}</p>
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <Phone className="size-4 text-[color:var(--brand-green)]" />
-                  <span className="text-slate-700">{supplierData.phone}</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="size-4 text-[color:var(--brand-green)]" />
-                  <a href={`mailto:${supplierData.email}`} className="text-[color:var(--brand-green)] underline-offset-2 hover:underline">{supplierData.email}</a>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Globe className="size-4 text-[color:var(--brand-green)]" />
-                  <a href={supplierData.website} target="_blank" rel="noopener noreferrer" className="text-[color:var(--brand-green)] underline-offset-2 hover:underline">{supplierData.website}</a>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="size-4 text-[color:var(--brand-green)]" />
-                  <span className="text-slate-700">{supplierData.address}</span>
-                </div>
-              </div>
+              {supplierData.description && (
+                <p className="break-words text-sm leading-7 text-slate-600">{supplierData.description}</p>
+              )}
+              <SupplierContactRows supplierData={supplierData} />
             </div>
           )}
         </div>
 
         <div className="mt-8">
           <h2 className="text-base font-black text-slate-900">All tours by this supplier</h2>
+          {(apiLoading || tourLoading) && apiTours.length === 0 && (
+            <p className="mt-4 text-sm text-slate-400">Loading tours...</p>
+          )}
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {supplierTours.map((tour) => {
-              const detailTo = `/tour/${encodeURIComponent(tour.title)}`;
+              const detailTo = `/tour/${encodeURIComponent(tour.slug || tour.title)}`;
               const converted = convertPrice(tour.price);
               const reviewsDisplay = tour.reviews ? (typeof tour.reviews === "number" ? String(tour.reviews) : String(tour.reviews).replace(/,/g, "")) : "0";
               const isFav = isInWishlist(tour.title);

@@ -17,6 +17,8 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useSearchAutocomplete } from "@/hooks/useSearchAutocomplete";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 
+const MOBILE_STICK_EARLY_PX = 14;
+
 export function HeroSection({
   _sharedDateRange,
   _onSharedDateRangeChange,
@@ -34,11 +36,12 @@ export function HeroSection({
   const scrollContainerRef = useRef(null);
   const desktopScrollRef = useRef(null);
   const searchBarRef = useRef(null);
+  const searchStickSentinelRef = useRef(null);
   const searchInputRef = useRef(null);
   const autocompleteRef = useRef(null);
-  const searchBarInitialTop = useRef(null);
   const _isScrollingRef = useRef(false);
   const prevStickyRef = useRef(false);
+
   const { recentlyViewed } = useRecentlyViewed();
   const isExternalSearchMode = typeof onExternalSearchChange === "function";
   const activeSearchQuery = isExternalSearchMode ? (externalSearchQuery ?? "") : searchQuery;
@@ -153,40 +156,54 @@ export function HeroSection({
     setShowAutocomplete(false);
   };
 
+  const measureSearchBar = useCallback(() => {
+    if (!searchBarRef.current) return;
+    const rect = searchBarRef.current.getBoundingClientRect();
+    const nextHeight = Math.ceil(rect.height);
+    setSearchBarHeight((prev) => (prev === nextHeight ? prev : nextHeight));
+    if (nextHeight > 0) {
+      document.documentElement.style.setProperty("--mobile-sticky-search-height", `${nextHeight}px`);
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    measureSearchBar();
+  }, [measureSearchBar]);
+
   useEffect(() => {
-    const handleScroll = () => {
-      if (!searchBarRef.current) return;
-      
-      // Capture initial position and height only once when component mounts
-      if (searchBarInitialTop.current === null) {
-        const rect = searchBarRef.current.getBoundingClientRect();
-        searchBarInitialTop.current = rect.top + window.scrollY;
-        setSearchBarHeight(rect.height);
-      }
-      
-      const scrollPosition = window.scrollY;
-      
-      // Unstick 150px before reaching original position for snappier feel
-      const threshold = searchBarInitialTop.current - 150;
-      const shouldBeSticky = scrollPosition >= threshold;
-      
-      if (prevStickyRef.current !== shouldBeSticky) {
-        prevStickyRef.current = shouldBeSticky;
-        setIsSearchBarSticky(shouldBeSticky);
-        if (onSearchBarVisibilityChange) {
-          onSearchBarVisibilityChange(shouldBeSticky);
-        }
+    const getNavbarBottom = () => {
+      const header = document.querySelector("header.fixed");
+      return header?.getBoundingClientRect().bottom ?? 0;
+    };
+
+    const updateStickyState = () => {
+      const sentinel = searchStickSentinelRef.current;
+      if (!sentinel) return;
+
+      const navbarBottom = getNavbarBottom();
+      const sentinelTop = sentinel.getBoundingClientRect().top;
+      const shouldBeSticky = sentinelTop <= navbarBottom - MOBILE_STICK_EARLY_PX;
+
+      if (prevStickyRef.current === shouldBeSticky) return;
+
+      prevStickyRef.current = shouldBeSticky;
+      setIsSearchBarSticky(shouldBeSticky);
+      onSearchBarVisibilityChange?.(shouldBeSticky);
+
+      if (!shouldBeSticky) {
+        measureSearchBar();
       }
     };
 
-    // Initial check
-    handleScroll();
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    updateStickyState();
+    window.addEventListener("scroll", updateStickyState, { passive: true });
+    window.addEventListener("resize", updateStickyState);
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", updateStickyState);
+      window.removeEventListener("resize", updateStickyState);
     };
-  }, [onSearchBarVisibilityChange]);
+  }, [measureSearchBar, onSearchBarVisibilityChange]);
 
   return (
     <section
@@ -255,14 +272,19 @@ export function HeroSection({
           {/* Hero Search Bar - On mobile: becomes fixed at top. On desktop: fades out when reaching navbar */}
           <div 
             className="relative mt-4 sm:mt-3.5 md:mt-4 mx-auto w-full max-w-4xl lg:max-w-2xl"
-            style={{ minHeight: searchBarHeight > 0 ? `${searchBarHeight}px` : 'auto' }}
+            style={{ minHeight: searchBarHeight > 0 ? `${searchBarHeight}px` : "auto" }}
           >
+            <div
+              ref={searchStickSentinelRef}
+              className="pointer-events-none absolute left-0 top-0 h-px w-full"
+              aria-hidden
+            />
             <div 
               ref={searchBarRef}
               className={`${
                 isSearchBarSticky 
-                  ? 'fixed top-0 left-0 right-0 z-60 px-3 py-2 lg:opacity-0 lg:pointer-events-none lg:static lg:px-0 lg:py-0' 
-                  : 'static opacity-100'
+                  ? "fixed left-0 right-0 z-[60] border-b border-slate-200/80 bg-white px-3 py-2 will-change-transform max-lg:top-[var(--navbar-offset)] lg:static lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:opacity-0 lg:pointer-events-none" 
+                  : "static opacity-100"
               }`}
             >
               <form

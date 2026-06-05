@@ -7,6 +7,8 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useTourSearch } from "@/hooks/useTourSearch";
 import { recommendedTours } from "@/components/homepage/data";
+import { CarouselClipTrack } from "@/components/ui/CarouselClipTrack";
+import { CarouselCardsSkeleton } from "@/components/homepage/skeletons/CarouselCardsSkeleton";
 
 const MIN_CARDS = 6;
 const CARD_GAP_PX = 16;
@@ -105,29 +107,20 @@ export function SimilarExperiencesCarousel({
   if (!isLoading && paddedItems.length === 0) return null;
 
   return (
-    <section className="mt-6 pt-4 lg:mt-8 lg:pt-6">
-      <div className="mt-6 flex items-center gap-2 sm:gap-3">
-        <button
-          ref={scrollBtnLeftRef}
-          type="button"
-          className="hidden size-9 shrink-0 place-items-center rounded-full border border-slate-900 bg-white text-slate-900 shadow-md transition-opacity duration-200 sm:grid sm:size-10"
-          style={{ opacity: 0, pointerEvents: "none" }}
-          aria-label={t("tourDetail.similarScrollPrev")}
-          onClick={() => scrollByDirection(-1)}
-        >
-          <ChevronLeft className="size-5" strokeWidth={2} aria-hidden />
-        </button>
-
-        <div
+    <section>
+      <div className="relative">
+        <CarouselClipTrack
           ref={scrollRef}
-          className="min-w-0 flex-1 -mx-1 flex gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-5 md:gap-5 [&::-webkit-scrollbar]:hidden"
-          style={{ 
+          cardWidth={280}
+          gap={16}
+          trackClassName="gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-5 md:gap-5 [&::-webkit-scrollbar]:hidden"
+          style={{
             WebkitOverflowScrolling: "touch",
-            overflowY: "unset"
+            overflowY: "unset",
           }}
         >
           {isLoading ? (
-            <div className="flex items-center py-8 text-sm text-slate-500">Loading...</div>
+            <CarouselCardsSkeleton delay={0} cardWidth={280} gap={16} />
           ) : (
             paddedItems.map((tour, index) => {
               const detailTo = tour.slug ? `/tour/${tour.slug}` : `/tour/${encodeURIComponent(tour.title)}`;
@@ -222,12 +215,23 @@ export function SimilarExperiencesCarousel({
               );
             })
           )}
-        </div>
+        </CarouselClipTrack>
+
+        <button
+          ref={scrollBtnLeftRef}
+          type="button"
+          className="absolute left-0 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full border border-slate-900 bg-white text-slate-900 shadow-md transition-opacity duration-200 sm:grid sm:size-10"
+          style={{ opacity: 0, pointerEvents: "none" }}
+          aria-label={t("tourDetail.similarScrollPrev")}
+          onClick={() => scrollByDirection(-1)}
+        >
+          <ChevronLeft className="size-5" strokeWidth={2} aria-hidden />
+        </button>
 
         <button
           ref={scrollBtnRightRef}
           type="button"
-          className="hidden size-9 shrink-0 place-items-center rounded-full border border-slate-900 bg-white text-slate-900 shadow-md transition-opacity duration-200 sm:grid sm:size-10"
+          className="absolute right-0 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full border border-slate-900 bg-white text-slate-900 shadow-md transition-opacity duration-200 sm:grid sm:size-10"
           style={{ opacity: 0, pointerEvents: "none" }}
           aria-label={t("tourDetail.similarScrollNext")}
           onClick={() => scrollByDirection(1)}

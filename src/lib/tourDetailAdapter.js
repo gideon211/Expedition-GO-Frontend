@@ -1,3 +1,5 @@
+import { extractStopCoordinates } from "@/lib/itineraryMap";
+
 function extractPrice(tour) {
   try {
     const schedules = tour?.schedulesAndPricing?.pricingSchedules?.schedules;
@@ -110,34 +112,90 @@ export function buildDescriptionSteps(tour) {
   return [];
 }
 
-export function parseItineraryStops(rawTour) {
-  const rawItinerary = rawTour?.productContent?.itinerary;
-  const itineraryText = typeof rawItinerary === "string" ? rawItinerary : "";
-  const location = rawTour?.city || rawTour?.productContent?.location?.city || "Accra";
-  const stops = [
-    { label: "Start", title: `You'll start at ${location}`, meta: "Or, you can also get picked up" },
-  ];
+const ITINERARY_TIME_PATTERN =
+  /(\d{1,2}:\d{2}\s*(?:AM|PM)?)(?:\s*[–-]\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?))?\s*[|]\s*/i;
 
-  if (itineraryText) {
-    const sections = itineraryText.split("\n\n").filter(Boolean);
-    let stopNumber = 1;
-    for (const section of sections) {
-      const lines = section.trim().split("\n").filter(Boolean);
-      if (!lines.length) continue;
-      const title = lines[0].replace(/^[:\s]+|[:\s]+$/g, "").trim();
-      const body = lines.slice(1).join(" ").trim();
-      if (title.toLowerCase().includes("inclusion") || title.toLowerCase().includes("note")) continue;
-      stops.push({
-        label: String(stopNumber),
-        title: title || `Stop ${stopNumber}`,
-        meta: body || undefined,
-      });
-      stopNumber += 1;
+function parseItineraryLine(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+
+  const timeMatch = trimmed.match(ITINERARY_TIME_PATTERN);
+  if (timeMatch) {
+    const time = timeMatch[1].trim();
+    const rest = trimmed.slice(timeMatch[0].length).trim();
+    const colonIdx = rest.indexOf(": ");
+    if (colonIdx > 0) {
+      return {
+        time,
+        title: rest.slice(0, colonIdx).trim(),
+        description: rest.slice(colonIdx + 2).trim(),
+      };
     }
+    return { time, title: rest, description: "" };
   }
 
-  stops.push({ label: "End", title: "Tour concludes", meta: "" });
-  return stops;
+  const colonIdx = trimmed.indexOf(": ");
+  if (colonIdx > 0 && colonIdx < 60) {
+    return {
+      title: trimmed.slice(0, colonIdx).trim(),
+      description: trimmed.slice(colonIdx + 2).trim(),
+    };
+  }
+
+  return { description: trimmed };
+}
+
+/**
+ * Normalizes supplier-dashboard itinerary payloads for consumer display.
+ * Supports structured stop objects, line-based strings, and legacy string arrays.
+ */
+export function normalizeItinerary(itinerary) {
+  if (!itinerary) return [];
+
+  if (Array.isArray(itinerary)) {
+    if (itinerary.length === 0) return [];
+    if (typeof itinerary[0] === "object" && itinerary[0] !== null) {
+      return itinerary.map((item) => {
+        const coords = extractStopCoordinates(item);
+        return {
+          day: item.day != null ? String(item.day) : "",
+          time: item.time || "",
+          title: item.title || "",
+          description: item.description || "",
+          latitude: coords?.lat ?? null,
+          longitude: coords?.lng ?? null,
+          coordinates: item.coordinates,
+          location: item.location,
+        };
+      });
+    }
+    return itinerary
+      .filter((item) => item && String(item).trim())
+      .map((item) => ({ description: String(item).trim() }));
+  }
+
+  if (typeof itinerary === "string" && itinerary.trim()) {
+    return itinerary
+      .split("\n")
+      .map(parseItineraryLine)
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+export function formatItineraryMeta(item) {
+  const parts = [];
+  if (item?.day != null && String(item.day).trim()) {
+    const day = String(item.day).trim();
+    parts.push(/^day\s/i.test(day) ? day : `Day ${day}`);
+  }
+  if (item?.time?.trim()) parts.push(item.time.trim());
+  return parts.join(" — ");
+}
+
+export function parseItineraryStops(rawTour) {
+  return normalizeItinerary(rawTour?.productContent?.itinerary);
 }
 
 export function extractAgePrices(rawTour) {

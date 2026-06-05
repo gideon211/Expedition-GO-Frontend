@@ -40,6 +40,7 @@ import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { AuthModal } from "@/components/ui/auth-modal";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useHomePageData } from "@/hooks/useHomePageData";
+import { CarouselClipTrack } from "@/components/ui/CarouselClipTrack";
 import { useAllTours } from "@/hooks/useAllTours";
 
 /** Post–sign-in/register handoff: show brand splash, stay under ~1200ms. */
@@ -283,8 +284,13 @@ function HomePageContent() {
           externalSearchQuery={sharedSearchQuery}
           onExternalSearchChange={setSharedSearchQuery}
         />
-        {/* Mobile spacer - for fixed search bar at top */}
-        <div className={`lg:hidden ${showCompactSearch ? 'h-[52px]' : 'h-0'}`} />
+        {/* Mobile spacer — reserves room for sticky search below the navbar */}
+        <div
+          className={`lg:hidden overflow-hidden ${
+            showCompactSearch ? "h-[var(--mobile-sticky-search-height,3.25rem)]" : "h-0"
+          }`}
+          aria-hidden
+        />
         <HeroSection
           sharedDateRange={sharedHeroDateRange}
           onSharedDateRangeChange={setSharedHeroDateRange}
@@ -293,7 +299,7 @@ function HomePageContent() {
           onExternalSearchChange={setSharedSearchQuery}
         />
 
-        <main className="mx-auto max-w-[1520px] overflow-x-hidden px-4 pb-14 sm:px-6">
+        <main className="mx-auto max-w-[1520px] overflow-x-hidden px-4 pb-14 sm:px-6 lg:px-8">
           <div className="space-y-6 pt-6 min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
             {/* 1. Recommended For You */}
             {carouselSlots[1] && <TourCarouselSection key={carouselSlots[1].id} {...carouselSlots[1]} />}
@@ -317,7 +323,7 @@ function HomePageContent() {
 
             {/* 6. Last Minute Deals */}
             <section className="py-4 md:py-4 xl:py-5">
-              <div className="relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
+              <div className="section-header-row relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
                 <div className="min-w-0 flex-1">
                   <h2
                     className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
@@ -327,7 +333,7 @@ function HomePageContent() {
                     {t('sections.lastMinuteDeals')}
                   </h2>
                 </div>
-                <div className="relative z-[1] flex shrink-0 items-center gap-3">
+                <div className="section-header-actions">
                   <Link
                     to={`/tours?category=last-minute-deals&title=${encodeURIComponent(t('sections.lastMinuteDeals'))}`}
                     onClick={(e) => {
@@ -335,7 +341,7 @@ function HomePageContent() {
                       window.scrollTo({ top: 0, behavior: "auto" });
                       navigateWithLoader(`/tours?category=last-minute-deals&title=${encodeURIComponent(t('sections.lastMinuteDeals'))}`);
                     }}
-                    className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
+                    className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-1.5 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] lg:min-h-0 lg:min-w-0 lg:py-1.5 lg:px-2 lg:text-[14px]"
                   >
                     <span className="relative">
                       {t('sections.viewAll')}
@@ -343,7 +349,7 @@ function HomePageContent() {
                     </span>
                     <ChevronRight className="size-4 text-slate-500 transition group-hover:text-[color:var(--brand-green)]" />
                   </Link>
-                  <div className="hidden items-center gap-2 xl:flex">
+                  <div className="section-header-scroll-arrows">
                     <button
                       onClick={() => scrollDeals("left")}
                       className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
@@ -361,18 +367,24 @@ function HomePageContent() {
                   </div>
                 </div>
               </div>
-              <div ref={dealsScrollRef} className="flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 scrollbar-hide">
+              <CarouselClipTrack
+                ref={dealsScrollRef}
+                cardWidth={280}
+                gap={12}
+                syncSectionClipWidth
+                trackClassName="gap-3 overflow-x-auto xl:overflow-x-hidden overflow-y-hidden overscroll-x-contain pb-1 scrollbar-hide"
+              >
                 {lastMinuteDeals.map((deal, index) => (
                   <div key={`${deal.title}-${index}`} className="w-[280px] shrink-0 h-full" style={{ scrollSnapAlign: "start" }}>
                     <SidebarDealCard {...deal} />
                   </div>
                 ))}
-              </div>
+              </CarouselClipTrack>
             </section>
 
             {/* 7. New Experiences */}
             <section className="py-4 md:py-4 xl:py-5">
-              <div className="relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
+              <div className="section-header-row relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
                 <div className="min-w-0 flex-1">
                   <h2
                     className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
@@ -382,7 +394,7 @@ function HomePageContent() {
                     {t('sections.newExperiences')}
                   </h2>
                 </div>
-                <div className="relative z-[1] flex shrink-0 items-center gap-3">
+                <div className="section-header-actions">
                   <Link
                     to={`/tours?category=new-experiences&title=${encodeURIComponent(t('sections.newExperiences'))}`}
                     onClick={(e) => {
@@ -390,7 +402,7 @@ function HomePageContent() {
                       window.scrollTo({ top: 0, behavior: "auto" });
                       navigateWithLoader(`/tours?category=new-experiences&title=${encodeURIComponent(t('sections.newExperiences'))}`);
                     }}
-                    className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
+                    className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-1.5 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] lg:min-h-0 lg:min-w-0 lg:py-1.5 lg:px-2 lg:text-[14px]"
                   >
                     <span className="relative">
                       {t('sections.viewAll')}
@@ -398,7 +410,7 @@ function HomePageContent() {
                     </span>
                     <ChevronRight className="size-4 text-slate-500 transition group-hover:text-[color:var(--brand-green)]" />
                   </Link>
-                  <div className="hidden items-center gap-2 xl:flex">
+                  <div className="section-header-scroll-arrows">
                     <button
                       onClick={() => scrollExperiences("left")}
                       className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
@@ -416,13 +428,19 @@ function HomePageContent() {
                   </div>
                 </div>
               </div>
-              <div ref={experiencesScrollRef} className="flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 scrollbar-hide">
+              <CarouselClipTrack
+                ref={experiencesScrollRef}
+                cardWidth={280}
+                gap={12}
+                syncSectionClipWidth
+                trackClassName="gap-3 overflow-x-auto xl:overflow-x-hidden overflow-y-hidden overscroll-x-contain pb-1 scrollbar-hide"
+              >
                 {newTours.map((tour, index) => (
                   <div key={`${tour.title}-${index}`} className="w-[280px] shrink-0 h-full" style={{ scrollSnapAlign: "start" }}>
                     <CompactTourCard {...tour} badge="new" />
                   </div>
                 ))}
-              </div>
+              </CarouselClipTrack>
             </section>
           </div>
         </main>

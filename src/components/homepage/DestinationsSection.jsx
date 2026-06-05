@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { destinations as staticDestinations } from "./data";
 import { DestinationCard } from "./DestinationCard";
 import { DestinationsModal } from "./DestinationsModal";
+import { CarouselClipTrack } from "@/components/ui/CarouselClipTrack";
 
 const CAROUSEL_ARROW_SCROLL_MS = 260;
 
@@ -216,7 +217,7 @@ export function DestinationsSection({ apiDestinations = [] }) {
 
   return (
     <section id="destinations" className="py-4 md:py-4 xl:py-5">
-      <div className="mb-[0.6375rem] md:mb-2.5 xl:mb-3 flex items-center justify-between gap-3">
+      <div className="section-header-row mb-[0.6375rem] md:mb-2.5 xl:mb-3 flex items-center justify-between gap-3">
         <h2
           className="whitespace-nowrap font-bold leading-[1.15] tracking-tight text-slate-900"
           style={{ fontSize: "clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)" }}
@@ -224,14 +225,14 @@ export function DestinationsSection({ apiDestinations = [] }) {
           {t("sections.destinations")}
         </h2>
 
-        <div className="flex items-center gap-3">
+        <div className="section-header-actions">
           <Link
             to="/tours?category=destinations"
             onClick={(e) => {
               e.preventDefault();
               setIsModalOpen(true);
             }}
-            className="group inline-flex shrink-0 touch-manipulation items-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] xl:text-[14px]"
+            className="group inline-flex shrink-0 touch-manipulation items-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-1.5 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] lg:py-1.5 lg:px-2 lg:text-[14px]"
           >
             <span className="relative">
               {t("sections.viewAll")}
@@ -239,7 +240,7 @@ export function DestinationsSection({ apiDestinations = [] }) {
             </span>
             <ChevronRight className="size-4 text-slate-500 transition group-hover:text-[color:var(--brand-green)]" />
           </Link>
-          <div className="hidden items-center gap-2 xl:flex">
+          <div className="section-header-scroll-arrows">
             <button
               type="button"
               onClick={() => scroll("left")}
@@ -260,9 +261,14 @@ export function DestinationsSection({ apiDestinations = [] }) {
         </div>
       </div>
 
-      <div
+      <CarouselClipTrack
         ref={scrollContainerRef}
-        className="hidden gap-3 overflow-x-auto overscroll-x-contain scrollbar-hide xl:flex"
+        className="hidden xl:block"
+        cardWidth={280}
+        gap={12}
+        clipAt="xl"
+        syncSectionClipWidth
+        trackClassName="gap-3 overflow-x-auto overscroll-x-contain scrollbar-hide"
         style={{ scrollSnapType: "x mandatory" }}
       >
         {infiniteDestinations.map((item, index) => (
@@ -274,11 +280,15 @@ export function DestinationsSection({ apiDestinations = [] }) {
             <DestinationCard {...item} />
           </div>
         ))}
-      </div>
+      </CarouselClipTrack>
 
-      <div
+      <CarouselClipTrack
         ref={mobileScrollRef}
-        className="-mx-1 flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain px-1 scrollbar-hide xl:hidden"
+        className="xl:hidden"
+        cardWidth={280}
+        gap={12}
+        clipAt={false}
+        trackClassName="gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain scrollbar-hide"
         style={{
           WebkitOverflowScrolling: "touch",
           scrollSnapType: "x mandatory",
@@ -293,7 +303,7 @@ export function DestinationsSection({ apiDestinations = [] }) {
             <DestinationCard {...item} />
           </div>
         ))}
-      </div>
+      </CarouselClipTrack>
 
       <DestinationsModal
         isOpen={isModalOpen}

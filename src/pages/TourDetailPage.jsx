@@ -48,6 +48,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
 import { SimilarExperiencesCarousel } from "@/components/tour-detail/SimilarExperiencesCarousel";
+import { TourDetailSkeleton } from "@/components/tour-detail/TourDetailSkeleton";
+import { CarouselClipTrack } from "@/components/ui/CarouselClipTrack";
+import { ItineraryMap } from "@/components/tour-detail/ItineraryMap";
+import { stopHasLocation } from "@/lib/itineraryMap";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -59,10 +63,14 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useCart } from "@/contexts/CartContext";
 import { useNavigationLoader } from "@/contexts/NavigationContext";
 import { useTourById } from "@/hooks/useTourById";
-import { adaptTourDetail, buildOverviewHighlights, buildDescriptionSteps, extractAgePrices, parseItineraryStops } from "@/lib/tourDetailAdapter";
+import { adaptTourDetail, buildOverviewHighlights, buildDescriptionSteps, extractAgePrices, parseItineraryStops, formatItineraryMeta } from "@/lib/tourDetailAdapter";
 import { getTourByTitle, getAllTours } from "@/lib/tourData";
+import { mapSupplierProfile, normalizeWebsiteUrl } from "@/lib/supplierProfile";
 import { openTawkChat } from "@/lib/tawk";
-import BrandLoader from "@/components/ui/BrandLoader";
+import { DotSpinner } from "@/components/ui/DotSpinner";
+
+/** Dot spinner cycle is 1s; ~85% of one rotation feels responsive without rushing. */
+const BACK_NAV_SPINNER_MS = 850;
 import fallbackTourImage from "@/assets/images/hero_pic.jpg";
 
 const EXTERNAL_FALLBACK_IMAGES = [
@@ -456,6 +464,12 @@ function TourDetailContent() {
     }
   }, [isLoading, rawTour, error, hideLoader]);
 
+  useEffect(() => {
+    backNavStartedRef.current = false;
+    setShowBackSplash(false);
+    setFocusedItineraryStopIndex(null);
+  }, [id]);
+
   const fallbackTour = useMemo(() => {
     if (!error || rawTour) return null;
     const decoded = safeDecodeRouteParam(id);
@@ -545,6 +559,8 @@ function TourDetailContent() {
   const [supplierInfoOpen, setSupplierInfoOpen] = useState(false);
   const [_travelerType, _setTravelerType] = useState("adults");
   const [showBackSplash, setShowBackSplash] = useState(false);
+  const [focusedItineraryStopIndex, setFocusedItineraryStopIndex] = useState(null);
+  const backNavStartedRef = useRef(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [overviewAccordionOpen, setOverviewAccordionOpen] = useState({
     highlights: true,
@@ -554,6 +570,38 @@ function TourDetailContent() {
     () => buildReviewBreakdown(selectedTourRatingNumber, selectedTourReviewsNumber),
     [selectedTourRatingNumber, selectedTourReviewsNumber]
   );
+
+  const completeBackNavigation = useCallback(() => {
+    if (backNavStartedRef.current) return;
+    backNavStartedRef.current = true;
+    setShowBackSplash(false);
+    hideLoader();
+
+    const historyIdx = window.history.state?.idx;
+    if (typeof historyIdx === "number" && historyIdx > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate("/", { state: { skipHomeSkeletonDelay: true } });
+  }, [hideLoader, navigate]);
+
+  const handleBackClick = useCallback(() => {
+    if (backNavStartedRef.current || showBackSplash) return;
+    hideLoader();
+    setShowBackSplash(true);
+  }, [hideLoader, showBackSplash]);
+
+  useEffect(() => {
+    if (!showBackSplash) return undefined;
+    const fallbackTimer = window.setTimeout(completeBackNavigation, BACK_NAV_SPINNER_MS);
+    return () => window.clearTimeout(fallbackTimer);
+  }, [showBackSplash, completeBackNavigation]);
+
+  useEffect(() => {
+    if (activeDetailTab !== "itinerary") {
+      setFocusedItineraryStopIndex(null);
+    }
+  }, [activeDetailTab]);
 
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -967,20 +1015,10 @@ function TourDetailContent() {
   const restrictionsText = rawTour?.productContent?.restrictions || "";
   const travelerReqsText = rawTour?.productContent?.travelerRequirements || "";
 
-  const supplierData = useMemo(() => {
-    const src = effectiveRawTour;
-    return {
-      name: src?.supplier?.companyName || src?.operator?.companyName || "Expedition-Go Tours Ltd",
-      logo: src?.supplier?.logo || "",
-      email: src?.supplier?.email || src?.operator?.email || "contact@expeditiongo.com",
-      phone: src?.supplier?.phone || src?.operator?.phone || "+233 123 456 789",
-      website: src?.supplier?.website || src?.operator?.website || "https://expeditiongo.com",
-      address: src?.supplier?.address || src?.operator?.address || src?.city || "Accra, Ghana",
-      description: src?.supplier?.description || src?.operator?.description || "Expedition-Go Tours is a trusted tour operator based in Accra, Ghana, offering curated cultural, wildlife, and adventure experiences across West Africa.",
-      toursCount: src?.supplier?.toursCount || 24,
-      rating: src?.supplier?.rating || src?.averageRating || 4.9,
-    };
-  }, [effectiveRawTour]);
+  const supplierData = useMemo(
+    () => mapSupplierProfile({ tour: effectiveRawTour }),
+    [effectiveRawTour]
+  );
 
   const supplierTours = useMemo(() => {
     const all = getAllTours();
@@ -1156,12 +1194,7 @@ function TourDetailContent() {
   );
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[color:var(--page-bg)]">
-        <Navbar />
-        <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
-      </div>
-    );
+    return <TourDetailSkeleton />;
   }
 
   if ((error && !fallbackTour) || !tourData) {
@@ -1202,10 +1235,8 @@ function TourDetailContent() {
 
       <main className="mx-auto max-w-[1520px] px-4 pb-8 pt-6 text-[color:var(--brand-green)] sm:px-6 sm:pt-8 lg:px-8">
         <button
-            onClick={() => {
-              setShowBackSplash(true);
-              setTimeout(() => navigate(-1), 1050);
-            }}
+            type="button"
+            onClick={handleBackClick}
             className="group mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-[color:var(--brand-green)]/30 hover:bg-[color:var(--brand-mist)] hover:text-[color:var(--brand-green)] hover:shadow-md"
         >
           <ArrowLeft className="size-4 text-[color:var(--brand-green)] transition group-hover:-translate-x-0.5" />
@@ -1250,7 +1281,7 @@ function TourDetailContent() {
           </div>
         </header>
 
-        <div className="mt-5 grid gap-6 xl:grid-cols-[minmax(0,1fr)_370px]">
+        <div className="mt-5 grid gap-6 xl:grid-cols-[minmax(0,1fr)_370px] xl:items-stretch">
         <section className="grid min-w-0 gap-2 lg:grid-cols-[130px_minmax(0,1fr)] 2xl:grid-cols-[150px_minmax(0,1fr)]">
           <div className="hidden h-[520px] grid-rows-4 gap-2 lg:grid">
             {thumbnailStripImages.map(({ image, index }, thumbnailIndex) => {
@@ -1380,8 +1411,8 @@ function TourDetailContent() {
           </div>
         </section>
 
-          <aside className="h-fit rounded-lg border border-slate-200 bg-white p-4 shadow-[0_2px_18px_rgba(15,23,42,0.08)] xl:sticky xl:top-36 xl:z-40">
-            <div className="text-sm text-[color:var(--brand-green)]">
+          <aside className="flex min-h-[calc(300px+6rem+0.5rem)] flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-[0_2px_18px_rgba(15,23,42,0.08)] sm:min-h-[calc(430px+6rem+0.5rem)] lg:min-h-[520px] xl:h-full xl:sticky xl:top-36 xl:z-40">
+            <div className="flex flex-1 flex-col text-sm text-[color:var(--brand-green)]">
               <p><span className="font-black">From {convertedUnitPrice.formatted}</span> per adult <span className="text-xs">(price varies by group size)</span></p>
               <p className="mt-4 font-black">Select date and travelers</p>
 
@@ -1482,14 +1513,14 @@ function TourDetailContent() {
             <Button
               onClick={handleCheckAvailability}
               disabled={!bookingDateRange}
-              className="mt-4 h-12 w-full rounded-full bg-[color:var(--brand-green)] text-base font-black !text-white hover:bg-[color:var(--brand-green)]/90 disabled:opacity-60"
+              className="mt-6 h-12 w-full rounded-full bg-[color:var(--brand-green)] text-base font-black !text-white hover:bg-[color:var(--brand-green)]/90 disabled:opacity-60"
             >
               Check availability
             </Button>
 
             {checkingAvailability && (
               <div className="mt-3 flex justify-center">
-                <div className="check-loader" />
+                <DotSpinner />
               </div>
             )}
 
@@ -1516,19 +1547,19 @@ function TourDetailContent() {
               </>
             )}
 
-              {assistanceAside}
+              <div className="mt-auto">{assistanceAside}</div>
             </div>
           </aside>
         </div>
 
         <nav className="sticky top-[58px] z-30 -mx-4 mt-5 overflow-x-auto bg-white px-4 sm:-mx-6 sm:px-6 lg:top-[104px] lg:-mx-8 lg:px-8 scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex gap-4 text-xs font-bold text-[color:var(--brand-green)] sm:gap-7 sm:text-sm">
+          <div className="flex gap-3 px-3 text-xs font-bold text-[color:var(--brand-green)] sm:gap-5 sm:px-4 sm:text-sm">
             {TOUR_DETAIL_TABS.map((tab) => (
               <button
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveDetailTab(tab.key)}
-                className={`border-b-2 py-3 transition ${
+                className={`shrink-0 whitespace-nowrap border-b-2 px-2 py-3 transition sm:px-2.5 ${
                   activeDetailTab === tab.key
                     ? "border-[color:var(--brand-green)]"
                     : "border-transparent hover:border-[color:var(--brand-green)]/50"
@@ -1567,7 +1598,7 @@ function TourDetailContent() {
                       ).map((step, index) => (
                         <li key={step.title}>
                           <div className="min-w-0 text-sm leading-7 text-slate-700">
-                            <p className="font-bold text-slate-900">{step.title}</p>
+                            <p className="text-[1.3em] font-bold text-slate-900">{step.title}</p>
                             <p className="mt-1.5">{step.body}</p>
                           </div>
                         </li>
@@ -1596,7 +1627,7 @@ function TourDetailContent() {
                     className="flex w-full items-center justify-between gap-4 py-4 text-left"
                     aria-expanded={overviewAccordionOpen.highlights}
                   >
-                    <span className="text-sm font-black text-slate-900">{t("tourDetail.highlights")}</span>
+                    <span className="text-[calc(0.875rem*1.3)] font-black text-slate-900">{t("tourDetail.highlights")}</span>
                     <span className="flex shrink-0 justify-end">
                       {overviewAccordionOpen.highlights ? (
                         <ChevronUp className="size-4 text-[color:var(--brand-green)]" aria-hidden />
@@ -1646,35 +1677,73 @@ function TourDetailContent() {
             {activeDetailTab === "itinerary" && (
             <section id="itinerary" className="pb-8">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">Itinerary</h2>
-              <div className="mt-5 grid gap-6 lg:grid-cols-[330px_minmax(0,1fr)]">
-                <div className="space-y-0">
-                  {itineraryStops.map((stop, index) => (
-                    <div key={stop.title} className="relative flex gap-3 pb-5 last:pb-0">
-                      {index < itineraryStops.length - 1 && <span className="absolute left-[15px] top-8 h-full w-px bg-[color:var(--brand-green)]" />}
-                      <span className="z-10 grid size-8 shrink-0 place-items-center rounded-full bg-[color:var(--brand-green)] text-[10px] font-black text-white">
-                        {stop.label}
-                      </span>
-                      <div>
-                        <p className="text-sm font-black text-[color:var(--brand-green)]">{stop.title}</p>
-                        {stop.meta && <p className="mt-1 text-xs text-[color:var(--brand-green)]/70">{stop.meta}</p>}
-                        {index > 0 && index < itineraryStops.length - 1 && <button className="mt-1 text-xs font-bold underline">See details & photo</button>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="relative min-h-[320px] overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
-                  <iframe
-                    title="Google map showing Accra, Cape Coast Castle, Elmina Castle, and Kakum National Park"
-                    src="https://www.google.com/maps?q=Accra%20Cape%20Coast%20Castle%20Elmina%20Castle%20Kakum%20National%20Park%20Ghana&output=embed"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    className="h-full min-h-[320px] w-full"
-                  />
-                  <div className="absolute right-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-[color:var(--brand-green)] shadow">
-                    Tour route map
+              {itineraryStops.length === 0 ? (
+                <p className="mt-5 text-sm text-slate-500">No itinerary details available for this tour.</p>
+              ) : (
+                <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,400px)] lg:items-start">
+                  <div className="min-w-0 space-y-4">
+                    {itineraryStops.map((stop, index) => {
+                      const meta = formatItineraryMeta(stop);
+                      const isLastStop = index === itineraryStops.length - 1;
+                      const markerLabel = isLastStop ? "End" : String(index + 1);
+                      const hasLocation = stopHasLocation(stop);
+                      const isFocusedStop = focusedItineraryStopIndex === index;
+                      return (
+                        <div key={index} className="flex gap-4">
+                          <div className="flex flex-col items-center">
+                            {hasLocation ? (
+                              <button
+                                type="button"
+                                onClick={() => setFocusedItineraryStopIndex(index)}
+                                aria-label={`Show stop ${markerLabel} on map`}
+                                aria-pressed={isFocusedStop}
+                                className={`z-10 grid size-8 shrink-0 place-items-center rounded-full bg-[color:var(--brand-green)] font-black text-white transition hover:scale-105 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] ${
+                                  isLastStop ? "px-1 text-[9px] leading-none" : "text-[11px]"
+                                } ${isFocusedStop ? "ring-2 ring-[color:var(--brand-green)]/40 ring-offset-2" : ""}`}
+                              >
+                                {markerLabel}
+                              </button>
+                            ) : (
+                              <span
+                                className={`z-10 grid size-8 shrink-0 place-items-center rounded-full bg-[color:var(--brand-green)] font-black text-white ${
+                                  isLastStop ? "px-1 text-[9px] leading-none" : "text-[11px]"
+                                }`}
+                              >
+                                {markerLabel}
+                              </span>
+                            )}
+                            {!isLastStop && (
+                              <div className="mt-1 w-0.5 flex-1 bg-slate-200" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1 pb-4">
+                            {meta && (
+                              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-[color:var(--brand-green)]">
+                                {meta}
+                              </p>
+                            )}
+                            {stop.title && (
+                              <h3 className="text-sm font-semibold text-slate-900">{stop.title}</h3>
+                            )}
+                            {stop.description && (
+                              <p className="mt-1 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
+                                {stop.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+                  <aside className="min-w-0 lg:sticky lg:top-[calc(var(--navbar-offset)+4.5rem)]">
+                    <ItineraryMap
+                      stops={itineraryStops}
+                      tour={effectiveRawTour}
+                      focusStopIndex={focusedItineraryStopIndex}
+                    />
+                  </aside>
                 </div>
-              </div>
+              )}
             </section>
             )}
 
@@ -1862,13 +1931,15 @@ function TourDetailContent() {
               isInWishlist={isInWishlist}
               t={t}
               tourTitle={selectedTourTitle}
+              tourId={effectiveRawTour?.id}
+              tourSlug={effectiveRawTour?.slug || id}
             />
             )}
           </div>
         </div>
 
-        <section className="mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-6 flex items-center justify-between">
+        <section className="py-8">
+          <div className="mb-3 flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-900">Similar Experiences</h2>
           </div>
           <SimilarExperiencesCarousel
@@ -1983,7 +2054,7 @@ function TourDetailContent() {
 
               {checkingAvailability && (
                 <div className="mt-3 flex justify-center">
-                  <div className="check-loader" />
+                  <DotSpinner />
                 </div>
               )}
 
@@ -2294,40 +2365,10 @@ function TourDetailContent() {
       />
 
       {showBackSplash && (
-        <BrandLoader fullScreen splash label="Loading..." />
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-white">
+          <DotSpinner />
+        </div>
       )}
-
-
-
-      <style>{`
-        .check-loader {
-          width: 50px;
-          aspect-ratio: 1;
-          display: grid;
-        }
-        .check-loader::before,
-        .check-loader::after {
-          content: "";
-          grid-area: 1/1;
-          --c: no-repeat radial-gradient(farthest-side, #25b09b 92%, #0000);
-          background:
-            var(--c) 50% 0,
-            var(--c) 50% 100%,
-            var(--c) 100% 50%,
-            var(--c) 0 50%;
-          background-size: 12px 12px;
-          animation: l12 1s;
-        }
-        .check-loader::before {
-          margin: 4px;
-          filter: hue-rotate(45deg);
-          background-size: 8px 8px;
-          animation-timing-function: linear;
-        }
-        @keyframes l12 {
-          100% { transform: rotate(0.5turn); }
-        }
-      `}</style>
     </>
   );
 }
@@ -2336,7 +2377,12 @@ const CARD_GAP = 16;
 const CARD_W_SM = 260;
 const CARD_W_MD = 280;
 
-function SupplierTabContent({ supplierData, supplierTours, supplierInfoOpen, setSupplierInfoOpen, handleImageError, convertPrice, toggleWishlist, isInWishlist, t, tourTitle }) {
+function SupplierTabContent({ supplierData, supplierTours, supplierInfoOpen, setSupplierInfoOpen, handleImageError, convertPrice, toggleWishlist, isInWishlist, t, tourTitle, tourId, tourSlug }) {
+  const websiteHref = normalizeWebsiteUrl(supplierData.website);
+  const ratingDisplay =
+    supplierData.rating != null && !Number.isNaN(Number(supplierData.rating))
+      ? Number(supplierData.rating).toFixed(1)
+      : null;
   const scrollRef = useRef(null);
   const scrollBtnLeftRef = useRef(null);
   const scrollBtnRightRef = useRef(null);
@@ -2398,10 +2444,14 @@ function SupplierTabContent({ supplierData, supplierTours, supplierInfoOpen, set
             </div>
             <div>
               <h2 className="text-lg font-black text-slate-900">{supplierData.name}</h2>
-              <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
-                <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                <span className="font-semibold text-slate-900">{supplierData.rating}</span>
-                <span>•</span>
+              <div className="mt-1 pl-0.1 flex items-center gap-2 text-sm text-slate-500">
+                {ratingDisplay && (
+                  <>
+                    <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                    <span className="font-semibold text-slate-900">{ratingDisplay}</span>
+                    <span>•</span>
+                  </>
+                )}
                 <span>{supplierData.toursCount} tours</span>
               </div>
             </div>
@@ -2421,6 +2471,7 @@ function SupplierTabContent({ supplierData, supplierTours, supplierInfoOpen, set
           </button>
           <Link
             to={`/supplier/profile/${encodeURIComponent(tourTitle)}`}
+            state={{ supplierData, tourId, tourSlug }}
             className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand-green)] hover:underline"
           >
             View More
@@ -2429,31 +2480,41 @@ function SupplierTabContent({ supplierData, supplierTours, supplierInfoOpen, set
         </div>
         {supplierInfoOpen && (
           <div className="pb-5">
-            <p className="text-sm leading-7 text-slate-600">{supplierData.description}</p>
+            {supplierData.description && (
+              <p className="text-sm leading-7 text-slate-600">{supplierData.description}</p>
+            )}
             <div className="mt-4 space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <Phone className="size-4 text-[color:var(--brand-green)]" />
-                <span className="text-slate-700">{supplierData.phone}</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Mail className="size-4 text-[color:var(--brand-green)]" />
-                <a href={`mailto:${supplierData.email}`} className="text-[color:var(--brand-green)] underline-offset-2 hover:underline">{supplierData.email}</a>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Globe className="size-4 text-[color:var(--brand-green)]" />
-                <a href={supplierData.website} target="_blank" rel="noopener noreferrer" className="text-[color:var(--brand-green)] underline-offset-2 hover:underline">{supplierData.website}</a>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <MapPin className="size-4 text-[color:var(--brand-green)]" />
-                <span className="text-slate-700">{supplierData.address}</span>
-              </div>
+              {supplierData.phone && (
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone className="size-4 text-[color:var(--brand-green)]" />
+                  <a href={`tel:${supplierData.phone.replace(/\s/g, "")}`} className="text-slate-700 hover:text-[color:var(--brand-green)]">{supplierData.phone}</a>
+                </div>
+              )}
+              {supplierData.email && (
+                <div className="flex items-center gap-3 text-sm">
+                  <Mail className="size-4 text-[color:var(--brand-green)]" />
+                  <a href={`mailto:${supplierData.email}`} className="text-[color:var(--brand-green)] underline-offset-2 hover:underline">{supplierData.email}</a>
+                </div>
+              )}
+              {websiteHref && (
+                <div className="flex items-center gap-3 text-sm">
+                  <Globe className="size-4 text-[color:var(--brand-green)]" />
+                  <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="text-[color:var(--brand-green)] underline-offset-2 hover:underline">{supplierData.website}</a>
+                </div>
+              )}
+              {supplierData.address && (
+                <div className="flex items-center gap-3 text-sm">
+                  <MapPin className="size-4 text-[color:var(--brand-green)]" />
+                  <span className="text-slate-700">{supplierData.address}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
 
       <div className="mt-6">
-        <h3 className="text-base font-black text-slate-900">Tours by this supplier</h3>
+        <h3 className="text-[calc(1rem*1.3)] font-black text-slate-900">Tours by this supplier</h3>
         <div className="mt-4 flex items-center gap-2 sm:gap-3">
           <button
             ref={scrollBtnLeftRef}
@@ -2466,9 +2527,13 @@ function SupplierTabContent({ supplierData, supplierTours, supplierInfoOpen, set
             <ChevronLeft className="size-5" strokeWidth={2} aria-hidden />
           </button>
 
-          <div
+          <CarouselClipTrack
             ref={scrollRef}
-            className="min-w-0 flex-1 -mx-1 flex gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-5 md:gap-5 [&::-webkit-scrollbar]:hidden"
+            className="min-w-0 flex-1"
+            cardWidth={280}
+            gap={16}
+            clipAt="xl"
+            trackClassName="gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-5 md:gap-5 [&::-webkit-scrollbar]:hidden"
             style={{ WebkitOverflowScrolling: "touch", overflowY: "unset" }}
           >
             {supplierTours.map((tour) => {
@@ -2555,7 +2620,7 @@ function SupplierTabContent({ supplierData, supplierTours, supplierInfoOpen, set
                 </article>
               );
             })}
-          </div>
+          </CarouselClipTrack>
 
           <button
             ref={scrollBtnRightRef}

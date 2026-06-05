@@ -10,6 +10,7 @@ import { useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TourCard } from "./TourCard";
 import { SectionHeading } from "./SectionHeading";
+import { CarouselClipTrack } from "@/components/ui/CarouselClipTrack";
 
 const CAROUSEL_ARROW_SCROLL_MS = 260;
 
@@ -215,9 +216,14 @@ export function TourCarouselSection({ id, title, subtitle, items, fallbackKey, h
           </button>
         )}
 
-        <div
+        <CarouselClipTrack
           ref={scrollContainerRef}
-          className="flex-1 overflow-x-auto pb-1 overscroll-x-contain scrollbar-hide hidden xl:flex gap-3"
+          className="hidden flex-1 xl:block"
+          cardWidth={280}
+          gap={12}
+          clipAt="xl"
+          syncSectionClipWidth
+          trackClassName="gap-3 overflow-x-hidden pb-1 overscroll-x-contain scrollbar-hide"
           style={{ scrollSnapType: "x mandatory" }}
         >
           {infiniteItems.map((item, index) => (
@@ -229,7 +235,7 @@ export function TourCarouselSection({ id, title, subtitle, items, fallbackKey, h
               <TourCard {...item} badge={badge} />
             </div>
           ))}
-        </div>
+        </CarouselClipTrack>
 
         {sideArrows && (
           <button
@@ -243,9 +249,13 @@ export function TourCarouselSection({ id, title, subtitle, items, fallbackKey, h
         )}
       </div>
 
-      <div
+      <CarouselClipTrack
         ref={mobileScrollRef}
-        className="-mx-1 flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain px-1 pb-1 scrollbar-hide xl:hidden"
+        className="xl:hidden"
+        cardWidth={280}
+        gap={12}
+        clipAt={false}
+        trackClassName="gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 scrollbar-hide"
         style={{
           WebkitOverflowScrolling: "touch",
           scrollSnapType: "x mandatory",
@@ -260,7 +270,7 @@ export function TourCarouselSection({ id, title, subtitle, items, fallbackKey, h
             <TourCard {...item} />
           </div>
         ))}
-      </div>
+      </CarouselClipTrack>
     </section>
   );
 }

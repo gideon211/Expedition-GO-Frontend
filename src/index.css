@@ -15,6 +15,7 @@
  *   --navbar-offset — sticky navbar height (responsive)
  */
 @import "tailwindcss";
+@import "mapbox-gl/dist/mapbox-gl.css";
 
 @font-face {
   font-family: "Plus Jakarta Sans";
@@ -185,6 +186,55 @@ button:disabled,
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Homepage section headers — right chevron flush with clipped carousel card edge */
+.section-header-row {
+  position: relative;
+  overflow: visible;
+}
+
+.section-header-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+@media (min-width: 1280px) {
+  section[data-carousel-clip] .section-header-row {
+    min-height: 2.25rem;
+  }
+
+  section[data-carousel-clip] .section-header-row > :first-child {
+    max-width: calc(var(--carousel-clip-width) - 10.5rem);
+  }
+
+  section[data-carousel-clip] .section-header-actions {
+    position: absolute;
+    top: 0;
+    left: var(--carousel-clip-width);
+    transform: translateX(-100%);
+    gap: 0.5rem;
+  }
+}
+
+.section-header-scroll-arrows {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (min-width: 1280px) {
+  .section-header-scroll-arrows {
+    display: flex;
+  }
+}
+
+.section-header-scroll-arrows button {
+  box-shadow: none;
 }
 
 /* Namespaced shimmer animation for skeleton loader */
@@ -437,5 +487,38 @@ button:disabled,
     font-size: 42px;
     letter-spacing: -1px;
   }
+}
+
+.itinerary-map-container {
+  position: relative;
+}
+
+.itinerary-map-container .mapboxgl-map,
+.itinerary-map-container .mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.itinerary-map-marker {
+  display: grid;
+  place-items: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  background: var(--brand-green);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.22);
+  border: 2px solid #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.itinerary-map-marker--active {
+  transform: scale(1.12);
+  background: #0f2d1f;
+  box-shadow: 0 0 0 3px rgba(26, 69, 48, 0.35), 0 2px 8px rgba(15, 23, 42, 0.28);
 }
 
