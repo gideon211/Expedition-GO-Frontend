@@ -29,9 +29,10 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      include: ["mapbox-gl"],
+      include: ["mapbox-gl", "gray-matter", "react-markdown"],
     },
     server: {
+      host: true,
       proxy: {
         "/api": {
           target: authProxyOrigin,

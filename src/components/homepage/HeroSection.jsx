@@ -29,6 +29,7 @@ export function HeroSection({
   const [_currentIndex, _setCurrentIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [heroSearchSticky, setHeroSearchSticky] = useState(false);
   const scrollContainerRef = useRef(null);
   const desktopScrollRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -149,7 +150,10 @@ export function HeroSection({
 
   // Close hero autocomplete on scroll so the navbar autocomplete takes over
   useEffect(() => {
-    const close = () => setShowAutocomplete(false);
+    const close = () => {
+      setShowAutocomplete(false);
+      setHeroSearchSticky(document.body.classList.contains("hero--search-sticky"));
+    };
     window.addEventListener("scroll", close, { passive: true });
     return () => window.removeEventListener("scroll", close);
   }, []);
@@ -292,7 +296,7 @@ export function HeroSection({
                 )}
                 <div
                   ref={desktopScrollRef}
-                  className="flex min-w-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden pb-6 scrollbar-hide"
+                  className="relative z-[3] flex min-w-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden pb-6 scrollbar-hide"
                   style={{
                     WebkitOverflowScrolling: "touch",
                     scrollSnapType: "x mandatory",
@@ -322,7 +326,7 @@ export function HeroSection({
               </div>
               <div
                 ref={scrollContainerRef}
-                className="md:hidden overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory"
+                className="relative z-[3] md:hidden overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory"
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 <div className="flex gap-3 px-4">
@@ -341,7 +345,8 @@ export function HeroSection({
         )}
       </div>
     </section>
-    {showAutocomplete &&
+    {showAutocomplete && !heroSearchSticky &&
+      !document.body.classList.contains("hero--search-sticky") &&
       createPortal(
         <div
           ref={autocompleteRef}

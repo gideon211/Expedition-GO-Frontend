@@ -52,6 +52,8 @@ import SignOutPage from "@/pages/SignOutPage";
 import SupportPage from "@/pages/SupportPage";
 import SettingsPage from "@/pages/SettingsPage";
 import BookingPage from "@/pages/BookingPage";
+import { BlogPage } from "@/pages/BlogPage";
+import { ArticleDetailPage } from "@/pages/ArticleDetailPage";
 
 function AppContent() {
   useScrollRestoration();
@@ -83,6 +85,8 @@ function AppContent() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/booking" element={<BookingPage />} />
             <Route path="/supplier/profile/:tourTitle" element={<SupplierPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<ArticleDetailPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </CartProvider>

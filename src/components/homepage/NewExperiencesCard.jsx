@@ -1,9 +1,9 @@
 /**
- * @file CompactTourCard.jsx
- * @description Smaller tour card for sidebar and dense layouts. Same data shape as TourCard.
+ * @file NewExperiencesCard.jsx
+ * @description Smaller tour card for sidebar and dense layouts. Same data shape as FeaturedExperiencesCard.
  *   Links to /tour/:title with wishlist and currency support.
  */
-import { Heart, Star } from "lucide-react";
+import { Heart, MapPin, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useRef } from "react";
@@ -16,7 +16,7 @@ import { useNavigationLoader } from "@/contexts/NavigationContext";
  * Compact Tour Card - Vertical layout for sidebar sections
  * @param {"duration" | "new"} badge - Top-left badge: tour duration or localized "New"
  */
-export function CompactTourCard({
+export function NewExperiencesCard({
   title,
   slug,
   duration,
@@ -24,6 +24,7 @@ export function CompactTourCard({
   rating,
   reviews,
   image,
+  location,
   discount,
   _disableTracking = false,
   badge = "duration",
@@ -97,6 +98,7 @@ export function CompactTourCard({
       lastGestureWasPanRef.current = false;
       return;
     }
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     navigateWithLoader(detailTo);
   };
@@ -112,7 +114,7 @@ export function CompactTourCard({
       className="group relative h-full contain-none touch-manipulation overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition duration-300 hover:shadow-md"
     >
       {/* Vertical Image */}
-      <div className="relative z-0 h-32 overflow-hidden bg-slate-100">
+      <div className="relative z-0 h-40 xl:h-44 overflow-hidden bg-slate-100">
         <img 
           src={image} 
           alt=""
@@ -134,7 +136,7 @@ export function CompactTourCard({
 
       {/* Vertical Content */}
       <div className="relative z-0 p-2.5">
-        {/* Title - 2 lines max, matching TourCard font size */}
+        {/* Title - 2 lines max, matching FeaturedExperiencesCard font size */}
         <h3 
           className="line-clamp-2 font-bold leading-tight tracking-tight text-slate-900 min-h-[2.4em]"
           style={{ fontSize: 'clamp(0.875rem, 0.7vw + 0.5rem, 0.9375rem)' }}
@@ -142,6 +144,13 @@ export function CompactTourCard({
           {title}
         </h3>
         
+        {location && (
+          <div className="mt-1 flex items-center gap-1 text-slate-500">
+            <MapPin className="size-3 shrink-0" />
+            <span className="truncate text-[11px]">{location}</span>
+          </div>
+        )}
+
         {/* Rating & Price Row */}
         <div className="mt-2 flex items-center justify-between gap-2">
           {/* Rating */}

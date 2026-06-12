@@ -6,7 +6,7 @@
  * Rates are hard-coded — replace with live API when backend supports it.
  *
  * Exposes: currency, setCurrency, convertPrice, formatPrice, exchangeRates
- * Used by: Navbar currency picker, TourCard, TourDetailPage, AllToursPage
+ * Used by: Navbar currency picker, FeaturedExperiencesCard, TourDetailPage, AllToursPage
  */
 import { createContext, useContext, useState, useEffect } from "react";
 

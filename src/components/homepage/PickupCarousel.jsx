@@ -5,7 +5,7 @@
  */
 import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useAnimation } from "framer-motion";
-import { TourCard } from "./TourCard";
+import { FeaturedExperiencesCard } from "./FeaturedExperiencesCard";
 
 export function PickupCarousel({ items }) {
   const containerRef = useRef(null);
@@ -90,7 +90,7 @@ export function PickupCarousel({ items }) {
             transition={{ duration: 0.2 }}
           >
             <div className={isDragging ? 'pointer-events-none select-none' : ''}>
-              <TourCard {...item} />
+              <FeaturedExperiencesCard {...item} />
             </div>
           </motion.div>
         ))}

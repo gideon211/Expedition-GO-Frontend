@@ -86,6 +86,7 @@ export function BrandLoader({
         <div ref={fillWrapRef} className="brand-loader__fill-wrap">
           <div className="brand-loader__fill">
             <span className="brand-loader__travio">Travio</span><span className="brand-loader__africa">Africa</span>
+            <span className="brand-loader__byline">by Expedition-Go Tours</span>
           </div>
         </div>
       </div>

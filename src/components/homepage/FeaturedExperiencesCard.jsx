@@ -1,9 +1,9 @@
 /**
- * @file TourCard.jsx
+ * @file FeaturedExperiencesCard.jsx
  * @description Reusable tour listing card. Used in carousels and AllToursPage grid.
  *   Links to /tour/:title. Supports wishlist toggle and swipe-to-reveal on mobile.
  */
-import { Heart, Star } from "lucide-react";
+import { Heart, MapPin, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useRef } from "react";
@@ -13,7 +13,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useNavigationLoader } from "@/contexts/NavigationContext";
 
-export function TourCard({
+export function FeaturedExperiencesCard({
   title,
   slug,
   duration,
@@ -21,6 +21,7 @@ export function TourCard({
   rating,
   reviews,
   image,
+  location,
   discount,
   _disableTracking = false,
   variant = "default",
@@ -99,6 +100,7 @@ export function TourCard({
       lastGestureWasPanRef.current = false;
       return;
     }
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     navigateWithLoader(detailTo);
   };
@@ -114,14 +116,14 @@ export function TourCard({
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="group relative h-full contain-none touch-manipulation rounded-b-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 xl:hover:-translate-y-0.5 xl:hover:shadow-md xl:active:scale-95 xl:active:shadow-[0_1px_2px_rgba(15,23,42,0.06)]"
+      className="group relative h-full contain-none touch-manipulation rounded-b-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 hover:shadow-md"
     >
       <div className={`relative z-0 ${imageHeightClass} overflow-hidden bg-slate-100`}>
         <img 
           src={image} 
           alt=""
           aria-hidden={true}
-          className="h-full w-full object-cover object-center transition duration-500 xl:group-hover:scale-105" 
+          className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105" 
           style={{ minHeight: '100%' }}
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/45 to-transparent" />
@@ -157,6 +159,12 @@ export function TourCard({
         >
           {title}
         </p>
+        {location && (
+          <div className="mt-1 flex items-center gap-1 text-slate-500">
+            <MapPin className="size-3 shrink-0" />
+            <span className="truncate text-[11px] xl:text-[10px]">{location}</span>
+          </div>
+        )}
         <div
           className={
             variant === "allTours"
@@ -205,7 +213,7 @@ export function TourCard({
       <button 
         type="button"
         onClick={handleHeartClick}
-        className="absolute right-2 top-2 z-[10] grid size-7 place-items-center rounded-full bg-white/88 text-slate-700 shadow-sm backdrop-blur transition xl:hover:bg-white xl:hover:scale-110"
+        className="absolute right-2 top-2 z-[10] grid size-7 place-items-center rounded-full bg-white/88 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white hover:scale-110"
       >
         <Heart 
           className={`size-3.5 transition-colors ${

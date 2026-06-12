@@ -1,16 +1,16 @@
 /**
  * @file DestinationsSection.jsx
  * @description Homepage destinations carousel with "View all" modal trigger.
- *   Data from data.js destinations. Uses DestinationCard and DestinationsModal.
+ *   Data from data.js destinations. Uses PopularDestinationsCard and DestinationsModal.
  *
- * @see components/homepage/DestinationCard.jsx
+ * @see components/homepage/PopularDestinationsCard.jsx
  */
 import { useRef, useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { destinations as staticDestinations } from "./data";
-import { DestinationCard } from "./DestinationCard";
+import { PopularDestinationsCard } from "./PopularDestinationsCard";
 import { DestinationsModal } from "./DestinationsModal";
 import { CarouselClipTrack } from "@/components/ui/CarouselClipTrack";
 
@@ -328,7 +328,7 @@ export function DestinationsSection({ apiDestinations = [] }) {
             className="min-w-[280px] shrink-0"
             style={{ scrollSnapAlign: "start" }}
           >
-            <DestinationCard {...item} />
+            <PopularDestinationsCard {...item} />
           </div>
         ))}
       </CarouselClipTrack>
@@ -351,7 +351,7 @@ export function DestinationsSection({ apiDestinations = [] }) {
             className="w-[280px] min-w-[280px] shrink-0"
             style={{ scrollSnapAlign: "start" }}
           >
-            <DestinationCard {...item} />
+            <PopularDestinationsCard {...item} />
           </div>
         ))}
       </CarouselClipTrack>

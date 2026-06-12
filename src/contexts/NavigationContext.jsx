@@ -80,6 +80,11 @@ export function NavigationProvider({ children }) {
 
 export function useNavigationLoader() {
   const ctx = useContext(NavigationContext);
-  if (!ctx) throw new Error("useNavigationLoader must be used within NavigationProvider");
+  if (!ctx) {
+    if (typeof window !== "undefined") {
+      console.warn("[Navigation] useNavigationLoader used outside NavigationProvider — using no-op fallback");
+    }
+    return { navigateWithLoader: (to) => { window.location.href = to; }, hideLoader: () => {}, isNavigating: false };
+  }
   return ctx;
 }

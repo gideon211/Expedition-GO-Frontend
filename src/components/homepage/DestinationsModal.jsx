@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Search } from "lucide-react";
 import { destinations } from "./data";
-import { DestinationCard } from "./DestinationCard";
+import { PopularDestinationsCard } from "./PopularDestinationsCard";
 
 const FOCUSABLE_SELECTOR = [
   'a[href]',
@@ -85,7 +85,7 @@ function DestinationGrid({ items, onNavigate }) {
           className="cursor-pointer"
           onClick={() => onNavigate(dest.title)}
         >
-          <DestinationCard {...dest} />
+          <PopularDestinationsCard {...dest} />
         </motion.div>
       ))}
     </motion.div>

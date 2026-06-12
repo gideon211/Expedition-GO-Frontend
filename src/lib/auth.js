@@ -332,7 +332,7 @@ export async function signInWithEmail(email, password) {
     firebaseUid: `mock-${Date.now()}`,
     email,
     emailVerified: true,
-    name: email.split('@')[0],
+    name: (email || "").split('@')[0],
     provider: 'email',
   };
 

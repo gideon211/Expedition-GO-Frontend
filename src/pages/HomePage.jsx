@@ -33,8 +33,11 @@ import { ReviewsCarousel } from "@/components/homepage/ReviewsCarousel";
 import { HomePageSkeleton } from "@/components/homepage/skeletons/HomePageSkeleton";
 import BrandLoader from "@/components/ui/BrandLoader";
 import { SectionHeading } from "@/components/homepage/SectionHeading";
-import { CompactTourCard } from "@/components/homepage/CompactTourCard";
-import { SidebarDealCard } from "@/components/homepage/SidebarDealCard";
+import { NewExperiencesCard } from "@/components/homepage/NewExperiencesCard";
+import { LastMinuteDealsCard } from "@/components/homepage/LastMinuteDealsCard";
+import { FeaturedExperiencesCard } from "@/components/homepage/FeaturedExperiencesCard";
+import { RecommendedExperiencesCard } from "@/components/homepage/RecommendedExperiencesCard";
+import { TopRatedExperiencesCard } from "@/components/homepage/TopRatedExperiencesCard";
 import { pickupTours, recommendedTours, topRatedTours, leisureTours, lastMinuteDeals, sidebarTopRated } from "@/components/homepage/data";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
@@ -295,19 +298,19 @@ function HomePageContent() {
         <main className="mx-auto max-w-[1520px] overflow-x-hidden px-4 pb-14 sm:px-6 lg:px-8">
           <div className="space-y-6 pt-6 min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
             {/* 1. Recommended For You */}
-            {carouselSlots[1] && <TourCarouselSection key={carouselSlots[1].id} {...carouselSlots[1]} />}
+            {carouselSlots[1] && <TourCarouselSection key={carouselSlots[1].id} {...carouselSlots[1]} CardComponent={RecommendedExperiencesCard} />}
 
             {/* 2. Popular Destinations */}
             <DestinationsSection apiDestinations={apiDestinations} />
 
             {/* 3. Top Rated By Travellers */}
-            {carouselSlots[2] && <TourCarouselSection key={carouselSlots[2].id} {...carouselSlots[2]} />}
+            {carouselSlots[2] && <TourCarouselSection key={carouselSlots[2].id} {...carouselSlots[2]} CardComponent={TopRatedExperiencesCard} />}
 
             {/* 4. Likely to Sellout */}
             {carouselSlots[3] && <TourCarouselSection key={carouselSlots[3].id} {...carouselSlots[3]} />}
 
             {/* 5. Featured Experiences */}
-            {carouselSlots[0] && <TourCarouselSection key={carouselSlots[0].id} {...carouselSlots[0]} />}
+            {carouselSlots[0] && <TourCarouselSection key={carouselSlots[0].id} {...carouselSlots[0]} CardComponent={FeaturedExperiencesCard} />}
 
             {/* Extra carousel slots */}
             {extraSlots.map((slot) => (
@@ -369,7 +372,7 @@ function HomePageContent() {
               >
                 {lastMinuteDeals.map((deal, index) => (
                   <div key={`${deal.title}-${index}`} className="w-[280px] shrink-0 h-full" style={{ scrollSnapAlign: "start" }}>
-                    <SidebarDealCard {...deal} />
+                    <LastMinuteDealsCard {...deal} />
                   </div>
                 ))}
               </CarouselClipTrack>
@@ -430,7 +433,7 @@ function HomePageContent() {
               >
                 {newTours.map((tour, index) => (
                   <div key={`${tour.title}-${index}`} className="w-[280px] shrink-0 h-full" style={{ scrollSnapAlign: "start" }}>
-                    <CompactTourCard {...tour} badge="new" />
+                    <NewExperiencesCard {...tour} badge="new" />
                   </div>
                 ))}
               </CarouselClipTrack>
@@ -441,23 +444,23 @@ function HomePageContent() {
           </div>
         </main>
 
+        <div className="mx-auto max-w-[1520px] px-4 sm:px-6 mb-14">
+          <ReviewsCarousel />
+        </div>
+
         {/* Discover Experiences Section - Tabbed cards */}
         <div className="mx-auto max-w-[1520px] px-4 sm:px-6 mb-14">
           <DiscoverExperiencesSection />
         </div>
 
         {/* Features Section - Full Width before footer */}
-        <div className="mx-auto mb-14 max-w-[1520px] px-4 sm:px-6">
+        <div className="mx-auto mb-8 max-w-[1520px] px-4 sm:px-6">
           <FeaturesSection />
         </div>
 
         {/* Newsletter Section - Full Width */}
         <div className="mx-auto max-w-[1520px] px-4 sm:px-6 mb-14 overflow-hidden">
           <NewsletterSection />
-        </div>
-
-        <div className="mb-14">
-          <ReviewsCarousel />
         </div>
 
         {/* News & Articles Section - Last before footer */}

@@ -3,7 +3,7 @@
  * @description Horizontal tour card for hero "Pickup where you left off" carousel.
  *   Compact layout inspired by GetYourGuide "Continue planning" style.
  */
-import { Star, CircleCheck } from "lucide-react";
+import { Star, CircleCheck, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useRef } from "react";
@@ -11,7 +11,7 @@ import { useRef } from "react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useNavigationLoader } from "@/contexts/NavigationContext";
 
-export function HeroTourCard({ title, slug, duration, price, rating, reviews, image, _disableTracking = false }) {
+export function HeroTourCard({ title, slug, duration, price, rating, reviews, image, location, _disableTracking = false }) {
   const { t } = useTranslation();
   const { convertPrice } = useCurrency();
   const { navigateWithLoader } = useNavigationLoader();
@@ -73,6 +73,7 @@ export function HeroTourCard({ title, slug, duration, price, rating, reviews, im
       lastGestureWasPanRef.current = false;
       return;
     }
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     navigateWithLoader(detailTo);
   };
@@ -115,6 +116,13 @@ export function HeroTourCard({ title, slug, duration, price, rating, reviews, im
           {duration}
         </p>
         
+        {location && (
+          <div className="mb-1 flex items-center gap-1 text-slate-500">
+            <MapPin className="size-3 shrink-0" />
+            <span className="truncate text-[10px]">{location}</span>
+          </div>
+        )}
+
         {/* Features - Free Cancellation & Pickup */}
         <div className="mb-auto space-y-0.5">
           <div className="flex items-center gap-1">

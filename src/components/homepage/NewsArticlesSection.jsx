@@ -1,115 +1,15 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, Clock, ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigationLoader } from "@/contexts/NavigationContext";
-
-const SAMPLE_ARTICLES = [
-  {
-    id: 1,
-    title: "Top 10 Hidden Gems in Ghana You Must Visit",
-    excerpt: "Discover lesser-known destinations that will take your breath away, from secret waterfalls to ancient villages.",
-    category: "Travel Guide",
-    readTime: "5 min read",
-    date: "Jan 15, 2026",
-    image: "https://images.unsplash.com/photo-1516069677018-3161f875605e?w=800&h=600&fit=crop",
-    slug: "hidden-gems-ghana"
-  },
-  {
-    id: 2,
-    title: "The Ultimate Guide to Cape Coast Castle",
-    excerpt: "Learn about the rich history and cultural significance of one of Ghana's most important heritage sites.",
-    category: "Heritage",
-    readTime: "8 min read",
-    date: "Jan 12, 2026",
-    image: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=800&h=600&fit=crop",
-    slug: "cape-coast-castle-guide"
-  },
-  {
-    id: 3,
-    title: "Best Street Food Spots in Accra",
-    excerpt: "From jollof rice to kelewele, explore the vibrant street food scene in Ghana's capital city.",
-    category: "Food & Culture",
-    readTime: "4 min read",
-    date: "Jan 10, 2026",
-    image: "https://images.unsplash.com/photo-1504672281656-e4981d70414b?w=800&h=600&fit=crop",
-    slug: "accra-street-food"
-  },
-  {
-    id: 4,
-    title: "Planning Your First Safari: What to Expect",
-    excerpt: "Everything you need to know before embarking on your African safari adventure, from packing to wildlife spotting.",
-    category: "Travel Tips",
-    readTime: "6 min read",
-    date: "Jan 8, 2026",
-    image: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&h=600&fit=crop",
-    slug: "first-safari-guide"
-  },
-  {
-    id: 5,
-    title: "Kakum National Park: Walking Above the Rainforest",
-    excerpt: "Experience the thrill of the canopy walkway and discover the biodiversity of Ghana's tropical rainforest.",
-    category: "Nature",
-    readTime: "5 min read",
-    date: "Jan 5, 2026",
-    image: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=800&h=600&fit=crop",
-    slug: "kakum-national-park"
-  }
-];
-
-function ArticleCard({ article }) {
-  return (
-    <Link
-      to={`/blog/${article.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:shadow-lg"
-    >
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-        <img
-          src={article.image}
-          alt={article.title}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-        <div className="absolute left-3 top-3">
-          <span className="rounded-full bg-[color:var(--brand-green)] px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
-            {article.category}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <div className="mb-2 flex items-center gap-3 text-[11px] text-slate-500 sm:text-[12px]">
-          <div className="flex items-center gap-1">
-            <Calendar className="size-3" />
-            <span>{article.date}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="size-3" />
-            <span>{article.readTime}</span>
-          </div>
-        </div>
-
-        <h3 className="mb-2 line-clamp-2 text-[15px] font-bold leading-snug text-slate-900 transition-colors group-hover:text-[color:var(--brand-green)] sm:text-base">
-          {article.title}
-        </h3>
-
-        <p className="mb-3 line-clamp-2 text-[13px] leading-relaxed text-slate-600 sm:text-sm">
-          {article.excerpt}
-        </p>
-
-        <div className="mt-auto">
-          <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[color:var(--brand-green)] transition-all group-hover:gap-2 sm:text-sm">
-            Read more
-            <ChevronRight className="size-4" />
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
+import { ArticleCard } from "./ArticleCard";
+import { getLatestPosts } from "@/lib/blogLoader";
 
 export function NewsArticlesSection() {
   const { t } = useTranslation();
   const { navigateWithLoader } = useNavigationLoader();
+  const articles = useMemo(() => getLatestPosts(5), []);
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -206,8 +106,8 @@ export function NewsArticlesSection() {
         ref={scrollRef}
         className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:gap-5"
       >
-        {SAMPLE_ARTICLES.map((article) => (
-          <div key={article.id} className="w-[300px] shrink-0 snap-start sm:w-[300px] lg:w-[300px]">
+        {articles.map((article) => (
+          <div key={article.slug} className="w-[300px] shrink-0 snap-start sm:w-[300px] lg:w-[300px]">
             <ArticleCard article={article} />
           </div>
         ))}

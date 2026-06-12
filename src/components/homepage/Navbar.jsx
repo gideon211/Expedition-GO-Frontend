@@ -19,7 +19,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useSearchAutocomplete } from "@/hooks/useSearchAutocomplete";
 import { SearchAutocomplete } from "./SearchAutocomplete";
-import { SupplierNavMenuItem } from "./SupplierNavMenuItem";
 import { useNavigationLoader } from "@/contexts/NavigationContext";
 
 export function Navbar({
@@ -91,11 +90,11 @@ export function Navbar({
     if (isSigningOut) return;
 
     setIsSigningOut(true);
-    setIsUserMenuOpen(false);
-    setIsMobileMenuOpen(false);
 
     try {
       await signOut();
+      setIsUserMenuOpen(false);
+      setIsMobileMenuOpen(false);
       navigate("/", { replace: true, state: { showLogoutToast: true } });
     } catch {
       setIsSigningOut(false);
@@ -284,11 +283,7 @@ export function Navbar({
         return;
       }
       const heroSearchBottom = heroSearch.getBoundingClientRect().bottom + window.scrollY;
-      const sticky = document.body.classList.contains("hero--search-sticky");
-      // 15px hysteresis: sticky persists a bit longer, activates a bit later
-      const next = sticky
-        ? window.scrollY > heroSearchBottom - 15
-        : window.scrollY > heroSearchBottom + 15;
+      const next = window.scrollY > heroSearchBottom;
       document.body.classList.toggle("hero--search-sticky", next);
       setSearchBarSticky(next);
     };
@@ -333,13 +328,12 @@ export function Navbar({
       <div className="navbar-inner mx-auto flex min-h-[var(--navbar-logo-height)] max-w-[1520px] items-center justify-between gap-2 px-3 py-0 text-slate-950 sm:gap-4 sm:px-4 lg:px-6 dark:text-slate-950">
         <button
           onClick={handleBrandClick}
-          className="navbar-brand flex h-[var(--navbar-logo-height)] shrink-0 items-center overflow-hidden leading-none cursor-pointer transition-opacity hover:opacity-80"
+          className="navbar-brand flex flex-col items-center justify-center h-[var(--navbar-logo-height)] shrink-0 overflow-hidden leading-none cursor-pointer transition-opacity hover:opacity-80"
         >
-          <img
-            src={companyPic}
-            alt="Expedition-Go Group Limited"
-            className="block h-full w-auto max-w-none object-contain object-left object-top"
-          />
+          <span className="text-lg font-black tracking-tight sm:text-xl lg:text-2xl">
+            <span style={{ color: "#173169" }}>Travio</span><span style={{ color: "#079847" }}>Africa</span>
+          </span>
+          <span className="mt-0 text-[8px] font-medium text-black/70 sm:text-[9px]">by Expedition-Go Tours</span>
         </button>
 
         {renderCompactSearch && (
@@ -470,9 +464,6 @@ export function Navbar({
                         <p className="text-xs text-slate-500">{user.email}</p>
                       </div>
                       <div className="py-2">
-                        <SupplierNavMenuItem
-                          onNavigate={() => setIsUserMenuOpen(false)}
-                        />
                         <Link
                           to="/support"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -497,7 +488,8 @@ export function Navbar({
                           <ShoppingCart className="size-4" />
                           <span>{t('nav.cart')}</span>
                         </Link>
-                        <button
+                        <Link
+                          to="/booking"
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                         >
@@ -505,7 +497,7 @@ export function Navbar({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                           <span>{t('nav.bookings')}</span>
-                        </button>
+                        </Link>
                       </div>
                       <div className="border-t border-slate-100 p-2">
                         <button
@@ -517,7 +509,7 @@ export function Navbar({
                           {isSigningOut ? (
                             <>
                               <LoaderCircle className="size-4 shrink-0 animate-spin text-rose-600" />
-                              <span>{t("nav.signingOut")}</span>
+                              <span>{t("nav.pleaseWait")}</span>
                             </>
                           ) : (
                             <>
@@ -556,8 +548,8 @@ export function Navbar({
                           <Headset className="size-4" />
                           <span>{t('nav.support')}</span>
                         </Link>
-                         <button
-                           onClick={() => setIsUserMenuOpen(false)}
+                        <button
+                          onClick={() => setIsUserMenuOpen(false)}
                           className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                         >
                           <Globe className="size-4" />
@@ -572,7 +564,8 @@ export function Navbar({
                           <ShoppingCart className="size-4" />
                           <span>{t('nav.cart')}</span>
                         </Link>
-                        <button
+                        <Link
+                          to="/booking"
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                         >
@@ -580,7 +573,7 @@ export function Navbar({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                           <span>{t('nav.bookings')}</span>
-                        </button>
+                        </Link>
                       </div>
                       <div className="border-t border-slate-100 p-2">
                         <Link
@@ -768,10 +761,6 @@ export function Navbar({
               </Link>
               {!loading && user && (
                 <>
-                  <SupplierNavMenuItem
-                    onNavigate={closeMobileMenu}
-                    className="inline-flex w-full items-center gap-2 py-2 text-sm text-slate-700 transition hover:text-slate-950"
-                  />
                   <Link to="/settings" onClick={closeMobileMenu} className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950">
                     <Settings className="size-4" />
                     <span className="text-sm">{t('nav.settings')}</span>

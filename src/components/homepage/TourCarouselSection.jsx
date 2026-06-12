@@ -3,12 +3,12 @@
  * @description Horizontal scroll carousel for tour lists on homepage and AllToursPage.
  *   Includes arrow navigation with smooth scroll and SectionHeading integration.
  *
- * @see components/homepage/TourCard.jsx
+ * @see components/homepage/FeaturedExperiencesCard.jsx (default card)
  * @see components/homepage/SectionHeading.jsx
  */
 import { useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { TourCard } from "./TourCard";
+import { FeaturedExperiencesCard } from "./FeaturedExperiencesCard";
 import { SectionHeading } from "./SectionHeading";
 import { CarouselClipTrack } from "@/components/ui/CarouselClipTrack";
 
@@ -67,12 +67,13 @@ function smoothScrollTo(element, target, duration, generationRef, generation, on
   requestAnimationFrame(step);
 }
 
-export function TourCarouselSection({ id, title, subtitle, items, fallbackKey, hideViewAll, hideTitle, sideArrows, badge }) {
+export function TourCarouselSection({ id, title, subtitle, items, fallbackKey, hideViewAll, hideTitle, sideArrows, badge, CardComponent }) {
   const scrollContainerRef = useRef(null);
   const mobileScrollRef = useRef(null);
   const isScrollingRef = useRef(false);
   const scrollGenerationRef = useRef(0);
 
+  const Card = CardComponent || FeaturedExperiencesCard;
   const infiniteItems = [...items, ...items, ...items];
   const cardWidth = 280;
   const gap = 12;
@@ -232,7 +233,7 @@ export function TourCarouselSection({ id, title, subtitle, items, fallbackKey, h
               className="w-[280px] shrink-0 h-full"
               style={{ scrollSnapAlign: "start" }}
             >
-              <TourCard {...item} badge={badge} />
+              <Card {...item} badge={badge} />
             </div>
           ))}
         </CarouselClipTrack>
@@ -267,7 +268,7 @@ export function TourCarouselSection({ id, title, subtitle, items, fallbackKey, h
             className="w-[280px] shrink-0 h-full"
             style={{ scrollSnapAlign: "start" }}
           >
-            <TourCard {...item} />
+            <Card {...item} />
           </div>
         ))}
       </CarouselClipTrack>

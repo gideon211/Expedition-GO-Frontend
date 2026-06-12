@@ -30,6 +30,7 @@ const resources = {
         profile: "Profile",
         signOut: "Sign Out",
         signingOut: "Signing out…",
+        pleaseWait: "Please wait…",
         settings: "Settings",
         support: "Support",
         updates: "Updates",

@@ -1,0 +1,26 @@
+backend:
+  name: github
+  repo: Expedition-Go-Tours/Expedition-GO-Frontend
+  branch: main
+  site_domain: https://travioafrica.com
+  base_url: https://decap-cms-oauth.vercel.app
+  auth_endpoint: auth
+
+media_folder: public/images/uploads
+public_folder: /images/uploads
+
+collections:
+  - name: blog
+    label: "Blog Posts"
+    folder: src/content/blog
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Slug", name: "slug", widget: "string", hint: "URL-friendly name, e.g. 'my-first-post'" }
+      - { label: "Excerpt", name: "excerpt", widget: "text", hint: "Short description shown in cards" }
+      - { label: "Category", name: "category", widget: "string", hint: "e.g. Travel Guide, Heritage, Food & Culture" }
+      - { label: "Read Time", name: "readTime", widget: "string", default: "5 min read", hint: "e.g. '5 min read'" }
+      - { label: "Date", name: "date", widget: "datetime", format: "YYYY-MM-DD", time_format: false }
+      - { label: "Image URL", name: "image", widget: "string", hint: "Unsplash URL or uploaded image path" }
+      - { label: "Body", name: "body", widget: "markdown" }

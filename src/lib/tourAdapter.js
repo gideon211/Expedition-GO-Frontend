@@ -34,6 +34,9 @@ export function adaptTourCard(tour) {
   const price = extractPrice(tour.schedulesAndPricing);
   const image = tour.coverPhoto || tour.photos?.[0] || "";
   const duration = formatDuration(tour.durationMinutes);
+  const city = tour.city || "";
+  const country = tour.country || "";
+  const location = [city, country].filter(Boolean).join(", ") || undefined;
   return {
     title: tour.title || "",
     slug: tour.slug || "",
@@ -42,10 +45,11 @@ export function adaptTourCard(tour) {
     rating: tour.averageRating != null ? String(Number(tour.averageRating).toFixed(1)) : "0",
     reviews: tour.reviewCount ?? tour._count?.reviews ?? 0,
     image,
+    location,
     discount: null,
     category: tour.category || "",
-    city: tour.city || "",
-    country: tour.country || "",
+    city,
+    country,
   };
 }
 

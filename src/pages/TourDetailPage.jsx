@@ -68,9 +68,6 @@ import { getTourByTitle, getAllTours } from "@/lib/tourData";
 import { mapSupplierProfile, normalizeWebsiteUrl } from "@/lib/supplierProfile";
 import { openTawkChat } from "@/lib/tawk";
 import { DotSpinner } from "@/components/ui/DotSpinner";
-
-/** Dot spinner cycle is 1s; ~85% of one rotation feels responsive without rushing. */
-const BACK_NAV_SPINNER_MS = 850;
 import fallbackTourImage from "@/assets/images/hero_pic.jpg";
 
 const EXTERNAL_FALLBACK_IMAGES = [
@@ -465,8 +462,6 @@ function TourDetailContent() {
   }, [isLoading, rawTour, error, hideLoader]);
 
   useEffect(() => {
-    backNavStartedRef.current = false;
-    setShowBackSplash(false);
     setFocusedItineraryStopIndex(null);
   }, [id]);
 
@@ -558,9 +553,7 @@ function TourDetailContent() {
   const [expandedInfoSection, setExpandedInfoSection] = useState({ included: true });
   const [supplierInfoOpen, setSupplierInfoOpen] = useState(false);
   const [_travelerType, _setTravelerType] = useState("adults");
-  const [showBackSplash, setShowBackSplash] = useState(false);
   const [focusedItineraryStopIndex, setFocusedItineraryStopIndex] = useState(null);
-  const backNavStartedRef = useRef(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [overviewAccordionOpen, setOverviewAccordionOpen] = useState({
     highlights: true,
@@ -572,30 +565,17 @@ function TourDetailContent() {
   );
 
   const completeBackNavigation = useCallback(() => {
-    if (backNavStartedRef.current) return;
-    backNavStartedRef.current = true;
-    setShowBackSplash(false);
-    hideLoader();
-
     const historyIdx = window.history.state?.idx;
     if (typeof historyIdx === "number" && historyIdx > 0) {
       navigate(-1);
       return;
     }
     navigate("/", { state: { skipHomeSkeletonDelay: true } });
-  }, [hideLoader, navigate]);
+  }, [navigate]);
 
   const handleBackClick = useCallback(() => {
-    if (backNavStartedRef.current || showBackSplash) return;
-    hideLoader();
-    setShowBackSplash(true);
-  }, [hideLoader, showBackSplash]);
-
-  useEffect(() => {
-    if (!showBackSplash) return undefined;
-    const fallbackTimer = window.setTimeout(completeBackNavigation, BACK_NAV_SPINNER_MS);
-    return () => window.clearTimeout(fallbackTimer);
-  }, [showBackSplash, completeBackNavigation]);
+    completeBackNavigation();
+  }, [completeBackNavigation]);
 
   useEffect(() => {
     if (activeDetailTab !== "itinerary") {
@@ -1559,7 +1539,7 @@ function TourDetailContent() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveDetailTab(tab.key)}
-                className={`shrink-0 whitespace-nowrap border-b-2 px-2 py-3 transition sm:px-2.5 ${
+                className={`shrink-0 whitespace-nowrap border-b-2 px-2 py-3 transition-colors duration-200 sm:px-2.5 ${
                   activeDetailTab === tab.key
                     ? "border-[color:var(--brand-green)]"
                     : "border-transparent hover:border-[color:var(--brand-green)]/50"
@@ -1574,8 +1554,15 @@ function TourDetailContent() {
 
         <div className="mt-5">
           <div className="min-w-0">
+            <AnimatePresence mode="wait">
             {activeDetailTab === "overview" && (
-            <section id="overview" className="pb-6">
+            <motion.section
+              key="overview"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              id="overview" className="pb-6">
               <div className="grid gap-3 sm:grid-cols-2">
                 {quickFacts.map(({ icon: Icon, label, value }) => (
                   <div key={label} className="flex items-start gap-3 text-sm text-[color:var(--brand-green)]">
@@ -1647,11 +1634,17 @@ function TourDetailContent() {
                   )}
                 </div>
               </div>
-            </section>
+            </motion.section>
             )}
 
             {activeDetailTab === "details" && (
-            <section id="details" className="pb-6">
+            <motion.section
+              key="details"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              id="details" className="pb-6">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">Details</h2>
               <div className="mt-4 space-y-3">
                 {infoSections.map((section) => {
@@ -1671,11 +1664,17 @@ function TourDetailContent() {
                   );
                 })}
               </div>
-            </section>
+            </motion.section>
             )}
 
             {activeDetailTab === "itinerary" && (
-            <section id="itinerary" className="pb-8">
+            <motion.section
+              key="itinerary"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              id="itinerary" className="pb-8">
               <h2 className="text-lg font-black text-[color:var(--brand-green)]">Itinerary</h2>
               {itineraryStops.length === 0 ? (
                 <p className="mt-5 text-sm text-slate-500">No itinerary details available for this tour.</p>
@@ -1744,11 +1743,17 @@ function TourDetailContent() {
                   </aside>
                 </div>
               )}
-            </section>
+            </motion.section>
             )}
 
             {activeDetailTab === "reviews" && (
-            <>
+            <motion.div
+              key="reviews"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
             <section id="reviews" className="pb-8">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <h2 className="text-2xl font-black text-slate-950">Reviews</h2>
@@ -1916,10 +1921,17 @@ function TourDetailContent() {
               </div>
             </section>
 
-            </>
+            </motion.div>
             )}
 
             {activeDetailTab === "supplier" && (
+            <motion.div
+              key="supplier"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
             <SupplierTabContent
               supplierData={supplierData}
               supplierTours={supplierTours}
@@ -1934,7 +1946,9 @@ function TourDetailContent() {
               tourId={effectiveRawTour?.id}
               tourSlug={effectiveRawTour?.slug || id}
             />
+            </motion.div>
             )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -2364,11 +2378,6 @@ function TourDetailContent() {
         description="Create an account or sign in to continue with your booking."
       />
 
-      {showBackSplash && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-white">
-          <DotSpinner />
-        </div>
-      )}
     </>
   );
 }
@@ -2439,7 +2448,7 @@ function SupplierTabContent({ supplierData, supplierTours, supplierInfoOpen, set
               {supplierData.logo ? (
                 <img src={supplierData.logo} alt="" className="size-full rounded-full object-cover" />
               ) : (
-                supplierData.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+                (supplierData.name || "").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
               )}
             </div>
             <div>

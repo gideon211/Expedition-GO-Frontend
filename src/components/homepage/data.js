@@ -53,6 +53,7 @@ export const pickupTours = [
     price: "$45",
     rating: "4.6",
     reviews: 230,
+    location: "Accra, Ghana",
     image:
       "https://images.unsplash.com/photo-1601758125946-6ec2ef64daf8?auto=format&fit=crop&w=1200&q=80",
   },
@@ -62,6 +63,7 @@ export const pickupTours = [
     price: "$60",
     rating: "4.7",
     reviews: 410,
+    location: "Cape Coast, Ghana",
     image:
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80",
   },
@@ -71,6 +73,7 @@ export const pickupTours = [
     price: "$35",
     rating: "4.8",
     reviews: 320,
+    location: "Kakum, Ghana",
     image:
       "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
   },
@@ -80,6 +83,7 @@ export const pickupTours = [
     price: "$55",
     rating: "4.6",
     reviews: 182,
+    location: "Volta Region, Ghana",
     image:
       "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=80",
   },
@@ -89,6 +93,7 @@ export const pickupTours = [
     price: "$40",
     rating: "4.5",
     reviews: 124,
+    location: "Ada Foah, Ghana",
     image:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
   },
@@ -98,6 +103,7 @@ export const pickupTours = [
     price: "$42",
     rating: "4.7",
     reviews: 168,
+    location: "Aburi, Ghana",
     image:
       "https://images.unsplash.com/photo-1473773508845-188df298d2d1?auto=format&fit=crop&w=1200&q=80",
   },
@@ -107,6 +113,7 @@ export const pickupTours = [
     price: "$38",
     rating: "4.6",
     reviews: 145,
+    location: "Accra, Ghana",
     image:
       "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80",
   },
@@ -116,6 +123,7 @@ export const pickupTours = [
     price: `$${45 + index}`,
     rating: (4.5 + ((index % 5) * 0.1)).toFixed(1),
     reviews: 140 + index * 9,
+    location: "Ghana",
     image: `https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80&sig=pickup${index + 1}`,
   })),
 ];
@@ -256,6 +264,7 @@ export const recommendedTours = [
     price: "$50",
     rating: "4.7",
     reviews: 260,
+    location: "Accra, Ghana",
     image:
       "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80",
   },
@@ -265,6 +274,7 @@ export const recommendedTours = [
     price: "$65",
     rating: "4.8",
     reviews: 310,
+    location: "Cape Coast, Ghana",
     image:
       "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=80",
   },
@@ -274,6 +284,7 @@ export const recommendedTours = [
     price: "$120",
     rating: "4.9",
     reviews: 210,
+    location: "Mole National Park, Ghana",
     image:
       "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80",
   },
@@ -283,6 +294,7 @@ export const recommendedTours = [
     price: "$70",
     rating: "4.6",
     reviews: 180,
+    location: "Busua, Ghana",
     image:
       "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
   },
@@ -292,6 +304,7 @@ export const recommendedTours = [
     price: "$55",
     rating: "4.5",
     reviews: 150,
+    location: "Accra, Ghana",
     image:
       "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80",
   },
@@ -301,6 +314,7 @@ export const recommendedTours = [
     price: "$88",
     rating: "4.8",
     reviews: 196,
+    location: "Eastern Region, Ghana",
     image:
       "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80",
   },
@@ -310,6 +324,7 @@ export const recommendedTours = [
     price: "$48",
     rating: "4.7",
     reviews: 172,
+    location: "Accra, Ghana",
     image:
       "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80",
   },
@@ -319,6 +334,7 @@ export const recommendedTours = [
     price: `$${52 + index * 2}`,
     rating: (4.6 + ((index % 4) * 0.1)).toFixed(1),
     reviews: 160 + index * 8,
+    location: "Ghana",
     image: `https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80&sig=recommended${index + 1}`,
   })),
 ];
@@ -330,6 +346,7 @@ export const topRatedTours = [
     price: "$60",
     rating: "4.8",
     reviews: 209,
+    location: "Cape Coast, Ghana",
     image:
       "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80",
   },
@@ -339,6 +356,7 @@ export const topRatedTours = [
     price: "$55",
     rating: "4.7",
     reviews: 280,
+    location: "Elmina, Ghana",
     image:
       "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?auto=format&fit=crop&w=1200&q=80",
   },
@@ -348,6 +366,7 @@ export const topRatedTours = [
     price: "$130",
     rating: "4.9",
     reviews: 380,
+    location: "Accra, Ghana",
     image:
       "https://images.unsplash.com/photo-1505764706515-aa95265c5abc?auto=format&fit=crop&w=1200&q=80",
   },
@@ -357,6 +376,7 @@ export const topRatedTours = [
     price: "$75",
     rating: "4.7",
     reviews: 210,
+    location: "Kumasi, Ghana",
     image:
       "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1200&q=80",
   },
@@ -366,6 +386,7 @@ export const topRatedTours = [
     price: "$50",
     rating: "4.8",
     reviews: 210,
+    location: "Ghana",
     image:
       "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
   },
@@ -375,6 +396,7 @@ export const topRatedTours = [
     price: "$68",
     rating: "4.8",
     reviews: 234,
+    location: "Shai Hills, Ghana",
     image:
       "https://images.unsplash.com/photo-1535941339077-2dd1c7963098?auto=format&fit=crop&w=1200&q=80",
   },
@@ -384,6 +406,7 @@ export const topRatedTours = [
     price: "$62",
     rating: "4.7",
     reviews: 201,
+    location: "Elmina, Ghana",
     image:
       "https://images.unsplash.com/photo-1446822775955-c34f483b410b?auto=format&fit=crop&w=1200&q=80",
   },
@@ -393,6 +416,7 @@ export const topRatedTours = [
     price: `$${58 + index * 2}`,
     rating: (4.7 + ((index % 3) * 0.1)).toFixed(1),
     reviews: 200 + index * 10,
+    location: "Ghana",
     image: `https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1200&q=80&sig=toprated${index + 1}`,
   })),
 ];
@@ -405,6 +429,7 @@ export const leisureTours = [
     rating: "4.6",
     reviews: 140,
     discount: "Likely to Sell Out",
+    location: "Ada Foah, Ghana",
     image:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
   },
@@ -415,6 +440,7 @@ export const leisureTours = [
     rating: "4.7",
     reviews: 110,
     discount: "Likely to Sell Out",
+    location: "Ghana",
     image:
       "https://images.unsplash.com/photo-1519822473471-7e1d8df8f9af?auto=format&fit=crop&w=1200&q=80",
   },
@@ -425,6 +451,7 @@ export const leisureTours = [
     rating: "4.6",
     reviews: 120,
     discount: "Likely to Sell Out",
+    location: "Volta Region, Ghana",
     image:
       "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
   },
@@ -435,6 +462,7 @@ export const leisureTours = [
     rating: "4.8",
     reviews: 90,
     discount: "Likely to Sell Out",
+    location: "Ada Foah, Ghana",
     image:
       "https://images.unsplash.com/photo-1439066615861-d1af74d74000?auto=format&fit=crop&w=1200&q=80",
   },
@@ -445,6 +473,7 @@ export const leisureTours = [
     rating: "4.5",
     reviews: 80,
     discount: "Likely to Sell Out",
+    location: "Ghana",
     image:
       "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80",
   },
@@ -455,6 +484,7 @@ export const leisureTours = [
     rating: "4.7",
     reviews: 98,
     discount: "Likely to Sell Out",
+    location: "Ghana",
     image:
       "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80",
   },
@@ -465,6 +495,7 @@ export const leisureTours = [
     rating: "4.8",
     reviews: 104,
     discount: "Likely to Sell Out",
+    location: "Nzulezu, Ghana",
     image:
       "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=1200&q=80",
   },
@@ -475,6 +506,7 @@ export const leisureTours = [
     rating: (4.5 + ((index % 4) * 0.1)).toFixed(1),
     reviews: 95 + index * 7,
     discount: "Likely to Sell Out",
+    location: "Ghana",
     image: `https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80&sig=leisure${index + 1}`,
   })),
 ];
@@ -487,6 +519,9 @@ export const lastMinuteDeals = [
     price: "$40",
     discount: "-20%",
     countdown: "Ends in 05:30:15",
+    rating: "4.6",
+    reviews: 230,
+    location: "Accra, Ghana",
     image:
       "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1200&q=80",
   },
@@ -496,6 +531,9 @@ export const lastMinuteDeals = [
     price: "$45",
     discount: "-25%",
     countdown: "Ends in 07:45:20",
+    rating: "4.7",
+    reviews: 182,
+    location: "Volta Region, Ghana",
     image:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
   },
@@ -505,6 +543,9 @@ export const lastMinuteDeals = [
     price: "$127",
     discount: "-15%",
     countdown: "Ends in 10:20:35",
+    rating: "4.9",
+    reviews: 210,
+    location: "Mole National Park, Ghana",
     image:
       "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80",
   },
@@ -514,6 +555,9 @@ export const lastMinuteDeals = [
     price: "$56",
     discount: "-20%",
     countdown: "Ends in 06:30:45",
+    rating: "4.5",
+    reviews: 124,
+    location: "Ada Foah, Ghana",
     image:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
   },
@@ -529,6 +573,9 @@ export const lastMinuteDeals = [
       price: `$${basePrice}`,
       discount: discounts[index],
       countdown: `Ends in ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`,
+      rating: (4.4 + ((index % 5) * 0.1)).toFixed(1),
+      reviews: 100 + index * 15,
+      location: "Ghana",
       image: `https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80&sig=deal${index + 1}`,
     };
   }),
@@ -541,6 +588,7 @@ export const sidebarTopRated = [
     price: "$60",
     rating: "4.9",
     reviews: "500+",
+    location: "Cape Coast, Ghana",
     image:
       "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80",
   },
@@ -550,6 +598,7 @@ export const sidebarTopRated = [
     price: "$40",
     rating: "4.9",
     reviews: "420+",
+    location: "Kakum, Ghana",
     image:
       "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
   },
@@ -559,6 +608,7 @@ export const sidebarTopRated = [
     price: "$130",
     rating: "4.9",
     reviews: "380+",
+    location: "Mole National Park, Ghana",
     image:
       "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80",
   },
@@ -568,6 +618,7 @@ export const sidebarTopRated = [
     price: "$75",
     rating: "4.8",
     reviews: "280+",
+    location: "Volta Region, Ghana",
     image:
       "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=80",
   },
@@ -577,6 +628,7 @@ export const sidebarTopRated = [
     price: "$95",
     rating: "4.9",
     reviews: "350+",
+    location: "Mole National Park, Ghana",
     image:
       "https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=1200&q=80",
   },
@@ -586,6 +638,7 @@ export const sidebarTopRated = [
     price: "$55",
     rating: "4.8",
     reviews: "290+",
+    location: "Wli, Ghana",
     image:
       "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80",
   },

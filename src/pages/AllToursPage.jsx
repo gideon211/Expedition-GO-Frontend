@@ -9,8 +9,8 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { ArrowLeft, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, SlidersHorizontal, X, CircleCheck, Star, Heart } from "lucide-react";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
-import { TourCard } from "@/components/homepage/TourCard";
-import { DestinationCard } from "@/components/homepage/DestinationCard";
+import { FeaturedExperiencesCard } from "@/components/homepage/FeaturedExperiencesCard";
+import { PopularDestinationsCard } from "@/components/homepage/PopularDestinationsCard";
 import { Calendar } from "@/components/ui/calendar";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { AuthModal } from "@/components/ui/auth-modal";
@@ -728,7 +728,7 @@ function AllToursPageContent() {
                         <MobileAllToursCard item={item} badge={tourListBadge} />
                       </div>
                       <div className="hidden sm:block">
-                        <TourCard {...item} variant="allTours" badge={tourListBadge} />
+                        <FeaturedExperiencesCard {...item} variant="allTours" badge={tourListBadge} />
                       </div>
                     </div>
                   ))

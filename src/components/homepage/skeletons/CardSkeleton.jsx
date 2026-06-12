@@ -59,7 +59,7 @@ export function CompactCardSkeleton({ delay = 0 }) {
 export function DestinationCardSkeleton({ delay = 0 }) {
   return (
     <Card className="relative overflow-hidden rounded-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]">
-      <Skeleton className="h-32 xl:h-36 w-full rounded-none" delay={delay} />
+      <Skeleton className="h-40 xl:h-44 w-full rounded-none" delay={delay} />
       <div className="absolute bottom-3 left-3 right-3">
         <Skeleton className="h-5 w-3/4 mb-1" delay={delay + 30} />
         <Skeleton className="h-3 w-1/2" delay={delay + 50} />

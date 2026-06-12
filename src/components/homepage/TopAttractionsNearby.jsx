@@ -44,7 +44,7 @@ function AttractionCard({ title, slug, price, image }) {
   };
 
   return (
-    <div className="group relative h-48 contain-none overflow-hidden rounded-lg border border-slate-200 shadow-sm transition duration-300 hover:shadow-md">
+    <div className="group relative h-[18.75rem] xl:h-[21rem] contain-none overflow-hidden rounded-lg border border-slate-200 shadow-sm transition duration-300 hover:shadow-md">
       <img
         src={image}
         alt=""
@@ -237,7 +237,7 @@ export function TopAttractionsNearby() {
         {sortedAttractions.map((attraction, index) => (
           <div
             key={`${attraction.title}-${index}`}
-            className="w-[280px] shrink-0 h-full"
+            className="w-[280px] shrink-0 snap-start"
             style={{ scrollSnapAlign: "start" }}
           >
             <AttractionCard {...attraction} />

@@ -4,7 +4,7 @@
  */
 import { useRef, useEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
-import { TourCard } from "./TourCard";
+import { FeaturedExperiencesCard } from "./FeaturedExperiencesCard";
 
 export function AutoScrollCarousel({ items, title }) {
   const [isPaused, setIsPaused] = useState(false);
@@ -79,7 +79,7 @@ export function AutoScrollCarousel({ items, title }) {
               }}
               whileTap={{ scale: 0.98 }}
             >
-              <TourCard {...item} />
+              <FeaturedExperiencesCard {...item} />
             </motion.div>
           ))}
         </motion.div>

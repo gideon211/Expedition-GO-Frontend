@@ -117,10 +117,7 @@ export function ReviewsCarousel() {
   return (
     <section className="relative bg-white py-12 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-8">
-        <h5
-          className="mb-8 text-center font-semibold tracking-tight text-slate-900 sm:mb-10"
-          style={{ fontSize: "clamp(1.75rem, 3vw + 0.5rem, 2.5rem)" }}
-        >
+        <h5 className="mb-8 text-left text-xl font-semibold tracking-tight text-slate-900 sm:mb-10 sm:text-2xl">
           {t("reviews.heading", "Stories from TravioAfrica Experiences")}
         </h5>
 
@@ -212,7 +209,7 @@ export function ReviewsCarousel() {
             >
               ✕
             </button>
-            <h5 className="pr-8 text-md font-semibold text-slate-900">
+            <h5 className="pr-8 text-left text-sm font-semibold text-slate-900">
               {activeReview.headline}
             </h5>
             <p className="mt-1 text-sm text-slate-500">{activeReview.author}</p>

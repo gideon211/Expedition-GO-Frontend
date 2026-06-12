@@ -9,7 +9,7 @@ import { Heart, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/homepage/Navbar";
 import { Footer } from "@/components/homepage/Footer";
-import { TourCard } from "@/components/homepage/TourCard";
+import { FeaturedExperiencesCard } from "@/components/homepage/FeaturedExperiencesCard";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
@@ -70,7 +70,7 @@ function WishlistPageContent() {
         ) : (
           <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {wishlist.map((item, index) => (
-              <TourCard key={`${item.title}-${index}`} {...item} />
+              <FeaturedExperiencesCard key={`${item.title}-${index}`} {...item} />
             ))}
           </div>
         )}

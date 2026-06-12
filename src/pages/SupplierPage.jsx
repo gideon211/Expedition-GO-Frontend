@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useMemo, useState, useCallback } from "react";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Heart, Phone, Mail, Globe, MapPin, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
@@ -65,6 +65,7 @@ function SupplierContactRows({ supplierData }) {
 function SupplierPage() {
   const { tourTitle } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const decodedTitle = decodeURIComponent(tourTitle);
   const { convertPrice } = useCurrency();
@@ -175,21 +176,28 @@ function SupplierPage() {
       <Navbar />
       <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
       <main className="mx-auto max-w-[1520px] overflow-x-clip px-4 pb-8 pt-6 text-slate-900 sm:px-6 lg:px-8 lg:pt-10">
-        <Link
-          to="/"
-          state={{ postAuthSplash: true }}
+        <button
+          type="button"
+          onClick={() => {
+            const historyIdx = window.history.state?.idx;
+            if (typeof historyIdx === "number" && historyIdx > 0) {
+              navigate(-1);
+            } else {
+              navigate("/");
+            }
+          }}
           className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-900 transition hover:text-[color:var(--brand-green)]"
         >
           <ArrowLeft className="size-4" />
-          Back to Home
-        </Link>
+          {t("common.back")}
+        </button>
 
         <div className="flex min-w-0 items-start gap-4 sm:items-center">
           <div className="grid size-16 shrink-0 place-items-center rounded-full border border-slate-200 bg-white px-1 text-xs font-black text-[color:var(--brand-green)]">
             {supplierData.logo ? (
               <img src={supplierData.logo} alt="" className="size-full rounded-full object-cover" />
             ) : (
-              supplierData.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+              (supplierData.name || "").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
             )}
           </div>
           <div className="min-w-0 flex-1">

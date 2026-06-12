@@ -2,10 +2,10 @@
  * @file NewExperiencesSection.jsx
  * @description Animated grid of new tour cards on homepage. Uses framer-motion stagger.
  *
- * @see components/homepage/TourCard.jsx
+ * @see components/homepage/FeaturedExperiencesCard.jsx
  */
 import { motion } from "framer-motion";
-import { TourCard } from "./TourCard";
+import { FeaturedExperiencesCard } from "./FeaturedExperiencesCard";
 import { SectionHeading } from "./SectionHeading";
 
 export function NewExperiencesSection({ items }) {
@@ -47,7 +47,7 @@ export function NewExperiencesSection({ items }) {
             key={`${item.title}-${index}`}
             variants={itemVariants}
           >
-            <TourCard {...item} />
+            <FeaturedExperiencesCard {...item} />
           </motion.div>
         ))}
       </div>
