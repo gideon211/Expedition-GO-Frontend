@@ -7,7 +7,7 @@ const MOOD_CATEGORIES = [
   {
     id: 'adventure',
     title: 'Adventure',
-    tag: 'Adventure',
+    tag: 'Thrill',
     count: 15,
     image:
       'https://images.unsplash.com/photo-1533240332313-0db49b459ad6?auto=format&fit=crop&w=600&q=80',
@@ -15,7 +15,7 @@ const MOOD_CATEGORIES = [
   {
     id: 'cultural',
     title: 'Cultural',
-    tag: 'Cultural',
+    tag: 'Heritage',
     count: 20,
     image:
       'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80',
@@ -23,7 +23,7 @@ const MOOD_CATEGORIES = [
   {
     id: 'nature',
     title: 'Nature',
-    tag: 'Nature',
+    tag: 'Escape',
     count: 18,
     image:
       'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=600&q=80',
@@ -31,7 +31,7 @@ const MOOD_CATEGORIES = [
   {
     id: 'beach',
     title: 'Beach',
-    tag: 'Beach',
+    tag: 'Sun & Sea',
     count: 12,
     image:
       'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80',
@@ -39,7 +39,7 @@ const MOOD_CATEGORIES = [
   {
     id: 'wildlife',
     title: 'Wildlife',
-    tag: 'Wildlife',
+    tag: 'Safari',
     count: 10,
     image:
       'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=600&q=80',
@@ -47,7 +47,7 @@ const MOOD_CATEGORIES = [
   {
     id: 'city-tours',
     title: 'City Tours',
-    tag: 'City Tours',
+    tag: 'Urban',
     count: 22,
     image:
       'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=600&q=80',
@@ -55,7 +55,7 @@ const MOOD_CATEGORIES = [
   {
     id: 'food-drinks',
     title: 'Food & Drinks',
-    tag: 'Food & Drinks',
+    tag: 'Taste',
     count: 9,
     image:
       'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80',
@@ -63,7 +63,7 @@ const MOOD_CATEGORIES = [
   {
     id: 'wellness',
     title: 'Wellness',
-    tag: 'Wellness',
+    tag: 'Recharge',
     count: 7,
     image:
       'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',

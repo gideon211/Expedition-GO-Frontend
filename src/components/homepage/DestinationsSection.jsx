@@ -48,61 +48,6 @@ const destinationCoords = {
   'Biriwa Beach': { lat: 5.1333, lng: -1.1667 },
 };
 
-const CAROUSEL_ARROW_SCROLL_MS = 260;
-
-/** Arrow-driven scroll; stale runs stop when generation bumps (rapid clicks). */
-function smoothScrollTo(element, target, duration, generationRef, generation, onComplete) {
-  const start = element.scrollLeft;
-  const distance = target - start;
-
-  const invokeComplete = () => {
-    if (generationRef.current === generation) {
-      onComplete?.();
-    }
-  };
-
-  if (Math.abs(distance) < 0.5) {
-    requestAnimationFrame(invokeComplete);
-    return;
-  }
-
-  let startTime = null;
-  const originalSnap = element.style.scrollSnapType;
-
-  element.style.scrollSnapType = 'none';
-
-  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-
-  const finishSnap = () => {
-    if (generationRef.current !== generation) {
-      element.style.scrollSnapType = originalSnap;
-      return;
-    }
-    element.style.scrollSnapType = originalSnap;
-    invokeComplete();
-  };
-
-  const step = (timestamp) => {
-    if (generationRef.current !== generation) {
-      element.style.scrollSnapType = originalSnap;
-      return;
-    }
-    if (!startTime) startTime = timestamp;
-    const elapsed = timestamp - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-
-    element.scrollLeft = start + distance * easeOutCubic(progress);
-
-    if (progress < 1) {
-      requestAnimationFrame(step);
-    } else {
-      requestAnimationFrame(finishSnap);
-    }
-  };
-
-  requestAnimationFrame(step);
-}
-
 export function DestinationsSection({ apiDestinations = [] }) {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -110,7 +55,6 @@ export function DestinationsSection({ apiDestinations = [] }) {
   const scrollContainerRef = useRef(null);
   const mobileScrollRef = useRef(null);
   const isScrollingRef = useRef(false);
-  const scrollGenerationRef = useRef(0);
   const [userLocation, setUserLocation] = useState(null);
 
   useEffect(() => {
@@ -202,9 +146,6 @@ export function DestinationsSection({ apiDestinations = [] }) {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    scrollGenerationRef.current += 1;
-    const gen = scrollGenerationRef.current;
-
     const scrollAmount = cardWidth + gap;
     const currentScroll = container.scrollLeft;
 
@@ -230,13 +171,7 @@ export function DestinationsSection({ apiDestinations = [] }) {
       }
     }
 
-    smoothScrollTo(
-      container,
-      newScrollPosition,
-      CAROUSEL_ARROW_SCROLL_MS,
-      scrollGenerationRef,
-      gen
-    );
+    container.scrollTo({ left: newScrollPosition, behavior: 'smooth' });
   };
 
   useEffect(() => {

@@ -129,45 +129,27 @@ export function LastMinuteDealsCard({
         </span>
       </div>
       <CardContent className="relative z-0 p-4 xl:p-3.5">
-        <p className="line-clamp-2 text-[15px] font-semibold leading-tight text-slate-900 xl:text-[14px]">
+        <p className="line-clamp-2 text-[15px] font-bold leading-tight text-slate-900 xl:text-[14px]">
           {title}
         </p>
 
         {location && (
-          <div className="mt-1 flex items-center gap-1 text-slate-500">
+          <div className="mt-1 flex items-center gap-1 text-black">
             <MapPin className="size-3 shrink-0" />
-            <span className="truncate text-[11px]">{location}</span>
+            <span className="truncate text-[16px] font-semibold">{location}</span>
           </div>
         )}
 
         {rating && (
-          <div className="mt-1.5 flex items-center gap-1 text-amber-500">
+          <div className="mt-1.5 flex items-center gap-1 text-[#39AD6C]">
             <Star className="size-3 fill-current" />
-            <span className="text-[11px] font-semibold text-slate-900">{rating}</span>
+            <span className="text-[11px] font-bold text-slate-900">{rating}</span>
             <span className="text-[10px] text-slate-500">({reviews})</span>
           </div>
         )}
 
         {/* Price and Timer Row */}
         <div className="mt-3 flex items-end justify-between gap-2">
-          {/* Price Section */}
-          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-            <span className="text-[9px] font-medium text-slate-500 uppercase tracking-wide">
-              {t('common.from')}
-            </span>
-            <div className="flex items-baseline gap-1 flex-wrap">
-              <span className="text-[8px] text-slate-400 line-through decoration-slate-300">
-                {convertedOldPrice.formatted}
-              </span>
-              <span
-                className="font-bold text-[color:var(--brand-green)]"
-                style={{ fontSize: 'clamp(0.625rem, 0.6vw + 0.2rem, 0.6875rem)' }}
-              >
-                {convertedPrice.formatted}
-              </span>
-            </div>
-          </div>
-
           {/* Timer Badge */}
           <div className="deal-timer-glow shrink-0">
             <div className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-orange-50 to-red-50 px-2 py-0.5 border border-orange-200/50">
@@ -182,8 +164,26 @@ export function LastMinuteDealsCard({
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-[9px] font-semibold text-orange-600 whitespace-nowrap">
+              <span className="text-[9px] font-bold text-orange-600 whitespace-nowrap">
                 {countdown}
+              </span>
+            </div>
+          </div>
+
+          {/* Price Section */}
+          <div className="flex flex-col gap-0.5 flex-1 min-w-0 items-end">
+            <span className="text-[9px] font-medium text-slate-500">
+              {t('common.from')}
+            </span>
+            <div className="flex items-baseline gap-1 flex-wrap justify-end">
+              <span className="text-[8px] text-slate-400 line-through decoration-slate-300">
+                {convertedOldPrice.formatted}
+              </span>
+              <span
+                className="font-bold text-black"
+                style={{ fontSize: 'clamp(0.75rem, 0.7vw + 0.3rem, 0.875rem)' }}
+              >
+                {convertedPrice.formatted}
               </span>
             </div>
           </div>

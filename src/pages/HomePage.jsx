@@ -38,6 +38,8 @@ import { NewExperiencesCard } from '@/components/homepage/NewExperiencesCard';
 import { LastMinuteDealsCard } from '@/components/homepage/LastMinuteDealsCard';
 import { FeaturedExperiencesCard } from '@/components/homepage/FeaturedExperiencesCard';
 import { ContinuePlanningCard } from '@/components/homepage/ContinuePlanningCard';
+import { MobileBottomTabBar } from '@/components/homepage/MobileBottomTabBar';
+import { MobileStickySearchBar } from '@/components/homepage/MobileStickySearchBar';
 import { RecommendedExperiencesCard } from '@/components/homepage/RecommendedExperiencesCard';
 import { TopRatedExperiencesCard } from '@/components/homepage/TopRatedExperiencesCard';
 import {
@@ -222,60 +224,50 @@ function HomePageContent() {
 
   const { recentlyViewed } = useRecentlyViewedStorage();
 
-  const CAROUSEL_SCROLL_MS = 260;
-  const scrollRafRef = useRef({});
-  function smoothScrollTo(element, target) {
-    if (scrollRafRef.current[element] != null) {
-      cancelAnimationFrame(scrollRafRef.current[element]);
-    }
-    const originalSnap = element.style.scrollSnapType;
-    if (originalSnap) element.style.scrollSnapType = 'none';
-    const start = element.scrollLeft;
-    const distance = target - start;
-    if (Math.abs(distance) < 1) {
-      if (originalSnap) element.style.scrollSnapType = originalSnap;
-      return;
-    }
-    let startTime = null;
-    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-    const step = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / CAROUSEL_SCROLL_MS, 1);
-      element.scrollLeft = start + distance * easeOutCubic(progress);
-      if (progress < 1) {
-        scrollRafRef.current[element] = requestAnimationFrame(step);
-      } else {
-        scrollRafRef.current[element] = null;
-        if (originalSnap) element.style.scrollSnapType = originalSnap;
-      }
-    };
-    scrollRafRef.current[element] = requestAnimationFrame(step);
-  }
   const dealsScrollRef = useRef(null);
   const experiencesScrollRef = useRef(null);
   const continuePlanningScrollRef = useRef(null);
+  const continuePlanningLeftRef = useRef(null);
+  const continuePlanningRightRef = useRef(null);
   const [continuePlanningOverflow, setContinuePlanningOverflow] = useState(false);
   const scrollDeals = useCallback((direction) => {
     const container = dealsScrollRef.current;
     if (!container) return;
     const amount = 280 + 12;
     const target = container.scrollLeft + (direction === 'left' ? -amount : amount);
-    smoothScrollTo(container, target);
+    container.scrollTo({ left: target, behavior: 'smooth' });
   }, []);
   const scrollExperiences = useCallback((direction) => {
     const container = experiencesScrollRef.current;
     if (!container) return;
     const amount = 280 + 12;
     const target = container.scrollLeft + (direction === 'left' ? -amount : amount);
-    smoothScrollTo(container, target);
+    container.scrollTo({ left: target, behavior: 'smooth' });
   }, []);
   const scrollContinuePlanning = useCallback((direction) => {
     const container = continuePlanningScrollRef.current;
     if (!container) return;
     const amount = 380 + 16;
     const target = container.scrollLeft + (direction === 'left' ? -amount : amount);
-    smoothScrollTo(container, target);
+    container.scrollTo({ left: target, behavior: 'smooth' });
+  }, []);
+
+  const updateContinuePlanningEdges = useCallback(() => {
+    const el = continuePlanningScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    const max = scrollWidth - clientWidth;
+    const eps = 6;
+    const canLeft = scrollLeft > eps;
+    const canRight = max > eps && scrollLeft < max - eps;
+    if (continuePlanningLeftRef.current) {
+      continuePlanningLeftRef.current.style.opacity = canLeft ? '1' : '0';
+      continuePlanningLeftRef.current.style.pointerEvents = canLeft ? 'auto' : 'none';
+    }
+    if (continuePlanningRightRef.current) {
+      continuePlanningRightRef.current.style.opacity = canRight ? '1' : '0';
+      continuePlanningRightRef.current.style.pointerEvents = canRight ? 'auto' : 'none';
+    }
   }, []);
 
   useEffect(() => {
@@ -291,6 +283,21 @@ function HomePageContent() {
     observer.observe(container);
     return () => observer.disconnect();
   }, [recentlyViewed]);
+
+  useEffect(() => {
+    const el = continuePlanningScrollRef.current;
+    if (!el || recentlyViewed.length === 0) return;
+    requestAnimationFrame(updateContinuePlanningEdges);
+    el.addEventListener('scroll', updateContinuePlanningEdges, { passive: true });
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateContinuePlanningEdges) : null;
+    ro?.observe(el);
+    window.addEventListener('resize', updateContinuePlanningEdges);
+    return () => {
+      el.removeEventListener('scroll', updateContinuePlanningEdges);
+      ro?.disconnect();
+      window.removeEventListener('resize', updateContinuePlanningEdges);
+    };
+  }, [recentlyViewed.length, updateContinuePlanningEdges]);
 
   useEffect(() => {
     if (!showPostAuthSplash) {
@@ -396,6 +403,7 @@ function HomePageContent() {
           onSharedDateRangeChange={setSharedHeroDateRange}
           externalSearchQuery={sharedSearchQuery}
           onExternalSearchChange={setSharedSearchQuery}
+          hideMobileHamburger
         />
 
         <HeroSection
@@ -405,7 +413,12 @@ function HomePageContent() {
           onExternalSearchChange={setSharedSearchQuery}
         />
 
-        <main className="mx-auto max-w-[1520px] px-4 pb-14 sm:px-6 lg:px-8">
+        <MobileStickySearchBar
+          externalSearchQuery={sharedSearchQuery}
+          onExternalSearchChange={setSharedSearchQuery}
+        />
+
+        <main className="mx-auto max-w-[1520px] px-4 pb-14 sm:px-6 lg:px-8 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-14">
           <div className="space-y-6 pt-6 min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
             {/* Continue Planning Our Trip */}
             {recentlyViewed.length > 0 && (
@@ -421,17 +434,18 @@ function HomePageContent() {
                     </h2>
                   </div>
                 </div>
-                  <div className="relative overflow-visible">
+                  <div className="flex items-center gap-0 xl:gap-1">
                     <button
+                      ref={continuePlanningLeftRef}
                       onClick={() => scrollContinuePlanning('left')}
-                      className="absolute left-0 top-1/2 z-10 -translate-y-1/2 hidden xl:grid size-12 place-items-center rounded-full bg-white text-slate-700 shadow-[0_4px_14px_rgba(0,0,0,0.18)] border border-slate-200 transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.28)] hover:text-[color:var(--brand-green)]"
+                      className="z-10 hidden shrink-0 xl:grid size-11 place-items-center rounded-full bg-white text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-slate-100 transition-all duration-200 hover:shadow-[0_6px_20px_rgba(0,0,0,0.22)] hover:text-[color:var(--brand-green)] hover:border-slate-200 hover:scale-105 active:scale-95"
                       aria-label="Scroll left"
                     >
-                      <ChevronLeft className="size-6" />
+                      <ChevronLeft className="size-5" strokeWidth={2.5} />
                     </button>
                   <div
                     ref={continuePlanningScrollRef}
-                    className="flex gap-4 overflow-x-auto xl:overflow-x-hidden overflow-y-hidden overscroll-x-contain pb-1 scrollbar-hide items-stretch"
+                    className="flex-1 flex gap-4 overflow-x-auto xl:overflow-x-hidden overflow-y-hidden overscroll-x-contain scrollbar-hide items-stretch"
                     style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
                 >
                   {recentlyViewed.map((item, index) => (
@@ -445,11 +459,12 @@ function HomePageContent() {
                   ))}
                 </div>
                     <button
+                      ref={continuePlanningRightRef}
                       onClick={() => scrollContinuePlanning('right')}
-                      className="absolute right-0 top-1/2 z-10 -translate-y-1/2 hidden xl:grid size-12 place-items-center rounded-full bg-white text-slate-700 shadow-[0_4px_14px_rgba(0,0,0,0.18)] border border-slate-200 transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.28)] hover:text-[color:var(--brand-green)]"
+                      className="z-10 hidden shrink-0 xl:grid size-11 place-items-center rounded-full bg-white text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-slate-100 transition-all duration-200 hover:shadow-[0_6px_20px_rgba(0,0,0,0.22)] hover:text-[color:var(--brand-green)] hover:border-slate-200 hover:scale-105 active:scale-95"
                       aria-label="Scroll right"
                     >
-                      <ChevronRight className="size-6" />
+                      <ChevronRight className="size-5" strokeWidth={2.5} />
                     </button>
                 </div>
               </section>
@@ -662,11 +677,12 @@ function HomePageContent() {
         </div>
 
         <Footer />
+        <MobileBottomTabBar />
         {showScrollTop && (
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-5 right-5 z-[60] grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-md transition hover:-translate-y-0.5 hover:bg-slate-50"
+            className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] right-5 z-[60] grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-md transition hover:-translate-y-0.5 hover:bg-slate-50"
             aria-label="Scroll to top"
           >
             <ChevronUp className="size-5" />

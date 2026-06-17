@@ -164,9 +164,9 @@ export function FeaturedExperiencesCard({
           {title}
         </p>
         {location && (
-          <div className="mt-1 flex items-center gap-1 text-slate-500">
+          <div className="mt-1 flex items-center gap-1 text-black">
             <MapPin className="size-3 shrink-0" />
-            <span className="truncate text-[11px] xl:text-[10px]">{location}</span>
+            <span className="truncate text-[16px] font-semibold xl:text-[15px]">{location}</span>
           </div>
         )}
         <div
@@ -182,9 +182,9 @@ export function FeaturedExperiencesCard({
                 : 'clamp(0.6875rem, 0.5vw + 0.4rem, 0.75rem)',
           }}
         >
-          <span className="font-medium text-slate-700">{t('features.freeCancellation')}</span>
-          {variant === 'allTours' ? null : <span className="font-medium text-slate-700">•</span>}
-          <span className="font-medium text-slate-700">{t('tourDetail.pickupIncluded')}</span>
+          <span className="font-semibold text-slate-700">{t('features.freeCancellation')}</span>
+          {variant === 'allTours' ? null : <span className="font-semibold text-slate-700">•</span>}
+          <span className="font-semibold text-slate-700">{t('tourDetail.pickupIncluded')}</span>
         </div>
         <div
           className={
@@ -196,16 +196,16 @@ export function FeaturedExperiencesCard({
           <div
             className={
               variant === 'allTours'
-                ? 'flex items-center gap-1 text-[13px] text-amber-500 xl:text-[12px]'
-                : 'flex items-center gap-1 text-[13px] text-amber-500 xl:text-[12px]'
+                ? 'flex items-center gap-1 text-[13px] text-[#39AD6C] xl:text-[12px]'
+                : 'flex items-center gap-1 text-[13px] text-[#39AD6C] xl:text-[12px]'
             }
           >
             <Star className="size-4 fill-current" />
             <span
               className={
                 variant === 'allTours'
-                  ? 'text-[15px] font-semibold text-slate-900 xl:text-[14px]'
-                  : 'text-[15px] font-semibold text-slate-900 xl:text-[14px]'
+                  ? 'text-[15px] font-bold text-slate-900 xl:text-[14px]'
+                  : 'text-[15px] font-bold text-slate-900 xl:text-[14px]'
               }
             >
               {rating}
@@ -223,8 +223,8 @@ export function FeaturedExperiencesCard({
           <p
             className={
               variant === 'allTours'
-                ? 'text-[13px] font-semibold text-slate-500 xl:text-[12px]'
-                : 'text-[13px] font-semibold text-slate-500 xl:text-[12px]'
+                ? 'text-[13px] font-bold text-slate-500 xl:text-[12px]'
+                : 'text-[13px] font-bold text-slate-500 xl:text-[12px]'
             }
           >
             {t('common.from')}{' '}

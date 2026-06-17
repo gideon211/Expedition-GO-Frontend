@@ -12,61 +12,6 @@ import { FeaturedExperiencesCard } from './FeaturedExperiencesCard';
 import { SectionHeading } from './SectionHeading';
 import { CarouselClipTrack } from '@/components/ui/CarouselClipTrack';
 
-const CAROUSEL_ARROW_SCROLL_MS = 260;
-
-/** Programmatic scroll for arrow buttons; cancels stale frames if generation does not match. */
-function smoothScrollTo(element, target, duration, generationRef, generation, onComplete) {
-  const start = element.scrollLeft;
-  const distance = target - start;
-
-  const invokeComplete = () => {
-    if (generationRef.current === generation) {
-      onComplete?.();
-    }
-  };
-
-  if (Math.abs(distance) < 0.5) {
-    requestAnimationFrame(invokeComplete);
-    return;
-  }
-
-  let startTime = null;
-  const originalSnap = element.style.scrollSnapType;
-
-  element.style.scrollSnapType = 'none';
-
-  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-
-  const finishSnap = () => {
-    if (generationRef.current !== generation) {
-      element.style.scrollSnapType = originalSnap;
-      return;
-    }
-    element.style.scrollSnapType = originalSnap;
-    invokeComplete();
-  };
-
-  const step = (timestamp) => {
-    if (generationRef.current !== generation) {
-      element.style.scrollSnapType = originalSnap;
-      return;
-    }
-    if (!startTime) startTime = timestamp;
-    const elapsed = timestamp - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-
-    element.scrollLeft = start + distance * easeOutCubic(progress);
-
-    if (progress < 1) {
-      requestAnimationFrame(step);
-    } else {
-      requestAnimationFrame(finishSnap);
-    }
-  };
-
-  requestAnimationFrame(step);
-}
-
 export function TourCarouselSection({
   id,
   title,
@@ -82,7 +27,6 @@ export function TourCarouselSection({
   const scrollContainerRef = useRef(null);
   const mobileScrollRef = useRef(null);
   const isScrollingRef = useRef(false);
-  const scrollGenerationRef = useRef(0);
 
   const Card = CardComponent || FeaturedExperiencesCard;
   const infiniteItems = [...items, ...items, ...items];
@@ -126,9 +70,6 @@ export function TourCarouselSection({
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    scrollGenerationRef.current += 1;
-    const gen = scrollGenerationRef.current;
-
     const scrollAmount = cardWidth + gap;
     const currentScroll = container.scrollLeft;
 
@@ -154,13 +95,7 @@ export function TourCarouselSection({
       }
     }
 
-    smoothScrollTo(
-      container,
-      newScrollPosition,
-      CAROUSEL_ARROW_SCROLL_MS,
-      scrollGenerationRef,
-      gen
-    );
+    container.scrollTo({ left: newScrollPosition, behavior: 'smooth' });
   };
 
   useEffect(() => {

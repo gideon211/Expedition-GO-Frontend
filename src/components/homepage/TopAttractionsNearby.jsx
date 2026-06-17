@@ -102,38 +102,6 @@ function AttractionCard({ title, slug, price, image }) {
   );
 }
 
-const CAROUSEL_SCROLL_MS = 260;
-const scrollRafRef = {};
-
-function smoothScrollTo(element, target) {
-  if (scrollRafRef[element] != null) {
-    cancelAnimationFrame(scrollRafRef[element]);
-  }
-  const originalSnap = element.style.scrollSnapType;
-  if (originalSnap) element.style.scrollSnapType = 'none';
-  const start = element.scrollLeft;
-  const distance = target - start;
-  if (Math.abs(distance) < 1) {
-    if (originalSnap) element.style.scrollSnapType = originalSnap;
-    return;
-  }
-  let startTime = null;
-  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-  const step = (timestamp) => {
-    if (!startTime) startTime = timestamp;
-    const elapsed = timestamp - startTime;
-    const progress = Math.min(elapsed / CAROUSEL_SCROLL_MS, 1);
-    element.scrollLeft = start + distance * easeOutCubic(progress);
-    if (progress < 1) {
-      scrollRafRef[element] = requestAnimationFrame(step);
-    } else {
-      scrollRafRef[element] = null;
-      if (originalSnap) element.style.scrollSnapType = originalSnap;
-    }
-  };
-  scrollRafRef[element] = requestAnimationFrame(step);
-}
-
 export function TopAttractionsNearby() {
   const { t } = useTranslation();
   const { navigateWithLoader } = useNavigationLoader();
@@ -171,7 +139,7 @@ export function TopAttractionsNearby() {
     if (!container) return;
     const amount = 280 + 12;
     const target = container.scrollLeft + (direction === 'left' ? -amount : amount);
-    smoothScrollTo(container, target);
+    container.scrollTo({ left: target, behavior: 'smooth' });
   }, []);
 
   if (sortedAttractions.length === 0) return null;

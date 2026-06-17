@@ -7,7 +7,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Navbar } from '@/components/homepage/Navbar';
 import { Footer } from '@/components/homepage/Footer';
 import { FeaturedExperiencesCard } from '@/components/homepage/FeaturedExperiencesCard';
 import { useWishlist } from '@/contexts/WishlistContext';
@@ -21,9 +20,6 @@ function WishlistPageContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--page-bg)] text-slate-900">
-      <Navbar />
-
-      <div className="h-[var(--navbar-offset)] shrink-0" aria-hidden />
 
       <main className="mx-auto flex-1 w-full max-w-[1360px] px-5 py-5 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
         {/* Header */}

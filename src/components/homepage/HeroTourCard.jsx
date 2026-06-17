@@ -112,7 +112,7 @@ export function HeroTourCard({
       <div className="relative z-0 flex min-w-0 flex-1 flex-col pl-2">
         {/* Title - single line with ellipsis, full width */}
         <h3
-          className="truncate font-semibold leading-[1.1] text-slate-900 mb-1 w-full"
+          className="truncate font-bold leading-[1.1] text-slate-900 mb-1 w-full"
           style={{ fontSize: 'clamp(13px, 2.2vw, 14px)' }}
         >
           {title}
@@ -127,9 +127,9 @@ export function HeroTourCard({
         </p>
 
         {location && (
-          <div className="mb-1 flex items-center gap-1 text-slate-500">
+          <div className="mb-1 flex items-center gap-1 text-black">
             <MapPin className="size-3 shrink-0" />
-            <span className="truncate text-[10px]">{location}</span>
+            <span className="truncate text-[15px] font-semibold">{location}</span>
           </div>
         )}
 
@@ -138,7 +138,7 @@ export function HeroTourCard({
           <div className="flex items-center gap-1">
             <CircleCheck className="size-6 text-emerald-500" />
             <span
-              className="text-slate-700 font-semibold"
+              className="text-slate-700 font-bold"
               style={{ fontSize: 'clamp(11px, 1.6vw, 10px)' }}
             >
               {t('features.freeCancellation')}
@@ -147,7 +147,7 @@ export function HeroTourCard({
           <div className="flex items-center gap-1">
             <CircleCheck className="size-6 text-emerald-500" />
             <span
-              className="text-slate-700 font-semibold"
+              className="text-slate-700 font-bold"
               style={{ fontSize: 'clamp(11px, 1.6vw, 10px)' }}
             >
               {t('tourDetail.pickupIncluded')}
@@ -159,9 +159,9 @@ export function HeroTourCard({
         <div className="flex items-center justify-between gap-2">
           {/* Rating */}
           <div className="flex items-center gap-0.5">
-            <Star className="size-3 fill-amber-400 text-amber-400" />
+            <Star className="size-3 fill-[#39AD6C] text-[#39AD6C]" />
             <span
-              className="font-semibold text-slate-900"
+              className="font-bold text-slate-900"
               style={{ fontSize: 'clamp(10px, 1.9vw, 12px)' }}
             >
               {rating}
@@ -177,7 +177,7 @@ export function HeroTourCard({
               {t('common.from')}
             </p>
             <p
-              className="font-semibold text-slate-900"
+              className="font-bold text-slate-900"
               style={{ fontSize: 'clamp(12px, 2.3vw, 15px)' }}
             >
               {convertedPrice.formatted}

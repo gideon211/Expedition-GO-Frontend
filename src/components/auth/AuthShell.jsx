@@ -3,14 +3,14 @@
  * @description Split-panel layout for auth pages (sign-in, register).
  *   Left: branding/trust content. Right: form slot (children).
  */
-import { ShieldCheck, Sparkles, Globe } from 'lucide-react';
+import { ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useState, useRef, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import companyLogo from '@/assets/images/new_logo.png';
+import travioLogo from '@/assets/images/travio_logo.jpg';
 
 function AuthShell({
   title,
@@ -21,76 +21,10 @@ function AuthShell({
   footerLinkLabel,
   footerLinkTo,
 }) {
-  const { t, i18n } = useTranslation();
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const menuRef = useRef(null);
-
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-  ];
-
-  const currentLanguage = languages.find((lang) => lang.code === i18n.language) || languages[0];
-
-  const changeLanguage = (langCode) => {
-    i18n.changeLanguage(langCode);
-    localStorage.setItem('language', langCode);
-    setShowLanguageMenu(false);
-  };
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowLanguageMenu(false);
-      }
-    }
-
-    if (showLanguageMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showLanguageMenu]);
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-[color:var(--page-bg)]">
-      {/* Language Selector - Fixed top right */}
-      <div className="fixed top-4 right-4 z-50" ref={menuRef}>
-        <button
-          onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-          className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-lg border border-slate-200 hover:bg-slate-50 transition"
-        >
-          <Globe className="h-4 w-4" />
-          <span>
-            {currentLanguage.flag} {currentLanguage.name}
-          </span>
-        </button>
-
-        {showLanguageMenu && (
-          <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-white shadow-xl border border-slate-200 py-2 overflow-hidden">
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => changeLanguage(lang.code)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition ${
-                  i18n.language === lang.code
-                    ? 'bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] font-semibold'
-                    : 'text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <span className="text-lg">{lang.flag}</span>
-                <span>{lang.name}</span>
-                {i18n.language === lang.code && (
-                  <span className="ml-auto text-[color:var(--brand-green)]">✓</span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
       <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
         <section className="relative hidden overflow-hidden bg-[color:var(--brand-green)] text-white lg:flex">
           <img
@@ -146,7 +80,20 @@ function AuthShell({
           </div>
         </section>
 
-        <section className="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
+        <section className="flex flex-col items-center justify-center px-4 py-10 sm:px-6 lg:px-10 lg:pt-10">
+          {/* Mobile logo above form */}
+          <Link
+            to="/"
+            state={{ postAuthSplash: true }}
+            className="lg:hidden flex justify-center mb-6"
+          >
+            <img
+              src={travioLogo}
+              alt="TravioAfrica"
+              className="h-16 w-16 rounded-full object-cover"
+            />
+          </Link>
+
           <Card className="w-full max-w-xl rounded-[30px] border border-slate-200 bg-white shadow-[0_28px_70px_rgba(15,23,42,0.08)]">
             <CardContent className="p-7 sm:p-9">
               {badgeLabel ? (

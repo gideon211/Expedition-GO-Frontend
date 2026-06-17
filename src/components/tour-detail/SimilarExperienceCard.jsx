@@ -79,7 +79,7 @@ export function SimilarExperienceCard({ tour, index, onImageError }) {
             {tour.title}
           </Link>
 
-          <p className="mt-1.5 text-[12px] font-medium leading-snug text-slate-500 sm:text-[11px]">
+          <p className="mt-1.5 text-[12px] font-semibold leading-snug text-slate-500 sm:text-[11px]">
             {t('features.freeCancellation')}
             <span className="mx-1 text-slate-400" aria-hidden>
               •
@@ -90,17 +90,17 @@ export function SimilarExperienceCard({ tour, index, onImageError }) {
           <div className="mt-auto flex items-end justify-between gap-2 pt-3">
             <div className="flex min-w-0 items-center gap-1">
               <Star
-                className="size-4 shrink-0 fill-amber-500 text-amber-500"
+                className="size-4 shrink-0 fill-[#39AD6C] text-[#39AD6C]"
                 strokeWidth={1.5}
                 aria-hidden
               />
               <span className="text-[13px] font-bold tabular-nums text-slate-900 sm:text-[12px]">
                 {tour.rating}
               </span>
-              <span className="text-[12px] text-slate-500 sm:text-[11px]">({reviewsDisplay})</span>
+              <span className="text-[12px] font-semibold text-slate-500 sm:text-[11px]">({reviewsDisplay})</span>
             </div>
             <div className="shrink-0 text-right">
-              <p className="text-[11px] font-medium leading-none text-slate-500">
+              <p className="text-[11px] font-semibold leading-none text-slate-500">
                 {t('common.from')}
               </p>
               <p className="mt-0.5 text-sm font-bold tabular-nums text-slate-900">

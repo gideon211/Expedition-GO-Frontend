@@ -94,7 +94,7 @@ export function SearchAutocomplete({
                       <Clock className="size-3" />
                       <span>{tour.duration}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-amber-500">
+                    <div className="flex items-center gap-1 text-xs text-[#39AD6C]">
                       <Star className="size-3 fill-current" />
                       <span className="text-slate-900">{tour.rating}</span>
                     </div>

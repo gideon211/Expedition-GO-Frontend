@@ -17,7 +17,6 @@ function SignInPage() {
   return (
     <AuthPageGate label={t('auth.loadingSignIn')}>
       <AuthShell
-        badgeLabel={t('auth.signIn')}
         title={t('auth.welcomeBack')}
         description={t('auth.signInDesc')}
         footerText={t('auth.needNewAccount')}

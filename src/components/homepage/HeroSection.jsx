@@ -1,7 +1,7 @@
 /**
  * @file HeroSection.jsx
  * @description Homepage hero with search bar, destination carousel, and stats.
- *   Search navigates to /tours with query params. Uses heroStats from data.js.
+ *   Search navigates to /tours with query params.
  */
 import { Search } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
@@ -119,9 +119,52 @@ export function HeroSection({
       >
         <HeroImageCarousel />
 
-        <div className="relative mx-auto w-full max-w-[1520px] px-2 py-6 sm:px-4 sm:py-8 md:py-10 overflow-visible">
+        <div className="relative mx-auto w-full max-w-[1520px] px-2 py-10 sm:px-4 sm:py-14 md:py-16 overflow-visible">
           <div className="mx-auto max-w-4xl text-center">
             <div className="flex justify-center" />
+
+            {/* Hero Content */}
+            <div className="hero-content-wrap">
+              <h1
+                className="mt-2 mx-auto text-center text-white drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)] whitespace-nowrap overflow-hidden text-ellipsis w-full max-w-none px-2 sm:mt-4"
+                style={{
+                  fontFamily: 'var(--font-hero)',
+                  fontWeight: 700,
+                  fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)',
+                  lineHeight: 'clamp(2rem, 5vw, 3rem)',
+                  letterSpacing: '0px',
+                }}
+              >
+                {t('hero.title')}
+              </h1>
+              <p
+                className="mt-1 text-white/92 drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)] px-2 whitespace-nowrap"
+                style={{
+                  fontFamily: 'GT Eesti Pro Display, sans-serif',
+                  fontWeight: 700,
+                  fontSize: 'clamp(11px, 3.5vw, 24px)',
+                  lineHeight: 'clamp(16px, 4.5vw, 30px)',
+                  letterSpacing: '0px',
+                }}
+              >
+                {t('hero.subtitle')}
+              </p>
+            </div>
+
+            {/* Hero Stats */}
+            <div className="hero-stats-wrap mt-3 grid grid-cols-3 gap-2 sm:mt-3.5 md:mt-4">
+              {heroStats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-lg border border-white/10 bg-black/20 px-2 py-1.5 backdrop-blur-sm sm:px-2.5 sm:py-2"
+                >
+                  <p className="text-sm font-black sm:text-base">{stat.value}</p>
+                  <p className="mt-0.5 text-[9px] text-white/70 sm:text-[10px]">
+                    {t(`stats.${stat.translationKey}`)}
+                  </p>
+                </div>
+              ))}
+            </div>
 
             {/* Hero Search Bar */}
             <div className="hero-search-wrap relative z-10 mt-4 sm:mt-3.5 md:mt-4 mx-auto w-full max-w-xl sm:max-w-2xl lg:max-w-3xl">
@@ -165,49 +208,6 @@ export function HeroSection({
                 </div>
                 <div ref={autocompleteRef} />
               </form>
-            </div>
-
-            {/* Hero Content */}
-            <div className="hero-content-wrap">
-              <h1
-                className="mt-4 mx-auto text-center text-white drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)] whitespace-nowrap overflow-hidden text-ellipsis w-full max-w-none px-2"
-                style={{
-                  fontFamily: 'var(--font-hero)',
-                  fontWeight: 700,
-                  fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)',
-                  lineHeight: 'clamp(2rem, 5vw, 3rem)',
-                  letterSpacing: '0px',
-                }}
-              >
-                {t('hero.title')}
-              </h1>
-              <p
-                className="mt-1 text-white/92 drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)] px-2 whitespace-nowrap"
-                style={{
-                  fontFamily: 'GT Eesti Pro Display, sans-serif',
-                  fontWeight: 700,
-                  fontSize: 'clamp(11px, 3.5vw, 24px)',
-                  lineHeight: 'clamp(16px, 4.5vw, 30px)',
-                  letterSpacing: '0px',
-                }}
-              >
-                {t('hero.subtitle')}
-              </p>
-            </div>
-
-            {/* Hero Stats */}
-            <div className="hero-stats-wrap mt-3 sm:mt-3.5 md:mt-4 hidden md:grid grid-cols-3 gap-2">
-              {heroStats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2 backdrop-blur-sm"
-                >
-                  <p className="text-base font-black">{stat.value}</p>
-                  <p className="mt-0.5 text-[10px] text-white/70">
-                    {t(`stats.${stat.translationKey}`)}
-                  </p>
-                </div>
-              ))}
             </div>
           </div>
         </div>

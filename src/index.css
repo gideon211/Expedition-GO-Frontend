@@ -184,6 +184,9 @@ button:disabled,
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  transform: translateZ(0);
+  will-change: scroll-position;
 }
 
 .scrollbar-hide::-webkit-scrollbar {

@@ -1375,7 +1375,7 @@ function TourDetailContent() {
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-5xl">
                 <h1
-                  className="font-black leading-tight tracking-tight text-[color:var(--brand-green)]"
+                  className="font-black leading-tight tracking-tight text-black"
                   style={{ fontSize: 'clamp(1.35rem, 2vw + 0.9rem, 2rem)' }}
                 >
                   {selectedTourTitle}

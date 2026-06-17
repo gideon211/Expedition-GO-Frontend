@@ -114,7 +114,7 @@ export function NewExperiencesCard({
       className="group relative h-full contain-none touch-manipulation overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition duration-300 hover:shadow-md"
     >
       {/* Vertical Image */}
-      <div className="relative z-0 h-40 xl:h-44 overflow-hidden bg-slate-100">
+      <div className="relative z-0 h-44 xl:h-48 overflow-hidden bg-slate-100">
         <img
           src={image}
           alt=""
@@ -128,14 +128,14 @@ export function NewExperiencesCard({
             {t('sections.newBadge')}
           </span>
         ) : (
-          <span className="pointer-events-none absolute left-2 top-2 rounded bg-white/95 px-1.5 py-0.5 text-[10px] font-semibold text-slate-900 shadow-sm backdrop-blur-sm">
+          <span className="pointer-events-none absolute left-2 top-2 rounded bg-white/95 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 shadow-sm backdrop-blur-sm">
             {duration}
           </span>
         )}
       </div>
 
       {/* Vertical Content */}
-      <div className="relative z-0 p-2.5">
+      <div className="relative z-0 flex flex-1 flex-col p-3.5">
         {/* Title - 2 lines max, matching FeaturedExperiencesCard font size */}
         <h3
           className="line-clamp-2 font-bold leading-tight tracking-tight text-slate-900 min-h-[2.4em]"
@@ -145,25 +145,25 @@ export function NewExperiencesCard({
         </h3>
 
         {location && (
-          <div className="mt-1 flex items-center gap-1 text-slate-500">
+          <div className="mt-1.5 flex items-center gap-1 text-black">
             <MapPin className="size-3 shrink-0" />
-            <span className="truncate text-[11px]">{location}</span>
+            <span className="truncate text-[16px] font-semibold">{location}</span>
           </div>
         )}
 
         {/* Rating & Price Row */}
-        <div className="mt-2 flex items-center justify-between gap-2">
+        <div className="mt-auto flex items-end justify-between gap-2">
           {/* Rating */}
-          <div className="flex items-center gap-0.5 text-amber-500">
+          <div className="flex items-center gap-0.5 text-[#39AD6C]">
             <Star className="size-3 fill-current" />
-            <span className="text-[12px] font-semibold text-slate-900">{rating}</span>
-            <span className="text-[11px] text-slate-500">({reviews})</span>
+            <span className="text-[12px] font-bold text-slate-900">{rating}</span>
+            <span className="text-[11px] text-black">({reviews})</span>
           </div>
 
           {/* Price */}
           <div className="text-right">
-            <p className="text-[11px] text-slate-500 leading-none">{t('common.from')}</p>
             <p className="text-[14px] font-bold text-slate-900 leading-tight">
+              <span className="text-[11px] font-normal text-slate-500">{t('common.from')} </span>
               {convertedPrice.formatted}
             </p>
           </div>

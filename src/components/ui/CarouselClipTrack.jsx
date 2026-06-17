@@ -53,7 +53,7 @@ export const CarouselClipTrack = forwardRef(function CarouselClipTrack(
   return (
     <div ref={containerRef} className={cn('min-w-0 w-full', className)}>
       <div
-        className={cn('max-w-full', clipWidth != null ? 'overflow-hidden' : 'overflow-visible')}
+        className={cn('max-w-full transform-gpu', clipWidth != null ? 'overflow-hidden' : 'overflow-visible')}
         style={clipWidth != null ? { width: clipWidth } : undefined}
       >
         <div ref={ref} className={cn('flex min-w-0', trackClassName)} {...props}>

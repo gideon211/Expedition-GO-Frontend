@@ -40,6 +40,7 @@ export function Navbar({
   forceShowCompactSearch = false,
   externalSearchQuery,
   onExternalSearchChange,
+  hideMobileHamburger = false,
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -351,7 +352,7 @@ export function Navbar({
   }, [showMobileCalendar]);
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-slate-200/80 bg-white transition-all duration-300">
+    <header className={`fixed top-0 z-50 w-full border-b border-slate-200/80 bg-white transition-all duration-300 ${hideMobileHamburger ? 'hidden lg:block' : ''}`}>
       <div className="navbar-inner mx-auto flex min-h-[var(--navbar-logo-height)] max-w-[1520px] items-center justify-between gap-2 px-3 py-0 text-slate-950 sm:gap-4 sm:px-4 lg:px-6 dark:text-slate-950">
         <button
           onClick={handleBrandClick}
@@ -661,6 +662,7 @@ export function Navbar({
             ))}
         </div>
 
+        {!hideMobileHamburger && (
         <div className="flex items-center gap-2 lg:hidden">
           <button
             type="button"
@@ -675,6 +677,7 @@ export function Navbar({
             )}
           </button>
         </div>
+        )}
       </div>
 
       {isLanguageCurrencyOpen && (

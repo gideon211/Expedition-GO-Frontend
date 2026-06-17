@@ -78,7 +78,7 @@ export function ContinuePlanningCard({
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="group relative touch-manipulation overflow-hidden rounded-xl bg-white shadow-md transition duration-200 hover:shadow-lg h-[400px] md:h-full"
+      className="group relative touch-manipulation overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md transition duration-200 hover:shadow-lg h-[400px] md:h-full"
     >
       {/* Mobile: vertical layout (image top, content below) */}
       <div className="flex flex-col md:hidden h-full">
@@ -91,19 +91,19 @@ export function ContinuePlanningCard({
           />
         </div>
         <div className="flex flex-1 flex-col gap-3 p-5">
-          <h3 className="text-[14px] font-semibold leading-snug text-slate-900">
+          <h3 className="text-[14px] font-bold leading-snug text-slate-900">
             {title}
           </h3>
           <p className="text-[12px] text-slate-500">{duration}</p>
           <div className="mt-auto flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <Star className="size-3.5 fill-amber-400 text-amber-400" />
-              <span className="text-[13px] font-semibold text-slate-900">{rating}</span>
+              <Star className="size-3.5 fill-[#39AD6C] text-[#39AD6C]" />
+              <span className="text-[13px] font-bold text-slate-900">{rating}</span>
               <span className="text-[11px] text-slate-500">({reviews})</span>
             </div>
             <div className="text-right">
               <p className="text-[10px] leading-none text-slate-500">{t('common.from')}</p>
-              <p className="text-[15px] font-semibold text-slate-900">{convertedPrice.formatted}</p>
+              <p className="text-[15px] font-bold text-slate-900">{convertedPrice.formatted}</p>
             </div>
           </div>
         </div>
@@ -121,18 +121,18 @@ export function ContinuePlanningCard({
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-between p-5">
           <div className="min-w-0">
-            <h3 className="text-[14px] font-semibold leading-snug text-slate-900">
+            <h3 className="text-[14px] font-bold leading-snug text-slate-900">
               {title}
             </h3>
             <div className="mt-3 flex items-center gap-1">
-              <Star className="size-3.5 shrink-0 fill-amber-400 text-amber-400" />
-              <span className="text-[13px] font-semibold text-slate-900">{rating}</span>
+              <Star className="size-3.5 shrink-0 fill-[#39AD6C] text-[#39AD6C]" />
+              <span className="text-[13px] font-bold text-slate-900">{rating}</span>
               <span className="text-[11px] text-slate-500">({reviews})</span>
               {location && (
                 <>
                   <span className="text-slate-300">·</span>
                   <MapPin className="size-3 shrink-0 text-slate-400" />
-                  <span className="truncate text-[12px] text-slate-500">{location}</span>
+                  <span className="truncate text-[17px] font-semibold text-black">{location}</span>
                 </>
               )}
             </div>
@@ -141,7 +141,7 @@ export function ContinuePlanningCard({
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <CircleCheck className="size-4 text-emerald-500" />
-                <span className="text-[11px] font-medium text-slate-600">
+                <span className="text-[11px] font-semibold text-slate-600">
                   {t('features.freeCancellation')}
                 </span>
               </div>
@@ -149,7 +149,7 @@ export function ContinuePlanningCard({
             </div>
             <div className="text-right">
               <p className="text-[10px] leading-none text-slate-500">{t('common.from')}</p>
-              <p className="text-[16px] font-semibold text-slate-900">{convertedPrice.formatted}</p>
+              <p className="text-[16px] font-bold text-slate-900">{convertedPrice.formatted}</p>
             </div>
           </div>
         </div>
