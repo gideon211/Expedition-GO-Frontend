@@ -40,7 +40,6 @@ export function Navbar({
   forceShowCompactSearch = false,
   externalSearchQuery,
   onExternalSearchChange,
-  hideMobileHamburger = false,
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -298,37 +297,37 @@ export function Navbar({
       return;
     }
 
-    let rafId;
-    let mounted = true;
+    const heroSearch = document.getElementById('hero-search-bar');
+    if (!heroSearch) return;
 
-    const update = () => {
-      const heroSearch = document.getElementById('hero-search-bar');
-      if (!heroSearch) return;
-      const header = document.querySelector('header');
-      const navbarHeight = header ? header.offsetHeight : 88;
-      const rect = heroSearch.getBoundingClientRect();
-      const sticky = rect.top < navbarHeight;
-      document.body.classList.toggle('hero--search-sticky', sticky);
-      if (searchBarSticky !== sticky) {
+    const header = document.querySelector('header');
+    const navbarHeight = header ? header.offsetHeight : 88;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const topOfBar = entry.boundingClientRect.top;
+        const sticky = topOfBar <= navbarHeight;
+        document.body.classList.toggle('hero--search-sticky', sticky);
         setSearchBarSticky(sticky);
+      },
+      { threshold: [0, 1] }
+    );
+
+    observer.observe(heroSearch);
+
+    // Safety net for mobile: on fast scroll-to-top gestures, IntersectionObserver
+    // can lag. Force-remove sticky immediately when we are at the very top.
+    const handleScroll = () => {
+      if (window.scrollY < 10 && document.body.classList.contains('hero--search-sticky')) {
+        document.body.classList.remove('hero--search-sticky');
+        setSearchBarSticky(false);
       }
     };
-
-    const onScroll = () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', update);
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
-      mounted = false;
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', update);
-      document.body.classList.remove('hero--search-sticky');
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [location.pathname, forceShowCompactSearch]);
 
@@ -352,7 +351,7 @@ export function Navbar({
   }, [showMobileCalendar]);
 
   return (
-    <header className={`fixed top-0 z-50 w-full border-b border-slate-200/80 bg-white transition-all duration-300 ${hideMobileHamburger ? 'hidden lg:block' : ''}`}>
+    <header className="fixed top-0 z-50 w-full border-b border-slate-200/80 bg-white transition-all duration-300">
       <div className="navbar-inner mx-auto flex min-h-[var(--navbar-logo-height)] max-w-[1520px] items-center justify-between gap-2 px-3 py-0 text-slate-950 sm:gap-4 sm:px-4 lg:px-6 dark:text-slate-950">
         <button
           onClick={handleBrandClick}
@@ -662,7 +661,6 @@ export function Navbar({
             ))}
         </div>
 
-        {!hideMobileHamburger && (
         <div className="flex items-center gap-2 lg:hidden">
           <button
             type="button"
@@ -677,7 +675,6 @@ export function Navbar({
             )}
           </button>
         </div>
-        )}
       </div>
 
       {isLanguageCurrencyOpen && (

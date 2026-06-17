@@ -38,8 +38,6 @@ import { NewExperiencesCard } from '@/components/homepage/NewExperiencesCard';
 import { LastMinuteDealsCard } from '@/components/homepage/LastMinuteDealsCard';
 import { FeaturedExperiencesCard } from '@/components/homepage/FeaturedExperiencesCard';
 import { ContinuePlanningCard } from '@/components/homepage/ContinuePlanningCard';
-import { MobileBottomTabBar } from '@/components/homepage/MobileBottomTabBar';
-import { MobileStickySearchBar } from '@/components/homepage/MobileStickySearchBar';
 import { RecommendedExperiencesCard } from '@/components/homepage/RecommendedExperiencesCard';
 import { TopRatedExperiencesCard } from '@/components/homepage/TopRatedExperiencesCard';
 import {
@@ -403,7 +401,6 @@ function HomePageContent() {
           onSharedDateRangeChange={setSharedHeroDateRange}
           externalSearchQuery={sharedSearchQuery}
           onExternalSearchChange={setSharedSearchQuery}
-          hideMobileHamburger
         />
 
         <HeroSection
@@ -413,12 +410,7 @@ function HomePageContent() {
           onExternalSearchChange={setSharedSearchQuery}
         />
 
-        <MobileStickySearchBar
-          externalSearchQuery={sharedSearchQuery}
-          onExternalSearchChange={setSharedSearchQuery}
-        />
-
-        <main className="mx-auto max-w-[1520px] px-4 pb-14 sm:px-6 lg:px-8 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-14">
+        <main className="mx-auto max-w-[1520px] px-4 pb-14 sm:px-6 lg:px-8">
           <div className="space-y-6 pt-6 min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
             {/* Continue Planning Our Trip */}
             {recentlyViewed.length > 0 && (
@@ -677,12 +669,11 @@ function HomePageContent() {
         </div>
 
         <Footer />
-        <MobileBottomTabBar />
         {showScrollTop && (
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] right-5 z-[60] grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-md transition hover:-translate-y-0.5 hover:bg-slate-50"
+            className="fixed bottom-5 right-5 z-[60] grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-md transition hover:-translate-y-0.5 hover:bg-slate-50"
             aria-label="Scroll to top"
           >
             <ChevronUp className="size-5" />

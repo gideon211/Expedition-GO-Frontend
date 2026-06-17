@@ -560,7 +560,9 @@ function TourDetailContent() {
   );
   const [activeDetailTab, setActiveDetailTab] = useState('overview');
   const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const [showMobilePriceBar, setShowMobilePriceBar] = useState(false);
   const headerRef = useRef(null);
+  const pricingRef = useRef(null);
   const storedCleanup = useRef(null);
   const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
   const [replyTargetQuestion, setReplyTargetQuestion] = useState(null);
@@ -629,6 +631,20 @@ function TourDetailContent() {
       cancelAnimationFrame(raf);
       if (storedCleanup.current) storedCleanup.current();
     };
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const el = pricingRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowMobilePriceBar(!entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [isLoading]);
 
   useEffect(() => {
@@ -1369,7 +1385,7 @@ function TourDetailContent() {
           </div>
         </div>
 
-        <main className="mx-auto max-w-[1520px] px-4 pb-8 pt-6 text-[color:var(--brand-green)] sm:px-6 sm:pt-8 lg:px-8">
+        <main className={`mx-auto max-w-[1520px] px-4 pt-6 text-[color:var(--brand-green)] sm:px-6 sm:pt-8 lg:px-8 ${showMobilePriceBar ? 'pb-[calc(5rem+env(safe-area-inset-bottom,0px))]' : 'pb-8'}`}>
 
           <header ref={headerRef} className="space-y-3">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -1532,47 +1548,26 @@ function TourDetailContent() {
                 >
                   View all photos
                 </button>
-              </div>
-
-              <div className="grid h-24 grid-cols-4 gap-2 lg:hidden">
-                {thumbnailStripImages.map(({ image, index }, thumbnailIndex) => {
-                  const isLastVisibleThumbnail = thumbnailIndex === thumbnailStripImages.length - 1;
-
-                  return (
+                {/* Dot pagination — mobile only */}
+                <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 lg:hidden">
+                  {mergedImages.map((_, index) => (
                     <button
-                      key={`gallery-mobile-strip-${index}`}
+                      key={`dot-${index}`}
                       type="button"
-                      onClick={() =>
-                        isLastVisibleThumbnail
-                          ? handleOpenGallery(index, 'grid')
-                          : setCurrentImageIndex(index)
-                      }
-                      className="relative overflow-hidden rounded-md bg-slate-100"
-                      aria-label={
-                        isLastVisibleThumbnail
-                          ? 'See more tour photos'
-                          : `Show tour image ${index + 1}`
-                      }
-                    >
-                      <img
-                        src={image || fallbackTourImage}
-                        alt={`Tour gallery thumbnail ${index + 1}`}
-                        data-fallback-offset={index}
-                        onError={handleImageError}
-                        className="h-full w-full object-cover transition hover:scale-[1.02]"
-                      />
-                      {isLastVisibleThumbnail && (
-                        <span className="absolute inset-0 grid place-items-center bg-black/45 px-2 text-xs font-black text-white">
-                          See More
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`rounded-full transition-all duration-200 ${
+                        index === currentImageIndex
+                          ? 'h-2 w-2 bg-white shadow-md'
+                          : 'h-1.5 w-1.5 bg-white/60 hover:bg-white/80'
+                      }`}
+                      aria-label={`Go to image ${index + 1}`}
+                    />
+                  ))}
+                </div>
               </div>
             </section>
 
-            <aside className="flex min-h-[calc(300px+6rem+0.5rem)] flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-[0_2px_18px_rgba(15,23,42,0.08)] sm:min-h-[calc(430px+6rem+0.5rem)] lg:min-h-[520px] xl:h-full xl:sticky xl:top-36 xl:z-40">
+            <aside id="booking-section" ref={pricingRef} className="flex min-h-[calc(300px+6rem+0.5rem)] flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-[0_2px_18px_rgba(15,23,42,0.08)] sm:min-h-[calc(430px+6rem+0.5rem)] lg:min-h-[520px] xl:h-full xl:sticky xl:top-36 xl:z-40">
               <div className="flex flex-1 flex-col text-sm text-[color:var(--brand-green)]">
                 <p>
                   <span className="font-black">From {convertedUnitPrice.formatted}</span> per adult{' '}
@@ -2682,7 +2677,36 @@ function TourDetailContent() {
           </Dialog>
         </main>
 
-        <Footer />
+        <div className={`${showMobilePriceBar ? 'pb-[calc(5rem+env(safe-area-inset-bottom,0px))]' : ''} lg:pb-0`}>
+          <Footer />
+        </div>
+      </div>
+
+      {/* Mobile Sticky Price Bar — slides up when booking section scrolls past */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between gap-3 border-t border-slate-200 bg-white/95 backdrop-blur-xl px-4 py-3 pb-[env(safe-area-inset-bottom,0px)] lg:hidden transition-transform duration-200 ${
+          showMobilePriceBar ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <span className="text-[10px] font-medium text-slate-500">From</span>
+          <span className="text-lg font-black text-slate-900 leading-tight">
+            {convertedUnitPrice.formatted}
+          </span>
+          <span className="text-[10px] text-slate-400">per adult</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            const el = document.getElementById('booking-section');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }}
+          className="rounded-full bg-[color:var(--brand-green)] px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[color:var(--brand-green-2)] active:scale-[0.98]"
+        >
+          Check availability
+        </button>
       </div>
 
       <AuthModal
