@@ -604,6 +604,7 @@ function TourDetailContent() {
   const [focusedItineraryStopIndex, setFocusedItineraryStopIndex] = useState(null);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityMap, setAvailabilityMap] = useState(null);
+  const [availabilityDialog, setAvailabilityDialog] = useState(null);
   const [overviewAccordionOpen, setOverviewAccordionOpen] = useState({
     highlights: true,
   });
@@ -872,42 +873,45 @@ function TourDetailContent() {
         return;
       }
 
-      if (dayData?.status === 'LIMITED') {
-        toast.warning(`Only ${dayData.remaining} spot(s) remaining!`, { duration: 4000 });
-      }
-
-      const added = addToCart({
-        tourId: id,
-        title: selectedTourTitle,
-        duration: selectedTourDuration,
-        price: totalPrice,
-        unitPrice: selectedTourPriceNumber,
-        rating: String(selectedTourRatingNumber),
-        reviews: String(selectedTourReviewsNumber),
-        image: mergedImages[0] || tourData?.imageCover || fallbackTourImage,
-        selectedDate: bookingDateRange.start.toISOString(),
-        ...(!isSameCalendarDay(bookingDateRange.start, bookingDateRange.end) && {
-          selectedDateEnd: bookingDateRange.end.toISOString(),
-        }),
-        adults,
-        seniors,
-        youths,
-        children,
-        infants,
-      });
-
-      if (added) {
-        setTimeout(() => {
-          navigate('/cart');
-        }, 800);
-      } else {
-        setCheckingAvailability(false);
-      }
-    } catch (err) {
+      setAvailabilityDialog({ dayData, startDate, endDate });
+      setCheckingAvailability(false);
+    } catch (_err) {
       setCheckingAvailability(false);
       toast.error('Unable to check availability. Please try again.');
     }
   };
+
+  const confirmBooking = useCallback(() => {
+    if (!availabilityDialog || !bookingDateRange?.start) return;
+
+    const added = addToCart({
+      tourId: id,
+      title: selectedTourTitle,
+      duration: selectedTourDuration,
+      price: totalPrice,
+      unitPrice: selectedTourPriceNumber,
+      rating: String(selectedTourRatingNumber),
+      reviews: String(selectedTourReviewsNumber),
+      image: mergedImages[0] || tourData?.imageCover || fallbackTourImage,
+      selectedDate: bookingDateRange.start.toISOString(),
+      ...(!isSameCalendarDay(bookingDateRange.start, bookingDateRange.end) && {
+        selectedDateEnd: bookingDateRange.end.toISOString(),
+      }),
+      adults,
+      seniors,
+      youths,
+      children,
+      infants,
+    });
+
+    setAvailabilityDialog(null);
+
+    if (added) {
+      setTimeout(() => {
+        navigate('/cart');
+      }, 800);
+    }
+  }, [availabilityDialog, bookingDateRange, id, selectedTourTitle, selectedTourDuration, totalPrice, selectedTourPriceNumber, selectedTourRatingNumber, selectedTourReviewsNumber, mergedImages, tourData, fallbackTourImage, adults, seniors, youths, children, infants, addToCart, navigate]);
 
   const handleOpenReplyDialog = (question) => {
     setReplyTargetQuestion(question);
@@ -2785,6 +2789,66 @@ function TourDetailContent() {
           Check availability
         </button>
       </div>
+
+      <Dialog open={!!availabilityDialog} onOpenChange={() => setAvailabilityDialog(null)}>
+        <DialogContent className="max-w-[480px] text-[color:var(--brand-green)]">
+          <DialogTitle className="pr-8 text-xl font-black text-[color:var(--brand-green)]">
+            Confirm Booking
+          </DialogTitle>
+          <div className="space-y-4 text-sm text-slate-700">
+            <p className="font-semibold text-slate-900">{selectedTourTitle}</p>
+
+            <div className="flex items-center gap-2 text-slate-600">
+              <CalendarDays className="size-4 shrink-0" />
+              <span>{selectedDateLabel}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-slate-600">
+              <Users className="size-4 shrink-0" />
+              <span>
+                {adults > 0 && `${adults} Adult${adults > 1 ? 's' : ''}`}
+                {seniors > 0 && `, ${seniors} Senior${seniors > 1 ? 's' : ''}`}
+                {youths > 0 && `, ${youths} Youth${youths > 1 ? 's' : ''}`}
+                {children > 0 && `, ${children} Child${children > 1 ? 'ren' : ''}`}
+                {infants > 0 && `, ${infants} Infant${infants > 1 ? 's' : ''}`}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-3 text-base font-bold text-slate-900">
+              <span>Total</span>
+              <span>{convertedTotalPrice}</span>
+            </div>
+
+            {availabilityDialog?.dayData?.status === 'LIMITED' && (
+              <div className="rounded-lg bg-amber-50 p-3 text-center text-sm font-semibold text-amber-700">
+                Only {availabilityDialog.dayData.remaining} spot{availabilityDialog.dayData.remaining > 1 ? 's' : ''} remaining at this price!
+              </div>
+            )}
+
+            {availabilityDialog?.dayData?.status === 'AVAILABLE' && (
+              <div className="rounded-lg bg-emerald-50 p-3 text-center text-sm font-semibold text-emerald-700">
+                Available — {availabilityDialog.dayData.remaining} spot{availabilityDialog.dayData.remaining > 1 ? 's' : ''} remaining
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <Button
+              onClick={confirmBooking}
+              className="flex-1 bg-[color:var(--brand-green)] text-white hover:bg-[color:var(--brand-green)]/90"
+            >
+              Add to Cart
+            </Button>
+            <button
+              type="button"
+              onClick={() => setAvailabilityDialog(null)}
+              className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AuthModal
         isOpen={isAuthModalOpen}
