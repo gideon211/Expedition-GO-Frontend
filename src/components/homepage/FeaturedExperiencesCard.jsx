@@ -2,6 +2,9 @@
  * @file FeaturedExperiencesCard.jsx
  * @description Reusable tour listing card. Used in carousels and AllToursPage grid.
  *   Links to /tour/:title. Supports wishlist toggle and swipe-to-reveal on mobile.
+ *
+ *   Layout follows bootstrap Card pattern:
+ *   Card.Img (top) → Card.Body { Card.Title → Card.Subtitle → Card.Text → CTA }
  */
 import { Heart, MapPin, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -107,7 +110,13 @@ export function FeaturedExperiencesCard({
 
   const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
 
-  const imageHeightClass = variant === 'allTours' ? 'h-[10.25rem] xl:h-[11.1rem]' : 'h-40 xl:h-44';
+  const imageHeightClass =
+    variant === 'allTours'
+      ? 'h-36 sm:h-[10.25rem] xl:h-[11.1rem]'
+      : 'h-36 sm:h-40 xl:h-44';
+
+  const bodyPaddingClass =
+    variant === 'allTours' ? 'p-3 sm:p-[0.85rem]' : 'p-3 pb-4 sm:p-4 sm:pb-5 xl:p-4 xl:pb-5';
 
   return (
     <Card
@@ -115,9 +124,10 @@ export function FeaturedExperiencesCard({
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="group relative h-full contain-none touch-manipulation rounded-b-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 hover:shadow-md"
+      className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/50 bg-white font-card shadow-sm transition-shadow duration-300 hover:shadow-md contain-none touch-manipulation"
     >
-      <div className={`relative z-0 ${imageHeightClass} overflow-hidden bg-slate-100`}>
+      {/* ---- Card.Img (top) ---- */}
+      <div className={`relative z-0 shrink-0 ${imageHeightClass} overflow-hidden bg-slate-100`}>
         <img
           src={image}
           alt=""
@@ -136,45 +146,34 @@ export function FeaturedExperiencesCard({
           </span>
         )}
         {discount && (
-          <span className="pointer-events-none absolute left-2 bottom-2 rounded-md bg-red-500 px-2 py-1 text-[10px] font-bold text-white shadow-sm">
+          <span className="pointer-events-none absolute bottom-2 left-2 rounded-md bg-red-500 px-2 py-1 text-[10px] font-bold text-white shadow-sm">
             {discount}
           </span>
         )}
       </div>
-      <CardContent
-        className={
-          variant === 'allTours'
-            ? 'relative z-0 p-[0.85rem] xl:p-[0.85rem]'
-            : 'relative z-0 p-4 xl:p-4'
-        }
-      >
-        <p
-          className={
-            variant === 'allTours'
-              ? 'line-clamp-2 min-h-[2.4em] font-bold leading-tight tracking-tight text-slate-900'
-              : 'line-clamp-2 min-h-[2.4em] font-bold leading-tight tracking-tight text-slate-900'
-          }
-          style={{
-            fontSize:
-              variant === 'allTours'
-                ? 'clamp(0.9375rem, 0.8vw + 0.5rem, 1rem)'
-                : 'clamp(0.875rem, 0.7vw + 0.5rem, 0.9375rem)',
-          }}
-        >
-          {title}
-        </p>
+
+      {/* ---- Card.Body ---- */}
+      <CardContent className={`relative z-0 flex flex-1 flex-col gap-2 ${bodyPaddingClass}`}>
+        {/* Card.Subtitle — Location (muted, above title) */}
         {location && (
-          <div className="mt-1 flex items-center gap-1 text-black">
-            <MapPin className="size-3 shrink-0" />
-            <span className="truncate text-[16px] font-semibold xl:text-[15px]">{location}</span>
+          <div className="flex items-center gap-1">
+            <MapPin className="size-3 shrink-0 text-slate-400" />
+            <span className="truncate text-[13px] font-bold text-slate-500 sm:text-[15px] xl:text-[14px]">
+              {location}
+            </span>
           </div>
         )}
+
+        {/* Card.Title */}
+        <h5
+          className="line-clamp-2 min-h-[2.4em] text-[18px] leading-[24px] tracking-normal font-bold text-slate-900"
+        >
+          {title}
+        </h5>
+
+        {/* Card.Text — Features */}
         <div
-          className={
-            variant === 'allTours'
-              ? 'mt-[0.425rem] flex flex-col gap-0.5'
-              : 'mt-2 flex items-center gap-1'
-          }
+          className="flex items-center gap-1"
           style={{
             fontSize:
               variant === 'allTours'
@@ -183,14 +182,16 @@ export function FeaturedExperiencesCard({
           }}
         >
           <span className="font-semibold text-slate-700">{t('features.freeCancellation')}</span>
-          {variant === 'allTours' ? null : <span className="font-semibold text-slate-700">•</span>}
+          <span className="font-semibold text-slate-700">•</span>
           <span className="font-semibold text-slate-700">{t('tourDetail.pickupIncluded')}</span>
         </div>
+
+        {/* Rating (left) + Price (right) — inline bottom row */}
         <div
           className={
             variant === 'allTours'
-              ? 'mt-[0.64rem] flex items-end justify-between gap-3'
-              : 'mt-3 flex items-end justify-between gap-3'
+              ? 'mt-auto flex items-end justify-between gap-3'
+              : 'mt-auto flex items-end justify-between gap-3'
           }
         >
           <div
@@ -229,23 +230,23 @@ export function FeaturedExperiencesCard({
           >
             {t('common.from')}{' '}
             <span
-              className={
-                variant === 'allTours'
-                  ? 'text-base text-slate-900 xl:text-[15px]'
-                  : 'text-base text-slate-900 xl:text-[15px]'
-              }
+              className="text-[20px] leading-[24px] tracking-normal text-slate-900"
             >
               {convertedPrice.formatted}
             </span>
           </p>
         </div>
       </CardContent>
+
+      {/* ---- Whole-card clickable overlay ---- */}
       <Link
         to={detailTo}
         onClick={handleDetailLinkClick}
         aria-label={`${t('common.viewDetails', { defaultValue: 'View details' })}: ${title}`}
-        className="absolute inset-0 z-[5] rounded-b-[12px] outline-none ring-inset xl:focus-visible:ring-2 xl:focus-visible:ring-slate-400"
+        className="absolute inset-0 z-[5] rounded-xl outline-none ring-inset xl:focus-visible:ring-2 xl:focus-visible:ring-slate-400"
       />
+
+      {/* ---- Wishlist heart ---- */}
       <button
         type="button"
         onClick={handleHeartClick}

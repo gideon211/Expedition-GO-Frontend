@@ -9,7 +9,7 @@ export function ArticleCard({ article }) {
   return (
     <Link
       to={`/blog/${article.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:shadow-lg"
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/50 bg-white font-card transition-all hover:shadow-lg"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
         <img
@@ -36,7 +36,7 @@ export function ArticleCard({ article }) {
           </div>
         </div>
 
-        <h3 className="mb-2 line-clamp-2 text-[15px] font-bold leading-snug text-slate-900 transition-colors group-hover:text-[color:var(--brand-green)] sm:text-base">
+        <h3 className="mb-2 line-clamp-2 text-[18px] leading-[24px] tracking-normal font-bold text-slate-900 transition-colors group-hover:text-[color:var(--brand-green)]">
           {article.title}
         </h3>
 

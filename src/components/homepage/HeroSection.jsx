@@ -115,11 +115,11 @@ export function HeroSection({
     <>
       <section
         id="home"
-        className="relative z-10 min-h-[50vh] sm:min-h-[52vh] md:min-h-[50vh] lg:min-h-[52vh] xl:min-h-[60vh] flex items-start pt-[6vh] overflow-visible bg-(--brand-green) text-white pb-4"
+        className="relative z-10 min-h-[50vh] sm:min-h-[52vh] md:min-h-[50vh] lg:min-h-[52vh] xl:min-h-[60vh] flex items-start pt-[10vh] overflow-visible bg-(--brand-green) text-white pb-4"
       >
         <HeroImageCarousel />
 
-        <div className="relative mx-auto w-full max-w-[1520px] px-2 py-10 sm:px-4 sm:py-14 md:py-16 overflow-visible">
+        <div className="relative mx-auto w-full max-w-[1520px] px-2 py-12 sm:px-4 sm:py-16 md:py-18 overflow-visible">
           <div className="mx-auto max-w-4xl text-center">
             <div className="flex justify-center" />
 
@@ -152,7 +152,7 @@ export function HeroSection({
             </div>
 
             {/* Hero Stats */}
-            <div className="hero-stats-wrap mt-3 grid grid-cols-3 gap-2 sm:mt-3.5 md:mt-4">
+            <div className="hero-stats-wrap mt-3 inline-grid grid-cols-3 gap-2 sm:mt-3.5 md:mt-4 mx-auto">
               {heroStats.map((stat) => (
                 <div
                   key={stat.label}
@@ -201,6 +201,7 @@ export function HeroSection({
                       type="submit"
                       size="sm"
                       className="h-full rounded-full text-[13px] font-semibold px-5 py-2.5 sm:text-[14px] sm:px-6 sm:py-3"
+                      style={{ backgroundColor: '#39AD6C' }}
                     >
                       {t('hero.search')}
                     </Button>

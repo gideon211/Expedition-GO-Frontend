@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -22,7 +22,7 @@ function haversineDistance(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function AttractionCard({ title, slug, price, image }) {
+function AttractionCard({ title, slug, price, image, location }) {
   const { t } = useTranslation();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { convertPrice } = useCurrency();
@@ -44,7 +44,7 @@ function AttractionCard({ title, slug, price, image }) {
   };
 
   return (
-    <div className="group relative h-[18.75rem] xl:h-[21rem] contain-none overflow-hidden rounded-lg border border-slate-200 shadow-sm transition duration-300 hover:shadow-md">
+    <div className="group relative h-[18.75rem] xl:h-[21rem] contain-none overflow-hidden rounded-lg border border-slate-200 font-card shadow-sm transition duration-300 hover:shadow-md">
       <img
         src={image}
         alt=""
@@ -57,19 +57,26 @@ function AttractionCard({ title, slug, price, image }) {
         Attractions
       </span>
 
-      <div className="absolute bottom-0 left-0 right-0 p-2.5">
-        <h3
-          className="line-clamp-2 font-bold leading-tight tracking-tight text-white drop-shadow-md"
-          style={{ fontSize: 'clamp(0.875rem, 0.7vw + 0.5rem, 0.9375rem)' }}
-        >
-          {title}
-        </h3>
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col gap-1 p-2.5">
+        {location && (
+          <div className="flex items-center gap-1">
+            <MapPin className="size-3 shrink-0 text-amber-300" />
+            <span className="truncate text-[13px] font-bold text-amber-300">{location}</span>
+          </div>
+        )}
+        <div className="flex items-end justify-between gap-2">
+          <h3
+            className="line-clamp-2 text-[18px] leading-[24px] tracking-normal font-bold text-white drop-shadow-md"
+          >
+            {title}
+          </h3>
 
-        <div className="mt-1">
-          <p className="text-[11px] text-white/70 leading-none">{t('common.from')}</p>
-          <p className="text-[14px] font-bold text-white leading-tight drop-shadow-sm">
-            {convertedPrice.formatted}
-          </p>
+          <div className="shrink-0 text-right">
+            <p className="text-[11px] text-white/70 leading-none">{t('common.from')}</p>
+            <p className="text-[20px] leading-[24px] tracking-normal font-bold text-amber-300 drop-shadow-sm">
+              {convertedPrice.formatted}
+            </p>
+          </div>
         </div>
       </div>
 

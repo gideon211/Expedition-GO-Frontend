@@ -413,7 +413,7 @@ export function Navbar({
               <div className="pr-1 py-1 sm:pr-1.5 sm:py-1.5">
                 <button
                   type="submit"
-                  className="rounded-full bg-(--brand-green) px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-(--brand-green-2) sm:px-6 sm:py-2.5 sm:text-[14px]"
+                  className="rounded-full bg-[#39AD6C] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-[#2d8a56] sm:px-6 sm:py-2.5 sm:text-[14px]"
                 >
                   Search
                 </button>

@@ -18,6 +18,22 @@
 @import 'mapbox-gl/dist/mapbox-gl.css';
 
 @font-face {
+  font-family: 'Raleway';
+  src: url('./assets/font/Raleway/Raleway-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Raleway';
+  src: url('./assets/font/Raleway/Raleway-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Plus Jakarta Sans';
   src: url('./assets/font/Plus_Jakarta_Sans/PlusJakartaSans-VariableFont_wght.ttf')
     format('truetype');
@@ -45,6 +61,22 @@
 
 @font-face {
   font-family: 'GT Eesti Pro Display';
+  src: url('./assets/font/GT Eesti Pro Display/gteestiprodisplay_regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GT Eesti Pro Display';
+  src: url('./assets/font/GT Eesti Pro Display/gteestiprodisplay_medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GT Eesti Pro Display';
   src: url('./assets/font/GT Eesti Pro Display/gteestiprodisplay_bold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
@@ -55,6 +87,7 @@
   --font-sans: 'Plus Jakarta Sans', sans-serif;
   --font-display: 'Plus Jakarta Sans Heading', 'Plus Jakarta Sans', sans-serif;
   --font-hero: 'GT Eesti Pro Display', 'Plus Jakarta Sans Heading', sans-serif;
+  --font-card: 'Raleway', 'Plus Jakarta Sans', sans-serif;
 }
 
 :root {
@@ -122,6 +155,15 @@ h2,
 h3,
 h4 {
   font-family: var(--font-display);
+}
+
+.font-card h1,
+.font-card h2,
+.font-card h3,
+.font-card h4,
+.font-card h5,
+.font-card h6 {
+  font-family: var(--font-card);
 }
 
 @media (max-width: 768px) {

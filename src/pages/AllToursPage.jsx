@@ -86,7 +86,7 @@ function MobileAllToursCard({ item, badge = 'duration' }) {
 
   return (
     <article
-      className="overflow-hidden rounded-md border border-slate-300 bg-white"
+      className="overflow-hidden rounded-md border border-slate-200/50 bg-white font-card"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -140,8 +140,7 @@ function MobileAllToursCard({ item, badge = 'duration' }) {
                 Best Seller
               </span>
               <h3
-                className="mt-2 line-clamp-3 font-semibold leading-4 text-slate-900"
-                style={{ fontSize: 'clamp(0.8875rem, 0.7vw + 0.4rem, 0.8125rem)' }}
+                className="mt-2 line-clamp-3 text-[18px] leading-[24px] tracking-normal font-bold text-slate-900"
               >
                 {item.title}
               </h3>
@@ -163,7 +162,7 @@ function MobileAllToursCard({ item, badge = 'duration' }) {
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] text-slate-600">from</p>
-                  <p className="text-[16px] font-bold leading-[0.95] text-slate-900">
+                  <p className="text-[20px] leading-[24px] tracking-normal font-bold text-slate-900">
                     {convertedPrice.formatted}
                   </p>
                 </div>

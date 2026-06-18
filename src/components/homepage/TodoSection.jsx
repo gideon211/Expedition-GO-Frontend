@@ -155,7 +155,7 @@ export function TodoSection() {
             key={category.id}
             type="button"
             onClick={() => handleCardClick(category)}
-            className="group relative flex h-[188px] w-[280px] shrink-0 scroll-snap-start flex-col overflow-hidden rounded-[22px] border border-white/70 bg-slate-200 transition-all hover:-translate-y-1"
+            className="group relative flex h-[188px] w-[280px] shrink-0 scroll-snap-start flex-col overflow-hidden rounded-[22px] border border-white/70 bg-slate-200 font-card transition-all hover:-translate-y-1"
             style={{
               scrollSnapAlign: 'start',
               backgroundImage: `url(${category.image})`,

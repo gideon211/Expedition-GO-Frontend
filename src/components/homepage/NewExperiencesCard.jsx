@@ -111,7 +111,7 @@ export function NewExperiencesCard({
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="group relative h-full contain-none touch-manipulation overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition duration-300 hover:shadow-md"
+      className="group relative h-full contain-none touch-manipulation overflow-hidden rounded-lg border border-slate-200/50 bg-white font-card shadow-sm transition duration-300 hover:shadow-md"
     >
       {/* Vertical Image */}
       <div className="relative z-0 h-44 xl:h-48 overflow-hidden bg-slate-100">
@@ -135,34 +135,34 @@ export function NewExperiencesCard({
       </div>
 
       {/* Vertical Content */}
-      <div className="relative z-0 flex flex-1 flex-col p-3.5">
-        {/* Title - 2 lines max, matching FeaturedExperiencesCard font size */}
+      <div className="relative z-0 flex flex-1 flex-col p-4 pb-5 gap-2">
+        {/* Location (muted, above title) */}
+        {location && (
+          <div className="flex items-center gap-1">
+            <MapPin className="size-3 shrink-0 text-slate-400" />
+            <span className="truncate text-[16px] font-bold text-slate-500">{location}</span>
+          </div>
+        )}
+
+        {/* Title - 3 lines max for long tour names */}
         <h3
-          className="line-clamp-2 font-bold leading-tight tracking-tight text-slate-900 min-h-[2.4em]"
-          style={{ fontSize: 'clamp(0.875rem, 0.7vw + 0.5rem, 0.9375rem)' }}
+          className="line-clamp-3 min-h-[4em] text-[18px] leading-[24px] tracking-normal font-bold text-slate-900"
         >
           {title}
         </h3>
 
-        {location && (
-          <div className="mt-1.5 flex items-center gap-1 text-black">
-            <MapPin className="size-3 shrink-0" />
-            <span className="truncate text-[16px] font-semibold">{location}</span>
-          </div>
-        )}
-
         {/* Rating & Price Row */}
         <div className="mt-auto flex items-end justify-between gap-2">
           {/* Rating */}
-          <div className="flex items-center gap-0.5 text-[#39AD6C]">
-            <Star className="size-3 fill-current" />
-            <span className="text-[12px] font-bold text-slate-900">{rating}</span>
-            <span className="text-[11px] text-black">({reviews})</span>
+          <div className="flex items-center gap-1 text-[13px] text-[#39AD6C] xl:text-[12px]">
+            <Star className="size-4 fill-current" />
+            <span className="text-[15px] font-bold text-slate-900 xl:text-[14px]">{rating}</span>
+            <span className="text-[13px] text-slate-500 xl:text-[12px]">({reviews})</span>
           </div>
 
           {/* Price */}
           <div className="text-right">
-            <p className="text-[14px] font-bold text-slate-900 leading-tight">
+            <p className="text-[20px] leading-[24px] tracking-normal font-bold text-slate-900">
               <span className="text-[11px] font-normal text-slate-500">{t('common.from')} </span>
               {convertedPrice.formatted}
             </p>

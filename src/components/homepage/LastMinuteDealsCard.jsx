@@ -115,77 +115,73 @@ export function LastMinuteDealsCard({
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="group relative h-full contain-none touch-manipulation overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 hover:shadow-md"
+      className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/50 bg-white font-card shadow-sm transition-shadow duration-300 hover:shadow-md contain-none touch-manipulation"
     >
-      <div className="relative z-0 h-40 xl:h-44 overflow-hidden">
+      <div className="relative z-0 h-36 sm:h-40 xl:h-44 shrink-0 overflow-hidden bg-slate-100">
         <img
           src={image}
           alt=""
           aria-hidden={true}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
+          style={{ minHeight: '100%' }}
         />
         <span className="pointer-events-none absolute left-2 top-2 rounded-md bg-red-500 px-2 py-1 text-[11px] font-bold text-white xl:text-[10px]">
           {discount}
         </span>
       </div>
-      <CardContent className="relative z-0 p-4 xl:p-3.5">
-        <p className="line-clamp-2 text-[15px] font-bold leading-tight text-slate-900 xl:text-[14px]">
+      <CardContent className="relative z-0 flex flex-1 flex-col gap-2 p-3 pb-4 sm:p-4 sm:pb-5 xl:p-4 xl:pb-5">
+        {/* Location + Timer inline row */}
+        <div className="flex items-center justify-between gap-2">
+          {location ? (
+            <div className="flex items-center gap-1 min-w-0">
+              <MapPin className="size-3 shrink-0 text-slate-400" />
+              <span className="truncate text-[13px] font-bold text-slate-500 sm:text-[15px] xl:text-[14px]">{location}</span>
+            </div>
+          ) : (
+            <div />
+          )}
+          <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-orange-50 to-red-50 px-2 py-0.5 border border-orange-200/50">
+            <svg
+              className="size-2.5 text-orange-500 animate-pulse"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className="text-[9px] font-bold text-orange-600 whitespace-nowrap">
+              {countdown}
+            </span>
+          </div>
+        </div>
+
+        <p className="line-clamp-2 min-h-[2.4em] text-[18px] leading-[24px] tracking-normal font-bold text-slate-900">
           {title}
         </p>
 
-        {location && (
-          <div className="mt-1 flex items-center gap-1 text-black">
-            <MapPin className="size-3 shrink-0" />
-            <span className="truncate text-[16px] font-semibold">{location}</span>
-          </div>
-        )}
+        {/* Spacer */}
+        <div className="flex-1" />
 
-        {rating && (
-          <div className="mt-1.5 flex items-center gap-1 text-[#39AD6C]">
-            <Star className="size-3 fill-current" />
-            <span className="text-[11px] font-bold text-slate-900">{rating}</span>
-            <span className="text-[10px] text-slate-500">({reviews})</span>
+        {/* Rating (left) + Price (right) — bottom row, matching FeaturedExperiencesCard */}
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex items-center gap-1 text-[13px] text-[#39AD6C] xl:text-[12px]">
+            <Star className="size-4 fill-current" />
+            <span className="text-[15px] font-bold text-slate-900 xl:text-[14px]">{rating}</span>
+            <span className="text-[13px] text-slate-500 xl:text-[12px]">({reviews})</span>
           </div>
-        )}
-
-        {/* Price and Timer Row */}
-        <div className="mt-3 flex items-end justify-between gap-2">
-          {/* Timer Badge */}
-          <div className="deal-timer-glow shrink-0">
-            <div className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-orange-50 to-red-50 px-2 py-0.5 border border-orange-200/50">
-              <svg
-                className="size-2.5 text-orange-500 animate-pulse"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="text-[9px] font-bold text-orange-600 whitespace-nowrap">
-                {countdown}
-              </span>
-            </div>
-          </div>
-
-          {/* Price Section */}
-          <div className="flex flex-col gap-0.5 flex-1 min-w-0 items-end">
-            <span className="text-[9px] font-medium text-slate-500">
-              {t('common.from')}
-            </span>
-            <div className="flex items-baseline gap-1 flex-wrap justify-end">
-              <span className="text-[8px] text-slate-400 line-through decoration-slate-300">
+          <div className="text-right">
+            <p className="text-[13px] font-bold text-slate-500 xl:text-[12px]">
+              {t('common.from')}{' '}
+              <span className="text-[12px] text-slate-400 line-through xl:text-[11px]">
                 {convertedOldPrice.formatted}
-              </span>
-              <span
-                className="font-bold text-black"
-                style={{ fontSize: 'clamp(0.75rem, 0.7vw + 0.3rem, 0.875rem)' }}
-              >
+              </span>{' '}
+              <span className="text-[20px] leading-[24px] tracking-normal font-bold text-red-600 xl:text-[18px]">
                 {convertedPrice.formatted}
               </span>
-            </div>
+            </p>
           </div>
         </div>
       </CardContent>
@@ -193,7 +189,7 @@ export function LastMinuteDealsCard({
         to={detailTo}
         onClick={handleDetailLinkClick}
         aria-label={`${t('common.viewDetails', { defaultValue: 'View details' })}: ${title}`}
-        className="absolute inset-0 z-[5] rounded-[14px] outline-none ring-inset xl:focus-visible:ring-2 xl:focus-visible:ring-slate-400"
+        className="absolute inset-0 z-[5] rounded-xl outline-none ring-inset xl:focus-visible:ring-2 xl:focus-visible:ring-slate-400"
       />
       <button
         type="button"

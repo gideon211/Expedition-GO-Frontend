@@ -78,7 +78,7 @@ export function ContinuePlanningCard({
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="group relative touch-manipulation overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md transition duration-200 hover:shadow-lg h-[400px] md:h-full"
+      className="group relative touch-manipulation overflow-hidden rounded-xl border border-slate-200 bg-white font-card shadow-md transition duration-200 hover:shadow-lg h-[400px] md:h-full"
     >
       {/* Mobile: vertical layout (image top, content below) */}
       <div className="flex flex-col md:hidden h-full">
@@ -90,20 +90,32 @@ export function ContinuePlanningCard({
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         </div>
-        <div className="flex flex-1 flex-col gap-3 p-5">
+        <div className="flex flex-1 flex-col gap-2 p-5">
           <h3 className="text-[14px] font-bold leading-snug text-slate-900">
             {title}
           </h3>
-          <p className="text-[12px] text-slate-500">{duration}</p>
-          <div className="mt-auto flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <Star className="size-3.5 fill-[#39AD6C] text-[#39AD6C]" />
-              <span className="text-[13px] font-bold text-slate-900">{rating}</span>
-              <span className="text-[11px] text-slate-500">({reviews})</span>
+          <div className="mt-auto flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <CircleCheck className="size-3.5 text-emerald-500" />
+                <span className="text-[11px] font-semibold text-slate-600">
+                  {t('features.freeCancellation')}
+                </span>
+              </div>
+              <p className="text-[12px] text-slate-500">{duration}</p>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] leading-none text-slate-500">{t('common.from')}</p>
-              <p className="text-[15px] font-bold text-slate-900">{convertedPrice.formatted}</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Star className="size-4 fill-[#39AD6C] text-[#39AD6C]" />
+                <span className="text-[13px] font-bold text-slate-900">{rating}</span>
+                <span className="text-[11px] text-slate-500">({reviews})</span>
+              </div>
+              <div className="text-right">
+                <p className="text-[20px] leading-[24px] tracking-normal font-bold text-slate-900">
+                  <span className="text-[10px] font-normal text-slate-500">{t('common.from')} </span>
+                  {convertedPrice.formatted}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -124,32 +136,35 @@ export function ContinuePlanningCard({
             <h3 className="text-[14px] font-bold leading-snug text-slate-900">
               {title}
             </h3>
-            <div className="mt-3 flex items-center gap-1">
-              <Star className="size-3.5 shrink-0 fill-[#39AD6C] text-[#39AD6C]" />
-              <span className="text-[13px] font-bold text-slate-900">{rating}</span>
-              <span className="text-[11px] text-slate-500">({reviews})</span>
-              {location && (
-                <>
-                  <span className="text-slate-300">·</span>
-                  <MapPin className="size-3 shrink-0 text-slate-400" />
-                  <span className="truncate text-[17px] font-semibold text-black">{location}</span>
-                </>
-              )}
-            </div>
+            {location && (
+              <div className="mt-1 flex items-center gap-1">
+                <MapPin className="size-3 shrink-0 text-slate-400" />
+                <span className="truncate text-[13px] font-bold text-slate-500">{location}</span>
+              </div>
+            )}
           </div>
-          <div className="flex items-end justify-between">
-            <div className="space-y-2">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
-                <CircleCheck className="size-4 text-emerald-500" />
+                <CircleCheck className="size-3.5 text-emerald-500" />
                 <span className="text-[11px] font-semibold text-slate-600">
                   {t('features.freeCancellation')}
                 </span>
               </div>
               <p className="text-[12px] text-slate-500">{duration}</p>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] leading-none text-slate-500">{t('common.from')}</p>
-              <p className="text-[16px] font-bold text-slate-900">{convertedPrice.formatted}</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Star className="size-4 fill-[#39AD6C] text-[#39AD6C]" />
+                <span className="text-[13px] font-bold text-slate-900">{rating}</span>
+                <span className="text-[11px] text-slate-500">({reviews})</span>
+              </div>
+              <div className="text-right">
+                <p className="text-[20px] leading-[24px] tracking-normal font-bold text-slate-900">
+                  <span className="text-[10px] font-normal text-slate-500">{t('common.from')} </span>
+                  {convertedPrice.formatted}
+                </p>
+              </div>
             </div>
           </div>
         </div>

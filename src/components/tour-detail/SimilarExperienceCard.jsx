@@ -28,7 +28,7 @@ export function SimilarExperienceCard({ tour, index, onImageError }) {
 
   return (
     <article className="w-[260px] shrink-0 sm:w-[280px]">
-      <div className="relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.08)] transition hover:shadow-md">
+        <div className="relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/50 bg-white font-card shadow-[0_1px_4px_rgba(15,23,42,0.08)] transition hover:shadow-md">
         <div className="relative">
           <Link
             to={detailTo}
@@ -73,8 +73,7 @@ export function SimilarExperienceCard({ tour, index, onImageError }) {
         <div className="flex flex-1 flex-col px-3 pb-3 pt-2.5 sm:px-3.5 sm:pb-3.5 sm:pt-3">
           <Link
             to={detailTo}
-            className="line-clamp-2 min-h-[2.5rem] font-bold leading-snug text-slate-900 hover:underline"
-            style={{ fontSize: 'clamp(0.8125rem, 0.6vw + 0.5rem, 0.9375rem)' }}
+            className="line-clamp-2 min-h-[2.5rem] text-[18px] leading-[24px] tracking-normal font-bold text-slate-900 hover:underline"
           >
             {tour.title}
           </Link>
@@ -103,7 +102,7 @@ export function SimilarExperienceCard({ tour, index, onImageError }) {
               <p className="text-[11px] font-semibold leading-none text-slate-500">
                 {t('common.from')}
               </p>
-              <p className="mt-0.5 text-sm font-bold tabular-nums text-slate-900">
+              <p className="mt-0.5 text-[20px] leading-[24px] tracking-normal font-bold text-slate-900">
                 {converted.formatted}
               </p>
             </div>

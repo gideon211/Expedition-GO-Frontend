@@ -26,7 +26,7 @@ export function PopularDestinationsCard({ title, tours, image, variant = 'defaul
   const imageHeightClass = variant === 'allTours' ? 'h-[10rem] xl:h-[11rem]' : 'h-40 xl:h-44';
 
   return (
-    <Card className="group cursor-pointer overflow-hidden rounded-[12px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 hover:shadow-md">
+    <Card className="group cursor-pointer overflow-hidden rounded-[12px] border border-slate-200/50 bg-white font-card shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 hover:shadow-md">
       <div className={`relative ${imageHeightClass} overflow-hidden`}>
         <img
           src={image}
@@ -45,7 +45,7 @@ export function PopularDestinationsCard({ title, tours, image, variant = 'defaul
           />
         </button>
         <div className="absolute inset-x-0 bottom-0 p-3 text-white pointer-events-none">
-          <p className="text-[20px] font-bold tracking-tight xl:text-[18px]">{title}</p>
+          <p className="text-[22px] font-bold tracking-tight xl:text-[20px]">{title}</p>
           <p className="mt-0.5 text-[13px] text-white/78 xl:text-[12px]">{tours}</p>
         </div>
       </div>
