@@ -2816,7 +2816,7 @@ function TourDetailContent() {
 
             <div className="flex items-center justify-between border-t pt-3 text-base font-bold text-slate-900">
               <span>Total</span>
-              <span>{convertedTotalPrice}</span>
+              <span>{convertedTotalPrice.formatted}</span>
             </div>
 
             {availabilityDialog?.dayData?.status === 'LIMITED' && (
