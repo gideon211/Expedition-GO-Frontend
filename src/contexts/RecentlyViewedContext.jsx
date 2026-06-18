@@ -9,6 +9,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { getAuthUserId } from '@/lib/auth';
 import { devWarn } from '@/lib/logger';
 
 const RecentlyViewedContext = createContext({
@@ -21,9 +22,10 @@ const MAX_RECENT_ITEMS = 12;
 
 export function RecentlyViewedProvider({ children }) {
   const { user } = useAuth();
+  const uid = getAuthUserId(user);
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     // Initialize from localStorage immediately
-    const storageKey = user ? `recentlyViewed_${user.uid}` : 'recentlyViewed_guest';
+    const storageKey = uid ? `recentlyViewed_${uid}` : 'recentlyViewed_guest';
     const stored = localStorage.getItem(storageKey);
     if (stored) {
       try {
@@ -40,7 +42,7 @@ export function RecentlyViewedProvider({ children }) {
 
   // Save to localStorage whenever it changes
   useEffect(() => {
-    const storageKey = user ? `recentlyViewed_${user.uid}` : 'recentlyViewed_guest';
+    const storageKey = uid ? `recentlyViewed_${uid}` : 'recentlyViewed_guest';
     if (recentlyViewed.length > 0) {
       localStorage.setItem(storageKey, JSON.stringify(recentlyViewed));
     }
@@ -59,9 +61,9 @@ export function RecentlyViewedProvider({ children }) {
 
   const clearRecentlyViewed = useCallback(() => {
     setRecentlyViewed([]);
-    const storageKey = user ? `recentlyViewed_${user.uid}` : 'recentlyViewed_guest';
+    const storageKey = uid ? `recentlyViewed_${uid}` : 'recentlyViewed_guest';
     localStorage.removeItem(storageKey);
-  }, [user]);
+  }, [uid]);
 
   const value = useMemo(
     () => ({
