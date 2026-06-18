@@ -22,6 +22,7 @@
  *
  * @see hooks/useScrollRestoration.js — scroll behavior on route changes
  */
+import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
@@ -48,6 +49,7 @@ import SupplierPortalRedirectPage from '@/pages/SupplierPortalRedirectPage';
 import SupplierPage from '@/pages/SupplierPage';
 import { SUPPLIER_PORTAL_LOGIN_URL } from '@/lib/supplierPortal';
 
+import AuthCallback from '@/pages/AuthCallback';
 import SignOutPage from '@/pages/SignOutPage';
 import SupportPage from '@/pages/SupportPage';
 import SettingsPage from '@/pages/SettingsPage';
@@ -58,12 +60,11 @@ import { ArticleDetailPage } from '@/pages/ArticleDetailPage';
 function AppContent() {
   useScrollRestoration();
   const { loading } = useAuth();
+  const [splashShown, setSplashShown] = useState(() =>
+    sessionStorage.getItem('eg_splash_shown') === 'true'
+  );
 
-  if (loading) {
-    return <BrandLoader fullScreen initial />;
-  }
-
-  return (
+  const routes = (
     <WishlistProvider>
       <CartProvider>
         <Routes>
@@ -83,6 +84,7 @@ function AppContent() {
             path="/supplier/earnings"
             element={<Navigate to={SUPPLIER_PORTAL_LOGIN_URL} replace />}
           />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/signout" element={<SignOutPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/settings" element={<SettingsPage />} />
@@ -94,6 +96,22 @@ function AppContent() {
         </Routes>
       </CartProvider>
     </WishlistProvider>
+  );
+
+  const showSplash = loading && !splashShown;
+
+  useEffect(() => {
+    if (!showSplash && !splashShown) {
+      sessionStorage.setItem('eg_splash_shown', 'true');
+      setSplashShown(true);
+    }
+  }, [showSplash, splashShown]);
+
+  return (
+    <>
+      {showSplash && <BrandLoader fullScreen initial />}
+      <div style={{ display: showSplash ? 'none' : undefined }}>{routes}</div>
+    </>
   );
 }
 

@@ -1,47 +1,6 @@
-/**
- * @file lib/auth.js
- * @description Authentication service — Firebase (production) or mock (local dev).
- *
- * Provider selection: VITE_AUTH_PROVIDER = 'firebase' | 'mock' (default: mock)
- *
- * Flow (firebase mode):
- *   1. User signs in via Firebase (email/password or Google popup)
- *   2. ID token POSTed to /auth/verify-token for httpOnly session cookies
- *   3. User profile cached in localStorage (AUTH_USER_KEY) for instant UI hydration
- *
- * Key exports:
- *   signInWithEmail, registerWithEmail, signInWithGoogle, signOutUser
- *   subscribeToAuthState, getStoredAuthUser, getAuthToken, getApiBaseUrl
- *
- * Env vars: VITE_FIREBASE_*, VITE_AUTH_API_BASE_URL, VITE_API_URL
- *
- * @see components/auth/AuthProvider.jsx — React context wrapper
- * @see api/client.js — attaches getAuthToken() to API requests
- * @see api/auth.js — verify-token session exchange
- */
-// ============================================================================
-// EXPEDITION GO - AUTHENTICATION SERVICE
-// Handles Firebase auth + backend session cookie syncing
-// ============================================================================
-
-import { initializeApp } from 'firebase/app';
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  updateProfile,
-} from 'firebase/auth';
-
-// ============================================================================
-// CONFIGURATION
-// ============================================================================
-
+const AUTH_STORAGE_KEY = 'expedition_go_auth';
 const AUTH_PROVIDER = import.meta.env.VITE_AUTH_PROVIDER || 'mock';
-const AUTH_USER_KEY = 'expedition_go_auth_user';
+const isBackend = AUTH_PROVIDER === 'backend';
 
 const rawBase = import.meta.env.VITE_AUTH_API_BASE_URL || import.meta.env.VITE_API_URL || '/api';
 
@@ -51,467 +10,269 @@ if (/^https?:\/\/[^/]+$/.test(API_BASE)) {
   API_BASE = `${API_BASE}/api`;
 }
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-};
-
-// ============================================================================
-// FIREBASE INIT
-// ============================================================================
-
-let app = null;
-let auth = null;
-let googleProvider = null;
-
-if (AUTH_PROVIDER === 'firebase') {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  googleProvider = new GoogleAuthProvider();
-  googleProvider.setCustomParameters({ prompt: 'select_account' });
-}
-
-// ============================================================================
-// STORAGE HELPERS
-// ============================================================================
-
-function storeAuthUser(user) {
+function getStoredAuth() {
   try {
-    if (user) {
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(AUTH_USER_KEY);
-    }
+    const d = localStorage.getItem(AUTH_STORAGE_KEY);
+    return d ? JSON.parse(d) : { accessToken: null, refreshToken: null, user: null };
   } catch {
-    // Ignore storage failures to avoid breaking auth flow.
+    return { accessToken: null, refreshToken: null, user: null };
   }
 }
 
-export function getStoredAuthUser() {
+function storeAuth(data) {
   try {
-    const stored = localStorage.getItem(AUTH_USER_KEY);
-    return stored ? JSON.parse(stored) : null;
-  } catch {
-    return null;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error('Failed to store auth:', e);
   }
 }
 
-function removeAuthUser() {
+function clearAuth() {
   try {
-    localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(AUTH_STORAGE_KEY);
   } catch {
     // Ignore storage failures.
   }
 }
 
-// ============================================================================
-// EVENT SUBSCRIPTION
-// ============================================================================
+export function getAuthUserId(user) {
+  return user?.id || user?._id || user?.uid || user?.firebaseUid || null;
+}
 
 let authStateListeners = [];
 
 function notifyAuthStateChange(user) {
-  authStateListeners.forEach((listener) => listener(user));
+  authStateListeners.forEach((l) => l(user));
 }
 
 export function getAuthProvider() {
   return AUTH_PROVIDER;
 }
 
-// ============================================================================
-// HTTP HELPERS
-// ============================================================================
-
-async function requestJson(endpoint, options = {}) {
-  const response = await fetch(endpoint, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-  });
-
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(text || `Request failed with status ${response.status}`);
-  }
-
-  const payload = await response.json().catch(() => null);
-  return payload;
+export function getApiBaseUrl() {
+  return API_BASE;
 }
 
-function normalizeFirebaseClientUser(firebaseUser) {
-  if (!firebaseUser) return null;
-
-  return {
-    uid: firebaseUser.uid,
-    firebaseUid: firebaseUser.uid,
-    email: firebaseUser.email,
-    emailVerified: firebaseUser.emailVerified,
-    name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-    photoURL: firebaseUser.photoURL || null,
-    provider: firebaseUser.providerData?.[0]?.providerId || 'email',
-  };
+export function getStoredAuthUser() {
+  const { user } = getStoredAuth();
+  return user;
 }
 
-function normalizeBackendUser(user, firebaseUser) {
-  if (!user) return null;
-
-  const firebaseUid = user.firebaseUid ?? user.uid ?? firebaseUser?.uid ?? null;
-
-  return {
-    ...user,
-    firebaseUid,
-    uid: firebaseUid,
-    email: user.email ?? firebaseUser?.email ?? null,
-    name: user.name ?? firebaseUser?.displayName ?? user.email?.split('@')[0] ?? 'User',
-    photoURL: user.photoURL ?? firebaseUser?.photoURL ?? null,
-  };
+export async function getAuthToken() {
+  const { accessToken } = getStoredAuth();
+  return accessToken || null;
 }
 
-function getStoredFirebaseUid(storedUser) {
-  return storedUser?.firebaseUid ?? storedUser?.uid ?? null;
+export async function waitForAuthToken(_maxMs = 5000) {
+  const { accessToken } = getStoredAuth();
+  return accessToken || null;
 }
-
-// ============================================================================
-// BACKEND SYNC
-// ============================================================================
-
-async function callBackendVerifyToken(idToken) {
-  const { verifyToken } = await import('@/api/auth');
-  return verifyToken(idToken);
-}
-
-async function callBackendSignup(idToken, firebaseUser) {
-  const endpoint = `${API_BASE}/users/signup`;
-
-  const payload = await requestJson(endpoint, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({
-      name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-      email: firebaseUser.email,
-    }),
-  });
-
-  return payload?.data?.user ?? null;
-}
-
-async function callBackendSyncMe(idToken, firebaseUser) {
-  const payload = await requestJson(`${API_BASE}/users/sync-me`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({
-      name: firebaseUser.displayName,
-      email: firebaseUser.email,
-      photoURL: firebaseUser.photoURL,
-    }),
-  });
-
-  return payload?.data?.user ?? null;
-}
-
-async function syncUserWithBackend(idToken, firebaseUser) {
-  try {
-    const user = await callBackendVerifyToken(idToken);
-    return normalizeBackendUser(user, firebaseUser);
-  } catch {
-    try {
-      const user = await callBackendSignup(idToken, firebaseUser);
-      return normalizeBackendUser(user, firebaseUser);
-    } catch {
-      return normalizeFirebaseClientUser(firebaseUser);
-    }
-  }
-}
-
-// ============================================================================
-// AUTH STATE
-// ============================================================================
 
 export async function subscribeToAuthState(callback) {
   authStateListeners.push(callback);
 
-  if (AUTH_PROVIDER === 'firebase' && auth) {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      try {
-        if (!firebaseUser) {
-          removeAuthUser();
-          notifyAuthStateChange(null);
-          callback(null);
-          return;
-        }
-
-        const storedUser = getStoredAuthUser();
-        if (storedUser && getStoredFirebaseUid(storedUser) === firebaseUser.uid) {
-          try {
-            await firebaseUser.getIdToken(false);
-          } catch {
-            // Token refresh failed; fall through to full sync.
-          }
-          callback(storedUser);
-          return;
-        }
-
-        const idToken = await firebaseUser.getIdToken(false);
-
-        let backendUser = null;
-        try {
-          backendUser = await syncUserWithBackend(idToken, firebaseUser);
-        } catch {
-          backendUser = normalizeFirebaseClientUser(firebaseUser);
-        }
-
-        storeAuthUser(backendUser);
-        notifyAuthStateChange(backendUser);
-        callback(backendUser);
-      } catch {
-        removeAuthUser();
-        notifyAuthStateChange(null);
-        callback(null);
-      }
-    });
-
-    return () => {
-      authStateListeners = authStateListeners.filter((listener) => listener !== callback);
-      unsubscribe();
-    };
-  }
-
-  const current = getStoredAuthUser();
-  callback(current);
+  const { user } = getStoredAuth();
+  callback(user);
 
   return () => {
-    authStateListeners = authStateListeners.filter((listener) => listener !== callback);
+    authStateListeners = authStateListeners.filter((l) => l !== callback);
   };
 }
 
-// ============================================================================
-// AUTH METHODS
-// ============================================================================
+async function authFetch(path, options = {}) {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
 
-export async function signInWithEmail(email, password) {
-  if (AUTH_PROVIDER === 'firebase' && auth) {
-    const credential = await signInWithEmailAndPassword(auth, email, password);
-    const firebaseUser = credential.user;
-    const idToken = await firebaseUser.getIdToken();
+  const payload = await res.json().catch(() => ({}));
 
-    let backendUser;
-    try {
-      backendUser = await syncUserWithBackend(idToken, firebaseUser);
-    } catch {
-      backendUser = normalizeFirebaseClientUser(firebaseUser);
-    }
-
-    storeAuthUser(backendUser);
-    notifyAuthStateChange(backendUser);
-    return backendUser;
+  if (!res.ok) {
+    throw new Error(payload.message || `Request failed with status ${res.status}`);
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  return payload;
+}
 
+export async function signInWithEmail(email, password) {
+  if (isBackend) {
+    const payload = await authFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+
+    const user = payload.data?.user || payload.user || payload;
+    const accessToken = payload.data?.accessToken || payload.accessToken;
+    const refreshToken = payload.data?.refreshToken || payload.refreshToken;
+
+    storeAuth({ accessToken, refreshToken, user });
+    notifyAuthStateChange(user);
+    return user;
+  }
+
+  await new Promise((r) => setTimeout(r, 800));
   const user = {
-    id: `mock-${Date.now()}`,
-    firebaseUid: `mock-${Date.now()}`,
+    _id: 'mock-' + Date.now(),
+    id: 'mock-' + Date.now(),
     email,
     emailVerified: true,
-    name: (email || '').split('@')[0],
-    provider: 'email',
+    name: email.split('@')[0],
   };
-
-  storeAuthUser(user);
+  storeAuth({ accessToken: null, refreshToken: null, user });
   notifyAuthStateChange(user);
   return user;
 }
 
 export async function registerWithEmail(name, email, password) {
-  if (AUTH_PROVIDER === 'firebase' && auth) {
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
+  if (isBackend) {
+    const payload = await authFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    });
 
-    if (name) {
-      await updateProfile(credential.user, { displayName: name });
-      await credential.user.reload();
-    }
+    const user = payload.data?.user || payload.user || payload;
+    const accessToken = payload.data?.accessToken || payload.accessToken;
+    const refreshToken = payload.data?.refreshToken || payload.refreshToken;
 
-    const firebaseUser = auth.currentUser || credential.user;
-    const idToken = await firebaseUser.getIdToken();
-
-    let backendUser;
-    try {
-      backendUser = await syncUserWithBackend(idToken, firebaseUser);
-    } catch {
-      backendUser = normalizeFirebaseClientUser(firebaseUser);
-    }
-
-    storeAuthUser(backendUser);
-    notifyAuthStateChange(backendUser);
-    return backendUser;
+    storeAuth({ accessToken, refreshToken, user });
+    notifyAuthStateChange(user);
+    return user;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
+  await new Promise((r) => setTimeout(r, 1000));
   const user = {
-    id: `mock-${Date.now()}`,
-    firebaseUid: `mock-${Date.now()}`,
+    _id: 'mock-' + Date.now(),
+    id: 'mock-' + Date.now(),
     email,
     emailVerified: false,
     name,
-    provider: 'email',
   };
-
-  storeAuthUser(user);
+  storeAuth({ accessToken: null, refreshToken: null, user });
   notifyAuthStateChange(user);
   return user;
 }
 
 export async function signInWithGoogle() {
-  if (AUTH_PROVIDER === 'firebase' && auth && googleProvider) {
-    const result = await signInWithPopup(auth, googleProvider);
-    const firebaseUser = result.user;
-    const idToken = await firebaseUser.getIdToken();
-
-    let backendUser;
-    try {
-      backendUser = await syncUserWithBackend(idToken, firebaseUser);
-    } catch {
-      backendUser = normalizeFirebaseClientUser(firebaseUser);
-    }
-
-    storeAuthUser(backendUser);
-    notifyAuthStateChange(backendUser);
-    return backendUser;
+  if (isBackend) {
+    const origin = window.location.origin;
+    window.location.href = `${API_BASE}/auth/google?state=${encodeURIComponent(origin)}`;
+    return { redirected: true };
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-
+  await new Promise((r) => setTimeout(r, 1200));
   const user = {
-    id: `mock-google-${Date.now()}`,
-    firebaseUid: `mock-google-${Date.now()}`,
+    _id: 'mock-google-' + Date.now(),
+    id: 'mock-google-' + Date.now(),
     email: 'user@gmail.com',
     emailVerified: true,
     name: 'Google User',
     photoURL: 'https://via.placeholder.com/150',
-    provider: 'google.com',
   };
-
-  storeAuthUser(user);
+  storeAuth({ accessToken: null, refreshToken: null, user });
   notifyAuthStateChange(user);
   return user;
 }
 
 export async function signOutUser() {
-  const tasks = [];
-
-  tasks.push(
-    import('@/api/auth').then(({ logoutFromBackend }) => logoutFromBackend()).catch(() => null)
-  );
-
-  if (AUTH_PROVIDER === 'firebase' && auth) {
-    tasks.push(firebaseSignOut(auth).catch(() => null));
-  }
-
-  await Promise.allSettled(tasks);
-
-  removeAuthUser();
-  notifyAuthStateChange(null);
-}
-
-// ============================================================================
-// UTILITY METHODS
-// ============================================================================
-
-export async function getCurrentUserToken() {
-  if (AUTH_PROVIDER === 'firebase' && auth) {
-    const firebaseUser = auth.currentUser;
-    if (!firebaseUser) return null;
-
+  if (isBackend) {
     try {
-      return await firebaseUser.getIdToken();
+      const token = await getAuthToken();
+      if (token) {
+        const { refreshToken } = getStoredAuth();
+        await fetch(`${API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+      }
     } catch {
-      return null;
+      /* ignore network errors on logout */
     }
   }
 
-  if (AUTH_PROVIDER === 'mock' && getStoredAuthUser()) {
-    return import.meta.env.DEV ? 'test-token' : null;
+  clearAuth();
+  notifyAuthStateChange(null);
+}
+
+let refreshPromise = null;
+
+export async function refreshAuthToken() {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const { refreshToken } = getStoredAuth();
+    if (!refreshToken) {
+      clearAuth();
+      notifyAuthStateChange(null);
+      throw new Error('No refresh token available');
+    }
+
+    try {
+      const payload = await authFetch('/auth/refresh', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      const newAccessToken = payload.data?.accessToken || payload.accessToken;
+      const newRefreshToken = payload.data?.refreshToken || payload.refreshToken;
+      const auth = getStoredAuth();
+
+      storeAuth({ accessToken: newAccessToken, refreshToken: newRefreshToken, user: auth.user });
+
+      return newAccessToken;
+    } catch (error) {
+      clearAuth();
+      notifyAuthStateChange(null);
+      throw error;
+    }
+  })();
+
+  refreshPromise.finally(() => { refreshPromise = null; });
+  return refreshPromise;
+}
+
+export async function fetchCurrentUser(token) {
+  const res = await fetch(`${API_BASE}/users/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch user profile');
   }
 
-  return null;
+  const payload = await res.json();
+  return payload.data?.user || payload.user || payload;
 }
 
-export function getApiBaseUrl() {
-  return API_BASE;
-}
-
-export async function getAuthToken() {
-  return await getCurrentUserToken();
-}
-
-/** Wait for Firebase to restore the session after a full page reload. */
-export async function waitForAuthToken(maxMs = 5000) {
-  const deadline = Date.now() + maxMs;
-  while (Date.now() < deadline) {
-    const token = await getCurrentUserToken();
-    if (token) return token;
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  return null;
-}
-
-/** Refresh cached user from GET /users/me (roles, profile fields). */
 export async function refreshStoredUserFromBackend() {
   try {
-    const token = await waitForAuthToken();
+    const token = await getAuthToken();
     if (!token) return null;
 
-    const payload = await requestJson(`${API_BASE}/users/me`, {
-      method: 'GET',
+    const payload = await authFetch('/users/me', {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     const user = payload?.data?.user ?? payload?.data ?? null;
     if (user) {
-      const normalized = {
-        ...user,
-        firebaseUid: user.firebaseUid ?? user.uid,
-        uid: user.firebaseUid ?? user.uid,
-      };
-      storeAuthUser(normalized);
-      notifyAuthStateChange(normalized);
-      return normalized;
+      const auth = getStoredAuth();
+      storeAuth({ ...auth, user });
+      notifyAuthStateChange(user);
+      return user;
     }
   } catch {
     return null;
   }
+
   return null;
 }
-
-export async function updateUserProfile(updates) {
-  if (AUTH_PROVIDER === 'firebase' && auth && auth.currentUser) {
-    if (updates.name || updates.photoURL) {
-      await updateProfile(auth.currentUser, {
-        displayName: updates.name,
-        photoURL: updates.photoURL,
-      });
-    }
-
-    const idToken = await auth.currentUser.getIdToken();
-    const backendUser = await callBackendSyncMe(idToken, auth.currentUser);
-
-    storeAuthUser(backendUser);
-    notifyAuthStateChange(backendUser);
-    return backendUser;
-  }
-
-  throw new Error('No authenticated user');
-}
-
-export { auth };

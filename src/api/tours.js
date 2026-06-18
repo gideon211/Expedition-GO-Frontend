@@ -22,3 +22,11 @@ export async function fetchTourById(id) {
   const data = await apiRequest(`/tours/${id}`, { auth: false });
   return unwrap(data);
 }
+
+export async function fetchTourAvailability(tourId, startDate, endDate) {
+  const data = await apiRequest(`/tours/availability/public/${tourId}`, {
+    params: { startDate, endDate },
+    auth: false,
+  });
+  return unwrap(data);
+}

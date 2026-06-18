@@ -63,6 +63,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 import { useTourById } from '@/hooks/useTourById';
 import { useRecentlyViewedStorage } from '@/hooks/useRecentlyViewedStorage';
+import { fetchTourAvailability } from '@/api/tours';
 import {
   adaptTourDetail,
   buildOverviewHighlights,
@@ -75,6 +76,7 @@ import { getTourByTitle, getAllTours } from '@/lib/tourData';
 import { mapSupplierProfile, normalizeWebsiteUrl } from '@/lib/supplierProfile';
 import { openTawkChat } from '@/lib/tawk';
 import { DotSpinner } from '@/components/ui/DotSpinner';
+import { toast } from 'sonner';
 import fallbackTourImage from '@/assets/images/hero_pic.jpg';
 
 const EXTERNAL_FALLBACK_IMAGES = [
@@ -218,6 +220,7 @@ function BookingCalendarPopover({
   onCommitRange,
   selectedRange,
   today,
+  availabilityMap,
 }) {
   const [dragRedraw, setDragRedraw] = useState(0);
   const dragActiveRef = useRef(false);
@@ -357,7 +360,9 @@ function BookingCalendarPopover({
           }}
         >
           {monthDays.map(({ date, isCurrentMonth }) => {
-            const isUnavailable = !isCurrentMonth || date < todayStart;
+            const dateKey = getDateKey(date);
+            const dayAvail = availabilityMap?.get(dateKey);
+            const isUnavailable = !isCurrentMonth || date < todayStart || dayAvail?.status === 'FULL' || dayAvail?.status === 'BLOCKED';
             const range = liveRange;
             const inRange = range ? isDayInInclusiveRange(date, range.start, range.end) : false;
             const t = dayTime(date);
@@ -371,18 +376,20 @@ function BookingCalendarPopover({
 
             return (
               <button
-                key={`${monthDate.getFullYear()}-${monthDate.getMonth()}-${getDateKey(date)}`}
+                key={`${monthDate.getFullYear()}-${monthDate.getMonth()}-${dateKey}`}
                 type="button"
                 tabIndex={isUnavailable ? -1 : 0}
                 aria-disabled={isUnavailable}
                 className={`relative mx-auto flex size-9 items-center justify-center text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] ${
                   isUnavailable ? 'cursor-not-allowed text-slate-400' : 'font-medium text-slate-900'
-                } ${!isUnavailable ? 'hover:bg-slate-100' : ''} `}
+                } ${!isUnavailable ? 'hover:bg-slate-100' : ''} ${
+                  dayAvail?.status === 'LIMITED' && !isUnavailable ? 'text-amber-600' : ''
+                }`}
                 {...(isUnavailable
                   ? { disabled: true }
                   : {
                       'data-cal-selectable': true,
-                      'data-cal-day': getDateKey(date),
+                      'data-cal-day': dateKey,
                       onPointerDown: (e) => {
                         if (e.button !== 0) return;
                         e.preventDefault();
@@ -418,6 +425,14 @@ function BookingCalendarPopover({
                   }`}
                 >
                   {date.getDate()}
+                  {(dayAvail?.status === 'FULL' || dayAvail?.status === 'BLOCKED') && (
+                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[7px] font-bold uppercase text-slate-400">
+                      {dayAvail.status === 'FULL' ? 'full' : '×'}
+                    </span>
+                  )}
+                  {dayAvail?.status === 'LIMITED' && (
+                    <span className="absolute -top-0.5 right-0 size-1.5 rounded-full bg-amber-400" />
+                  )}
                 </span>
               </button>
             );
@@ -588,6 +603,8 @@ function TourDetailContent() {
   const [_travelerType, _setTravelerType] = useState('adults');
   const [focusedItineraryStopIndex, setFocusedItineraryStopIndex] = useState(null);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [availabilityMap, setAvailabilityMap] = useState(null);
+  const [availabilityDialog, setAvailabilityDialog] = useState(null);
   const [overviewAccordionOpen, setOverviewAccordionOpen] = useState({
     highlights: true,
   });
@@ -658,6 +675,33 @@ function TourDetailContent() {
       window.history.replaceState(null, '', expectedPath);
     }
   }, [rawTour?.slug]);
+
+  useEffect(() => {
+    if (!isDateCalendarOpen || !id) {
+      setAvailabilityMap(null);
+      return;
+    }
+    const start = new Date(calendarMonthCursor.getFullYear(), calendarMonthCursor.getMonth(), 1);
+    const end = new Date(calendarMonthCursor.getFullYear(), calendarMonthCursor.getMonth() + 2, 0);
+    const fmtStart = getDateKey(start);
+    const fmtEnd = getDateKey(end);
+    let cancelled = false;
+    fetchTourAvailability(id, fmtStart, fmtEnd)
+      .then((result) => {
+        if (cancelled) return;
+        const map = new Map();
+        if (result?.calendar) {
+          for (const day of result.calendar) {
+            map.set(day.date, day);
+          }
+        }
+        setAvailabilityMap(map);
+      })
+      .catch(() => {
+        if (!cancelled) setAvailabilityMap(new Map());
+      });
+    return () => { cancelled = true; };
+  }, [isDateCalendarOpen, calendarMonthCursor, id]);
 
   useEffect(() => {
     setReviewStarFilter(null);
@@ -798,13 +842,47 @@ function TourDetailContent() {
     setIsDateCalendarOpen(false);
   }, []);
 
-  const handleCheckAvailability = () => {
+  const handleCheckAvailability = async () => {
     if (!bookingDateRange?.start) return;
 
     if (!user) {
       openAuthModal();
       return;
     }
+
+    const startDate = getDateKey(bookingDateRange.start);
+    const endDate = bookingDateRange.end
+      ? getDateKey(bookingDateRange.end)
+      : startDate;
+
+    setCheckingAvailability(true);
+
+    try {
+      const result = await fetchTourAvailability(id, startDate, endDate);
+      const dayData = result?.calendar?.[0];
+
+      if (dayData?.status === 'BLOCKED') {
+        setCheckingAvailability(false);
+        toast.error('This date is not available for booking.');
+        return;
+      }
+
+      if (dayData?.status === 'FULL') {
+        setCheckingAvailability(false);
+        toast.error('This date is fully booked. Please select a different date.');
+        return;
+      }
+
+      setAvailabilityDialog({ dayData, startDate, endDate });
+      setCheckingAvailability(false);
+    } catch (_err) {
+      setCheckingAvailability(false);
+      toast.error('Unable to check availability. Please try again.');
+    }
+  };
+
+  const confirmBooking = useCallback(() => {
+    if (!availabilityDialog || !bookingDateRange?.start) return;
 
     const added = addToCart({
       tourId: id,
@@ -826,13 +904,14 @@ function TourDetailContent() {
       infants,
     });
 
+    setAvailabilityDialog(null);
+
     if (added) {
-      setCheckingAvailability(true);
       setTimeout(() => {
         navigate('/cart');
       }, 800);
     }
-  };
+  }, [availabilityDialog, bookingDateRange, id, selectedTourTitle, selectedTourDuration, totalPrice, selectedTourPriceNumber, selectedTourRatingNumber, selectedTourReviewsNumber, mergedImages, tourData, fallbackTourImage, adults, seniors, youths, children, infants, addToCart, navigate]);
 
   const handleOpenReplyDialog = (question) => {
     setReplyTargetQuestion(question);
@@ -1608,6 +1687,7 @@ function TourDetailContent() {
                       onCommitRange={commitBookingRange}
                       selectedRange={bookingDateRange}
                       today={today}
+                      availabilityMap={availabilityMap}
                     />
                   )}
 
@@ -2261,6 +2341,7 @@ function TourDetailContent() {
                     onCommitRange={commitBookingRange}
                     selectedRange={bookingDateRange}
                     today={today}
+                    availabilityMap={availabilityMap}
                   />
                 )}
 
@@ -2708,6 +2789,66 @@ function TourDetailContent() {
           Check availability
         </button>
       </div>
+
+      <Dialog open={!!availabilityDialog} onOpenChange={() => setAvailabilityDialog(null)}>
+        <DialogContent className="max-w-[480px] text-[color:var(--brand-green)]">
+          <DialogTitle className="pr-8 text-xl font-black text-[color:var(--brand-green)]">
+            Confirm Booking
+          </DialogTitle>
+          <div className="space-y-4 text-sm text-slate-700">
+            <p className="font-semibold text-slate-900">{selectedTourTitle}</p>
+
+            <div className="flex items-center gap-2 text-slate-600">
+              <CalendarDays className="size-4 shrink-0" />
+              <span>{selectedDateLabel}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-slate-600">
+              <Users className="size-4 shrink-0" />
+              <span>
+                {adults > 0 && `${adults} Adult${adults > 1 ? 's' : ''}`}
+                {seniors > 0 && `, ${seniors} Senior${seniors > 1 ? 's' : ''}`}
+                {youths > 0 && `, ${youths} Youth${youths > 1 ? 's' : ''}`}
+                {children > 0 && `, ${children} Child${children > 1 ? 'ren' : ''}`}
+                {infants > 0 && `, ${infants} Infant${infants > 1 ? 's' : ''}`}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-3 text-base font-bold text-slate-900">
+              <span>Total</span>
+              <span>{convertedTotalPrice.formatted}</span>
+            </div>
+
+            {availabilityDialog?.dayData?.status === 'LIMITED' && (
+              <div className="rounded-lg bg-amber-50 p-3 text-center text-sm font-semibold text-amber-700">
+                Only {availabilityDialog.dayData.remaining} spot{availabilityDialog.dayData.remaining > 1 ? 's' : ''} remaining at this price!
+              </div>
+            )}
+
+            {availabilityDialog?.dayData?.status === 'AVAILABLE' && (
+              <div className="rounded-lg bg-emerald-50 p-3 text-center text-sm font-semibold text-emerald-700">
+                Available — {availabilityDialog.dayData.remaining} spot{availabilityDialog.dayData.remaining > 1 ? 's' : ''} remaining
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <Button
+              onClick={confirmBooking}
+              className="flex-1 bg-[color:var(--brand-green)] text-white hover:bg-[color:var(--brand-green)]/90"
+            >
+              Add to Cart
+            </Button>
+            <button
+              type="button"
+              onClick={() => setAvailabilityDialog(null)}
+              className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AuthModal
         isOpen={isAuthModalOpen}

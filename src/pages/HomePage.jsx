@@ -8,7 +8,7 @@
  *   Features → Reviews → Explore More → Footer
  *
  * Local providers: AuthModalProvider, RecentlyViewedProvider (page-scoped)
- * Loading: useHomePageData gate + HomePageSkeleton; post-auth uses BrandLoader splash
+ * Loading: real page layout with skeleton cards while API fetches; post-auth uses BrandLoader splash
  *
  * @see hooks/useHomePageData.js — skeleton timing logic
  * @see App.jsx — route definition
@@ -31,7 +31,8 @@ import { DiscoverExperiencesSection } from '@/components/homepage/DiscoverExperi
 import { TodoSection } from '@/components/homepage/TodoSection';
 import { NewsArticlesSection } from '@/components/homepage/NewsArticlesSection';
 import { ReviewsCarousel } from '@/components/homepage/ReviewsCarousel';
-import { HomePageSkeleton } from '@/components/homepage/skeletons/HomePageSkeleton';
+import { Skeleton } from '@/components/ui/skeleton';
+import { CarouselCardsSkeleton } from '@/components/homepage/skeletons/CarouselCardsSkeleton';
 import BrandLoader from '@/components/ui/BrandLoader';
 import { SectionHeading } from '@/components/homepage/SectionHeading';
 import { NewExperiencesCard } from '@/components/homepage/NewExperiencesCard';
@@ -58,6 +59,31 @@ import { useRecentlyViewedStorage } from '@/hooks/useRecentlyViewedStorage';
 
 /** Post–sign-in/register handoff: show brand splash, stay under ~1200ms. */
 const POST_AUTH_SPLASH_MS = 700;
+
+function LoadingCarouselSection({ title }) {
+  return (
+    <section className="py-4 md:py-4 xl:py-5">
+      <div className="section-header-row mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
+        <div className="min-w-0 flex-1">
+          <h2
+            className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
+            style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+            title={title}
+          >
+            {title}
+          </h2>
+        </div>
+        <div className="section-header-actions">
+          <div className="section-header-scroll-arrows">
+            <Skeleton className="size-8 rounded-full" />
+            <Skeleton className="size-8 rounded-full" />
+          </div>
+        </div>
+      </div>
+      <CarouselCardsSkeleton cardWidth={280} gap={12} />
+    </section>
+  );
+}
 
 function HomePageContent() {
   const location = useLocation();
@@ -202,7 +228,7 @@ function HomePageContent() {
   const allCarouselSlots = [...carouselSlots, ...extraSlots];
 
   const homeReady =
-    homeDataEnabled && Boolean(homeLoad.data?.loaded) && homeLoad.fetchStatus !== 'fetching';
+    homeDataEnabled && Boolean(homeLoad.data?.loaded);
   const showLogoutToast = Boolean(location.state?.showLogoutToast);
   const { data: newToursData } = useAllTours({
     sortBy: 'createdAt',
@@ -390,7 +416,39 @@ function HomePageContent() {
   }
 
   if (!homeReady) {
-    return <HomePageSkeleton />;
+    return (
+      <>
+        <div className="min-h-screen bg-[color:var(--page-bg)] text-slate-900 overflow-x-hidden">
+          <Navbar
+            sharedDateRange={sharedHeroDateRange}
+            onSharedDateRangeChange={setSharedHeroDateRange}
+            externalSearchQuery={sharedSearchQuery}
+            onExternalSearchChange={setSharedSearchQuery}
+          />
+
+          <HeroSection
+            sharedDateRange={sharedHeroDateRange}
+            onSharedDateRangeChange={setSharedHeroDateRange}
+            externalSearchQuery={sharedSearchQuery}
+            onExternalSearchChange={setSharedSearchQuery}
+          />
+
+          <main className="mx-auto max-w-[1520px] px-4 pb-14 sm:px-6 lg:px-8">
+            <div className="space-y-6 pt-6 min-w-0 md:space-y-6 md:pt-6 xl:space-y-5 xl:pt-5">
+              <TodoSection />
+              <LoadingCarouselSection title={t('sections.featuredTitle')} />
+              <LoadingCarouselSection title={t('sections.recommendedTitle')} />
+              <LoadingCarouselSection title={t('sections.topRatedTitle')} />
+              <LoadingCarouselSection title={t('sections.likelyToSellOut')} />
+            </div>
+          </main>
+
+          <Footer />
+        </div>
+
+        <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
+      </>
+    );
   }
 
   return (
