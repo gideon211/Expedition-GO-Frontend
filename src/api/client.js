@@ -10,10 +10,9 @@
  * Auth: When `auth: true` (default), attaches Bearer token from lib/auth.js.
  * Base URL: Resolved via getApiBaseUrl() — see VITE_API_URL / VITE_AUTH_API_BASE_URL.
  *
- * @see lib/auth.js for token lifecycle and session cookies
- * @see api/queryClient.js for retry/cache defaults
+ * @see lib/auth.js for token lifecycle
  */
-import { getApiBaseUrl, getStoredAuthUser, waitForAuthToken } from '@/lib/auth';
+import { getApiBaseUrl, getStoredAuthUser, getAuthToken, refreshAuthToken } from '@/lib/auth';
 
 /**
  * Normalized API error for React Query/UI handling.
@@ -113,7 +112,7 @@ export async function apiRequest(path, options = {}) {
   }
 
   if (auth) {
-    const token = await waitForAuthToken();
+    const token = await getAuthToken();
     if (token) {
       finalHeaders.Authorization = `Bearer ${token}`;
     } else if (getStoredAuthUser()) {
@@ -132,7 +131,6 @@ export async function apiRequest(path, options = {}) {
       headers: finalHeaders,
       body: payload,
       signal,
-      credentials: 'include',
     });
   } catch (error) {
     if (error?.name === 'AbortError') throw error;
@@ -141,6 +139,36 @@ export async function apiRequest(path, options = {}) {
       message: error?.message || 'Network request failed',
       url,
     });
+  }
+
+  // 401 token refresh interceptor
+  if (response.status === 401 && auth) {
+    try {
+      const newToken = await refreshAuthToken();
+      if (newToken) {
+        finalHeaders.Authorization = `Bearer ${newToken}`;
+        response = await fetch(url, {
+          method,
+          headers: finalHeaders,
+          body: payload,
+          signal,
+        });
+      } else {
+        window.location.href = '/signin';
+        throw new ApiError({
+          message: 'Session expired. Please sign in again.',
+          status: 401,
+          url,
+        });
+      }
+    } catch {
+      window.location.href = '/signin';
+      throw new ApiError({
+        message: 'Session expired. Please sign in again.',
+        status: 401,
+        url,
+      });
+    }
   }
 
   const data = await parseResponse(response);

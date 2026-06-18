@@ -1,19 +1,10 @@
-/**
- * @file AuthProvider.jsx
- * @description React context for authenticated user state. Subscribes to lib/auth.js
- *   auth-state changes and exposes { user, loading, signOut } via useAuth().
- *
- * Mounted in App.jsx above all routes. While loading is true, AppContent shows
- * BrandLoader full-screen — prevents flash of unauthenticated UI.
- *
- * @see lib/auth.js for sign-in/sign-out implementations
- */
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { sharedQueryClient } from '@/api/queryClient';
 import { prefetchSupplierAccess } from '@/api/supplierAccessQuery';
 import {
   getAuthProvider,
   getStoredAuthUser,
+  getAuthUserId,
   signOutUser,
   subscribeToAuthState,
   waitForAuthToken,
@@ -33,65 +24,45 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true;
     let cleanup = () => {};
-    const MIN_SPLASH_MS = 2800;
-    const splashStart = Date.now();
 
-    const done = () => {
-      const elapsed = Date.now() - splashStart;
-      const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
-      if (remaining > 0) {
-        setTimeout(() => {
-          if (mounted) setLoading(false);
-        }, remaining);
-      } else {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    subscribeToAuthState(async (nextUser) => {
-      if (!mounted) {
-        return;
-      }
-
+    subscribeToAuthState((nextUser) => {
+      if (!mounted) return;
       setUser(nextUser);
-
-      if (!nextUser) {
-        done();
-        return;
-      }
-
-      if (getAuthProvider() === 'firebase') {
-        await waitForAuthToken(8000);
-      }
-
-      if (mounted) {
-        done();
-      }
+      setLoading(false);
     }).then((unsubscribe) => {
       if (!mounted) {
         unsubscribe?.();
         return;
       }
-
       cleanup = unsubscribe ?? (() => {});
     });
+
+    function handleAuthStorageChanged() {
+      setUser(getStoredAuthUser());
+    }
+
+    window.addEventListener('auth-storage-changed', handleAuthStorageChanged);
 
     return () => {
       mounted = false;
       cleanup();
+      window.removeEventListener('auth-storage-changed', handleAuthStorageChanged);
     };
   }, []);
 
   useEffect(() => {
     if (!user || !sharedQueryClient || loading) return;
-    prefetchSupplierAccess(sharedQueryClient, user);
-  }, [user?.uid, user?.id, loading]);
+    const uid = getAuthUserId(user);
+    if (uid) {
+      prefetchSupplierAccess(sharedQueryClient, user);
+    }
+  }, [user?.id, user?.uid, user?._id, loading]);
 
-  async function handleSignOut() {
+  const handleSignOut = useCallback(async () => {
     clearSupplierNavCache(user);
     await signOutUser();
     setUser(null);
-  }
+  }, [user]);
 
   return (
     <AuthContext.Provider

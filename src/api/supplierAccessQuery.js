@@ -2,7 +2,7 @@
  * @file supplierAccessQuery.js
  * @description Shared React Query cache for supplier nav state (dedupes navbar + section).
  */
-import { waitForAuthToken } from '@/lib/auth';
+import { getAuthToken } from '@/lib/auth';
 import {
   fetchSupplierAccessSnapshot,
   getSupplierAccessUserId,
@@ -18,7 +18,7 @@ export function supplierAccessQueryKey(user) {
 
 /** Ensures Firebase session is ready before supplier APIs run (fixes refresh race). */
 export async function fetchSupplierAccessForNav() {
-  const token = await waitForAuthToken();
+  const token = await getAuthToken();
   if (!token) {
     const error = new Error('Authentication is not ready yet.');
     error.code = 'AUTH_NOT_READY';

@@ -44,6 +44,7 @@ import {
 import { applyAsSupplier } from '@/api/supplier';
 import { invalidateSupplierAccess } from '@/api/supplierAccessQuery';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { getAuthUserId } from '@/lib/auth';
 import GhanaDestinationSelect from '@/components/supplier/GhanaDestinationSelect';
 import { filterLanguagesForCountry, getLanguagesForCountry } from '@/lib/countryLanguages';
 import {
@@ -472,11 +473,11 @@ export function SupplierApplicationForm() {
 
   useEffect(() => {
     if (user?.uid || user?.email) {
-      const signedInId = user.uid ?? user.email;
+      const signedInId = getAuthUserId(user) ?? user.email;
       rememberDraftUserId(signedInId);
       migrateAnonymousDraftToUser(signedInId);
     }
-  }, [user?.uid, user?.email]);
+  }, [user]);
 
   useEffect(() => {
     const id = draftUserId || 'anonymous';

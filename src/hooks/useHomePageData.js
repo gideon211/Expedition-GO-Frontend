@@ -2,8 +2,31 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchPopularByCategory, fetchFilterOptions } from '@/api/tours';
 import { adaptTourCard, extractDestinations } from '@/lib/tourAdapter';
 
-const DEFAULT_INITIAL_DELAY_MS = 250;
-const POST_AUTH_INITIAL_DELAY_MS = 150;
+const HOME_PAGE_CACHE_KEY = 'eg_homepage_cache';
+const DEFAULT_INITIAL_DELAY_MS = 0;
+const POST_AUTH_INITIAL_DELAY_MS = 0;
+
+function readCache() {
+  try {
+    const raw = localStorage.getItem(HOME_PAGE_CACHE_KEY);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.loaded === true && parsed.categories) {
+      return parsed;
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeCache(data) {
+  try {
+    localStorage.setItem(HOME_PAGE_CACHE_KEY, JSON.stringify(data));
+  } catch {
+    /* storage full or unavailable */
+  }
+}
 
 export function useHomePageData({
   skipInitialDelay = false,
@@ -77,17 +100,22 @@ export function useHomePageData({
         destinations = extractDestinations(allTours);
       }
 
-      return {
+      const result = {
         loaded: true,
         timestamp: Date.now(),
         categories,
         destinations,
         filterOptions: filterData.status === 'fulfilled' ? filterData.value?.filterOptions : null,
       };
+
+      writeCache(result);
+
+      return result;
     },
+    initialData: enabled ? readCache() : undefined,
     staleTime: 1000 * 60 * 2,
     gcTime: 1000 * 60 * 10,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     enabled,

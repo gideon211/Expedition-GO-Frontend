@@ -16,7 +16,7 @@ import { loadEnv } from "vite";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const rawAuthProxyTarget =
-    env.VITE_AUTH_PROXY_TARGET || "https://expedition-go-tours-website.onrender.com";
+    env.VITE_AUTH_PROXY_TARGET || "http://localhost:5000";
   const authTargetUrl = new URL(rawAuthProxyTarget);
   const authProxyOrigin = authTargetUrl.origin;
   const authProxyBasePath = authTargetUrl.pathname.replace(/\/+$/, "");

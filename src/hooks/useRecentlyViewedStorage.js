@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { getAuthUserId } from '@/lib/auth';
 
 const MAX_ITEMS = 12;
 
 function getStorageKey(user) {
-  return user ? `recentlyViewed_${user.uid}` : 'recentlyViewed_guest';
+  const uid = getAuthUserId(user);
+  return uid ? `recentlyViewed_${uid}` : 'recentlyViewed_guest';
 }
 
 function loadFromStorage(key) {
