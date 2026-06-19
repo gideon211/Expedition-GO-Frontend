@@ -8,10 +8,11 @@
  *
  * @see pages/CartPage.jsx — alternative entry with multiple cart items
  */
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fetchTourOffers } from '@/api/tours';
 import {
   Check,
   ChevronRight,
@@ -321,9 +322,25 @@ function BookingSidebar({ tour, promoCode, setPromoCode, onApplyPromo, onChangeC
       </div>
 
       {/* Total */}
-      <div className="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-white p-4 shadow-sm">
-        <span className="text-sm font-semibold text-slate-900">{t('booking.total')}</span>
-        <span className="text-lg font-bold text-slate-900">${tour.price.toFixed(2)}</span>
+      <div className="rounded-2xl border border-slate-200/60 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-slate-900">{t('booking.total')}</span>
+          <span className="text-lg font-bold text-slate-900">${tour.price.toFixed(2)}</span>
+        </div>
+        {discount > 0 && (
+          <>
+            <div className="mt-1 flex items-center justify-between text-sm">
+              <span className="text-emerald-600">Promo discount</span>
+              <span className="font-semibold text-emerald-600">-${discount.toFixed(2)}</span>
+            </div>
+            <div className="mt-1 flex items-center justify-between border-t border-dashed border-slate-200 pt-1">
+              <span className="text-sm font-semibold text-slate-700">Final total</span>
+              <span className="text-lg font-bold text-[color:var(--brand-green)]">
+                ${finalPrice.toFixed(2)}
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Support */}
@@ -1208,13 +1225,27 @@ export default function BookingPage() {
     // Booking action placeholder — no-op for now
   };
 
-  const handleApplyPromo = () => {
-    if (promoCode.trim().toLowerCase() === 'save10') {
-      setDiscount(editableTour.price * 0.1);
-    } else {
+  const handleApplyPromo = useCallback(async () => {
+    const code = promoCode.trim();
+    if (!code) return;
+    try {
+      const data = await fetchTourOffers({ promoCode: code });
+      if (data?.offers?.length > 0) {
+        const offer = data.offers[0];
+        let amount = 0;
+        if (offer.discountType === 'PERCENTAGE') {
+          amount = editableTour.price * (offer.discountPercentage / 100);
+        } else {
+          amount = offer.fixedDiscountValue || 0;
+        }
+        setDiscount(Math.min(amount, editableTour.price));
+      } else {
+        setDiscount(0);
+      }
+    } catch {
       setDiscount(0);
     }
-  };
+  }, [promoCode, editableTour.price]);
 
   const finalPrice = editableTour.price - discount;
   const activeTour = { ...tour, ...editableTour, price: finalPrice };

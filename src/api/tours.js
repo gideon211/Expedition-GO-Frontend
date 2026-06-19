@@ -30,3 +30,11 @@ export async function fetchTourAvailability(tourId, startDate, endDate) {
   });
   return unwrap(data);
 }
+
+export async function fetchTourOffers(params = {}) {
+  const data = await apiRequest('/tours/offers', {
+    params,
+    auth: false,
+  });
+  return unwrap(data);
+}

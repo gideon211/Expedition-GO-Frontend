@@ -43,6 +43,7 @@ import {
   Mail,
   Building2,
   Globe,
+  Tag,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Navbar } from '@/components/homepage/Navbar';
@@ -63,7 +64,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 import { useTourById } from '@/hooks/useTourById';
 import { useRecentlyViewedStorage } from '@/hooks/useRecentlyViewedStorage';
-import { fetchTourAvailability } from '@/api/tours';
+import { fetchTourAvailability, fetchTourOffers } from '@/api/tours';
 import {
   adaptTourDetail,
   buildOverviewHighlights,
@@ -602,6 +603,11 @@ function TourDetailContent() {
   const [supplierInfoOpen, setSupplierInfoOpen] = useState(false);
   const [_travelerType, _setTravelerType] = useState('adults');
   const [focusedItineraryStopIndex, setFocusedItineraryStopIndex] = useState(null);
+  const [offers, setOffers] = useState([]);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoError, setPromoError] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityMap, setAvailabilityMap] = useState(null);
   const [availabilityDialog, setAvailabilityDialog] = useState(null);
@@ -708,6 +714,15 @@ function TourDetailContent() {
     setReviewSearchQuery('');
     setOverviewAccordionOpen({ highlights: true });
     setFullDescriptionExpanded(true);
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchTourOffers({ tourId: id })
+      .then((data) => {
+        if (data?.offers) setOffers(data.offers);
+      })
+      .catch(() => {});
   }, [id]);
 
   useEffect(() => {
@@ -881,9 +896,36 @@ function TourDetailContent() {
     }
   };
 
+  const handleApplyPromo = useCallback(async () => {
+    const code = promoCode.trim();
+    if (!code) return;
+    setPromoError('');
+    setPromoApplied(false);
+    setPromoDiscount(0);
+    try {
+      const data = await fetchTourOffers({ promoCode: code });
+      if (data?.offers?.length > 0) {
+        const offer = data.offers[0];
+        let amount = 0;
+        if (offer.discountType === 'PERCENTAGE') {
+          amount = totalPrice * (offer.discountPercentage / 100);
+        } else {
+          amount = offer.fixedDiscountValue || 0;
+        }
+        setPromoDiscount(Math.min(amount, totalPrice));
+        setPromoApplied(true);
+      } else {
+        setPromoError('Invalid or expired promo code.');
+      }
+    } catch {
+      setPromoError('Could not validate promo code. Please try again.');
+    }
+  }, [promoCode, totalPrice]);
+
   const confirmBooking = useCallback(() => {
     if (!availabilityDialog || !bookingDateRange?.start) return;
 
+    const discountAmount = promoDiscount > 0 ? promoDiscount : 0;
     const added = addToCart({
       tourId: id,
       title: selectedTourTitle,
@@ -902,6 +944,9 @@ function TourDetailContent() {
       youths,
       children,
       infants,
+      promoCode: promoApplied ? promoCode : undefined,
+      discount: discountAmount,
+      finalPrice: Math.max(0, totalPrice - discountAmount),
     });
 
     setAvailabilityDialog(null);
@@ -911,7 +956,7 @@ function TourDetailContent() {
         navigate('/cart');
       }, 800);
     }
-  }, [availabilityDialog, bookingDateRange, id, selectedTourTitle, selectedTourDuration, totalPrice, selectedTourPriceNumber, selectedTourRatingNumber, selectedTourReviewsNumber, mergedImages, tourData, fallbackTourImage, adults, seniors, youths, children, infants, addToCart, navigate]);
+  }, [availabilityDialog, bookingDateRange, id, selectedTourTitle, selectedTourDuration, totalPrice, selectedTourPriceNumber, selectedTourRatingNumber, selectedTourReviewsNumber, mergedImages, tourData, fallbackTourImage, adults, seniors, youths, children, infants, addToCart, navigate, promoApplied, promoCode, promoDiscount]);
 
   const handleOpenReplyDialog = (question) => {
     setReplyTargetQuestion(question);
@@ -1751,15 +1796,80 @@ function TourDetailContent() {
                 </div>
 
                 {totalTravelers > 0 && (
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
-                    <span className="text-sm font-medium text-slate-600">
-                      Total ({totalTravelers} {totalTravelers === 1 ? 'traveler' : 'travelers'})
-                    </span>
-                    <span className="text-xl font-bold text-[color:var(--brand-green)]">
-                      {convertedTotalPrice.formatted}
-                    </span>
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-600">
+                        Total ({totalTravelers} {totalTravelers === 1 ? 'traveler' : 'travelers'})
+                      </span>
+                      <span className="text-xl font-bold text-[color:var(--brand-green)]">
+                        {convertedTotalPrice.formatted}
+                      </span>
+                    </div>
+                    {promoApplied && (
+                      <div className="mt-1 flex items-center justify-between text-sm">
+                        <span className="text-emerald-600">Promo discount</span>
+                        <span className="font-semibold text-emerald-600">
+                          -{convertPrice(promoDiscount).formatted}
+                        </span>
+                      </div>
+                    )}
+                    {(promoApplied || promoDiscount > 0) && (
+                      <div className="mt-1 flex items-center justify-between border-t border-dashed border-slate-200 pt-1">
+                        <span className="text-sm font-semibold text-slate-700">Final total</span>
+                        <span className="text-lg font-bold text-[color:var(--brand-green)]">
+                          {convertPrice(Math.max(0, totalPrice - promoDiscount)).formatted}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
+
+                {offers.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Available offers</p>
+                    <div className="flex flex-wrap gap-2">
+                      {offers.map((offer) => (
+                        <span
+                          key={offer.id}
+                          className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
+                        >
+                          <Tag size={12} />
+                          {offer.name}
+                          {offer.discountType === 'PERCENTAGE'
+                            ? ` (${offer.discountPercentage}% OFF)`
+                            : offer.fixedDiscountValue
+                              ? ` ($${offer.fixedDiscountValue} OFF)`
+                              : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => { setPromoCode(e.target.value); setPromoApplied(false); setPromoDiscount(0); setPromoError(''); }}
+                      placeholder="Promo code"
+                      className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[color:var(--brand-green)] focus:ring-2 focus:ring-[color:var(--brand-green)]/15"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyPromo}
+                      className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {promoError && (
+                    <p className="mt-1 text-xs text-red-500">{promoError}</p>
+                  )}
+                  {promoApplied && (
+                    <p className="mt-1 text-xs text-emerald-600">Promo code applied!</p>
+                  )}
+                </div>
 
                 <Button
                   onClick={handleCheckAvailability}
