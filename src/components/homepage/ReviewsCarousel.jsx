@@ -5,10 +5,10 @@
  */
 import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const peopleReviews = [
+export const peopleReviews = [
   {
     title: 'Accra Guided City Tour Cultural and Historical Experience',
     image:
@@ -103,6 +103,7 @@ const peopleReviews = [
 
 export function ReviewsCarousel() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [activeReview, setActiveReview] = useState(null);
 
@@ -132,7 +133,7 @@ export function ReviewsCarousel() {
           </div>
           <div className="section-header-actions">
             <Link
-              to="/tours"
+              to="/reviews/all"
               className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-1.5 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] lg:min-h-0 lg:min-w-0 lg:py-1.5 lg:px-2 lg:text-[14px]"
             >
               <span className="relative">
@@ -195,6 +196,7 @@ export function ReviewsCarousel() {
                 <div className="mt-4">
                   <button
                     type="button"
+                    onClick={() => navigate(`/review/${encodeURIComponent(review.title)}`)}
                     className="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
                   >
                     View Experience

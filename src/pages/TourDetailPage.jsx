@@ -1501,9 +1501,16 @@ function TourDetailContent() {
                     <span>Accra, Ghana</span>
                   </span>
                 </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/review/${encodeURIComponent(selectedTourTitle)}`)}
+                  className="shrink-0 rounded-full border border-[color:var(--brand-green)] bg-white px-5 py-2.5 text-sm font-black text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
+                >
+                  Write a review
+                </button>
               </div>
-            </div>
-          </header>
+            </header>
 
           <div className="mt-5 grid gap-6 xl:grid-cols-[minmax(0,1fr)_370px] xl:items-stretch">
             <section className="grid min-w-0 gap-2 lg:grid-cols-[130px_minmax(0,1fr)] 2xl:grid-cols-[150px_minmax(0,1fr)]">
@@ -2068,7 +2075,7 @@ function TourDetailContent() {
                         <h2 className="text-2xl font-black text-slate-950">Reviews</h2>
                         <button
                           type="button"
-                          onClick={() => setIsWriteReviewOpen(true)}
+                          onClick={() => navigate(`/review/${encodeURIComponent(selectedTourTitle)}`)}
                           className="rounded-full border border-[color:var(--brand-green)] bg-white px-5 py-2.5 text-sm font-black text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
                         >
                           Write a review

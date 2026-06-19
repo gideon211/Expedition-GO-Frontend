@@ -522,6 +522,7 @@ export const leisureTours = [
 export const lastMinuteDeals = [
   {
     title: 'Accra City Tour',
+    duration: '6h',
     oldPrice: '$50',
     price: '$40',
     discount: '-20%',
@@ -534,6 +535,7 @@ export const lastMinuteDeals = [
   },
   {
     title: 'Volta Region Tour',
+    duration: '8h',
     oldPrice: '$60',
     price: '$45',
     discount: '-25%',
@@ -546,6 +548,7 @@ export const lastMinuteDeals = [
   },
   {
     title: 'Safari Adventure',
+    duration: '10h',
     oldPrice: '$150',
     price: '$127',
     discount: '-15%',
@@ -558,6 +561,7 @@ export const lastMinuteDeals = [
   },
   {
     title: 'Beach Escape',
+    duration: '4h',
     oldPrice: '$75',
     price: '$56',
     discount: '-20%',

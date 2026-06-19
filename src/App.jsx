@@ -14,6 +14,8 @@
  *   /signin, /register   Consumer auth
  *   /supplier/*          Supplier auth, payout, and external dashboard redirects
  *   /booking             Checkout flow (state passed via react-router location)
+ *   /review/:tourTitle   Review submission page for completed tour experiences
+ *   /reviews/all          All traveller reviews page with similar experiences
  *   /support, /settings  Account & help pages
  *
  * Note: `/supplier/dashboard` and `/supplier/earnings` redirect to the external
@@ -56,6 +58,8 @@ import SettingsPage from '@/pages/SettingsPage';
 import BookingPage from '@/pages/BookingPage';
 import { BlogPage } from '@/pages/BlogPage';
 import { ArticleDetailPage } from '@/pages/ArticleDetailPage';
+import ReviewExperiencePage from '@/pages/ReviewExperiencePage';
+import AllReviewsPage from '@/pages/AllReviewsPage';
 
 function AppContent() {
   useScrollRestoration();
@@ -92,6 +96,8 @@ function AppContent() {
           <Route path="/supplier/profile/:tourTitle" element={<SupplierPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
+          <Route path="/review/:tourTitle" element={<ReviewExperiencePage />} />
+          <Route path="/reviews/all" element={<AllReviewsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </CartProvider>

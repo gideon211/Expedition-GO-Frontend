@@ -1205,7 +1205,7 @@ export default function BookingPage() {
   const handleNext = (nextStep) => setStep(nextStep);
 
   const handleBook = () => {
-    // Booking action placeholder — no-op for now
+    navigate(`/review/${encodeURIComponent(tour.title)}`);
   };
 
   const handleApplyPromo = () => {
