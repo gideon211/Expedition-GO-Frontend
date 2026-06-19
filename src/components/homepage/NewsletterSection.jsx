@@ -73,7 +73,7 @@ export function NewsletterSection() {
             </div>
             <Button
               type="submit"
-              className="h-11 w-full rounded-lg bg-[color:var(--brand-green)] px-6 text-center text-sm font-semibold !text-white transition-all duration-300 hover:bg-[color:var(--brand-green)]/90 hover:shadow-lg sm:h-12 lg:w-auto lg:shrink-0 lg:px-8"
+              className="h-11 w-full rounded-lg bg-[#39AD6C] px-6 text-center text-sm font-semibold !text-white transition-all duration-300 hover:bg-[#39AD6C]/90 hover:shadow-lg sm:h-12 lg:w-auto lg:shrink-0 lg:px-8"
               disabled={isSubscribed}
             >
               {isSubscribed ? t('newsletter.subscribed') : t('newsletter.signUp')}

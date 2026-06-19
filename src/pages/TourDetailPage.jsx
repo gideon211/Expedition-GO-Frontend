@@ -74,7 +74,6 @@ import {
 } from '@/lib/tourDetailAdapter';
 import { getTourByTitle, getAllTours } from '@/lib/tourData';
 import { mapSupplierProfile, normalizeWebsiteUrl } from '@/lib/supplierProfile';
-import { openTawkChat } from '@/lib/tawk';
 import { DotSpinner } from '@/components/ui/DotSpinner';
 import { toast } from 'sonner';
 import fallbackTourImage from '@/assets/images/hero_pic.jpg';
@@ -579,6 +578,7 @@ function TourDetailContent() {
   const headerRef = useRef(null);
   const pricingRef = useRef(null);
   const storedCleanup = useRef(null);
+  const similarCarouselRef = useRef(null);
   const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
   const [replyTargetQuestion, setReplyTargetQuestion] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
@@ -1440,8 +1440,7 @@ function TourDetailContent() {
       </p>
       <button
         type="button"
-        onClick={() => openTawkChat()}
-        className="mt-2.5 inline-flex w-full items-center gap-2 text-left text-sm font-normal text-[color:var(--brand-green)] underline underline-offset-[3px] decoration-[color:var(--brand-green)] transition hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] sm:w-auto"
+        className="mt-2.5 inline-flex w-full items-center gap-2 text-left text-sm font-normal text-[color:var(--brand-green)] underline underline-offset-[3px] decoration-[color:var(--brand-green)] transition hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] sm:w-auto cursor-default"
       >
         <MessageSquare className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
         {t('tourDetail.startChat')}
@@ -1551,9 +1550,16 @@ function TourDetailContent() {
                     <span>Accra, Ghana</span>
                   </span>
                 </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/review/${encodeURIComponent(selectedTourTitle)}`, { state: { returnTo: `/tour/${encodeURIComponent(selectedTourTitle)}#reviews`, tour: { title: selectedTourTitle, rating: selectedTourRatingNumber, reviews: selectedTourReviewsNumber, duration: selectedTourDuration, price: selectedTourPriceNumber, image: mergedImages[0] || tourData?.imageCover || fallbackTourImage, location: 'Accra, Ghana' } } })}
+                  className="shrink-0 rounded-full border border-[color:var(--brand-green)] bg-white px-5 py-2.5 text-sm font-black text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
+                >
+                  Write a review
+                </button>
               </div>
-            </div>
-          </header>
+            </header>
 
           <div className="mt-5 grid gap-6 xl:grid-cols-[minmax(0,1fr)_370px] xl:items-stretch">
             <section className="grid min-w-0 gap-2 lg:grid-cols-[130px_minmax(0,1fr)] 2xl:grid-cols-[150px_minmax(0,1fr)]">
@@ -1740,7 +1746,7 @@ function TourDetailContent() {
                   )}
 
                   {isTravelerPickerOpen && (
-                    <div className="absolute left-0 top-[calc(100%+0.75rem)] z-50 w-[min(360px,calc(100vw-2rem))] rounded-sm border border-slate-100 bg-white p-5 text-[color:var(--brand-green)] shadow-[0_18px_45px_rgba(15,23,42,0.18)] xl:right-0 xl:left-auto">
+                    <div className="absolute left-0 top-[calc(100%+0.75rem)] z-50 w-[min(360px,calc(100vw-2rem))] rounded-sm border border-slate-100 bg-white p-5 text-black shadow-[0_18px_45px_rgba(15,23,42,0.18)] xl:right-0 xl:left-auto">
                       <div className="space-y-6">
                         {travelerOptions.map((option) => {
                           const canDecrement =
@@ -1754,7 +1760,7 @@ function TourDetailContent() {
                               <div className="min-w-0">
                                 <p className="leading-tight">
                                   <span className="text-base font-black">{option.label}</span>{' '}
-                                  <span className="text-sm font-medium text-[color:var(--brand-green)]/70">
+                                    <span className="text-sm font-medium text-slate-500">
                                     {option.age}
                                   </span>
                                 </p>
@@ -1765,7 +1771,7 @@ function TourDetailContent() {
                                   type="button"
                                   onClick={option.decrement}
                                   disabled={!canDecrement}
-                                  className="grid size-9 place-items-center rounded-full bg-[color:var(--brand-green)] text-white transition hover:bg-[color:var(--brand-green)]/90 disabled:bg-[color:var(--brand-green)]/35"
+                                  className="grid size-9 place-items-center rounded-full bg-[#39AD6C] text-white transition hover:bg-[#39AD6C]/90 disabled:bg-[#39AD6C]/35"
                                   aria-label={`Remove one ${option.label}`}
                                 >
                                   <Minus className="size-5" />
@@ -1776,7 +1782,7 @@ function TourDetailContent() {
                                 <button
                                   type="button"
                                   onClick={option.increment}
-                                  className="grid size-9 place-items-center rounded-full bg-[color:var(--brand-green)] text-white transition hover:bg-[color:var(--brand-green)]/90"
+                                  className="grid size-9 place-items-center rounded-full bg-[#39AD6C] text-white transition hover:bg-[#39AD6C]/90"
                                   aria-label={`Add one ${option.label}`}
                                 >
                                   <Plus className="size-5" />
@@ -1790,7 +1796,7 @@ function TourDetailContent() {
                       <Button
                         type="button"
                         onClick={() => setIsTravelerPickerOpen(false)}
-                        className="mt-8 h-12 w-full rounded-full bg-[#1A4530] text-sm font-black !text-white hover:bg-[#163b29]"
+                        className="mt-8 h-12 w-full rounded-full bg-[#39AD6C] text-sm font-black !text-white hover:bg-[#39AD6C]/90"
                       >
                         Update search
                       </Button>
@@ -1877,7 +1883,7 @@ function TourDetailContent() {
                 <Button
                   onClick={handleCheckAvailability}
                   disabled={!bookingDateRange}
-                  className="mt-6 h-12 w-full rounded-full bg-[color:var(--brand-green)] text-base font-black !text-white hover:bg-[color:var(--brand-green)]/90 disabled:opacity-60"
+                  className="mt-6 h-12 w-full rounded-full bg-[#39AD6C] text-base font-black !text-white hover:bg-[#39AD6C]/90 disabled:opacity-60"
                 >
                   Check availability
                 </Button>
@@ -2183,7 +2189,7 @@ function TourDetailContent() {
                         <h2 className="text-2xl font-black text-slate-950">Reviews</h2>
                         <button
                           type="button"
-                          onClick={() => setIsWriteReviewOpen(true)}
+                          onClick={() => navigate(`/review/${encodeURIComponent(selectedTourTitle)}`, { state: { returnTo: `/tour/${encodeURIComponent(selectedTourTitle)}#reviews`, tour: { title: selectedTourTitle, rating: selectedTourRatingNumber, reviews: selectedTourReviewsNumber, duration: selectedTourDuration, price: selectedTourPriceNumber, image: mergedImages[0] || tourData?.imageCover || fallbackTourImage, location: 'Accra, Ghana' } } })}
                           className="rounded-full border border-[color:var(--brand-green)] bg-white px-5 py-2.5 text-sm font-black text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
                         >
                           Write a review
@@ -2404,10 +2410,31 @@ function TourDetailContent() {
           </div>
 
           <section className="px-5 py-8 sm:px-6">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="section-header-row relative z-30 isolate mb-3 flex items-center justify-between gap-4">
               <h2 className="text-xl font-bold text-slate-900">Similar Experiences</h2>
+              <div className="section-header-actions">
+                <div className="section-header-scroll-arrows">
+                  <button
+                    type="button"
+                    onClick={() => similarCarouselRef.current?.scrollBy(-1)}
+                    className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+                    aria-label="Scroll left"
+                  >
+                    <ChevronLeft className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => similarCarouselRef.current?.scrollBy(1)}
+                    className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+                    aria-label="Scroll right"
+                  >
+                    <ChevronRight className="size-4" />
+                  </button>
+                </div>
+              </div>
             </div>
             <SimilarExperiencesCarousel
+              ref={similarCarouselRef}
               excludeTitle={selectedTourTitle}
               onImageError={handleImageError}
             />
@@ -2484,7 +2511,7 @@ function TourDetailContent() {
                                 type="button"
                                 onClick={option.decrement}
                                 disabled={!canDecrement}
-                                className="grid size-9 place-items-center rounded-full bg-[color:var(--brand-green)] text-white transition hover:bg-[color:var(--brand-green)]/90 disabled:bg-[color:var(--brand-green)]/35"
+                                className="grid size-9 place-items-center rounded-full bg-[#39AD6C] text-white transition hover:bg-[#39AD6C]/90 disabled:bg-[#39AD6C]/35"
                                 aria-label={`Remove one ${option.label}`}
                               >
                                 <Minus className="size-5" />
@@ -2495,7 +2522,7 @@ function TourDetailContent() {
                               <button
                                 type="button"
                                 onClick={option.increment}
-                                className="grid size-9 place-items-center rounded-full bg-[color:var(--brand-green)] text-white transition hover:bg-[color:var(--brand-green)]/90"
+                                className="grid size-9 place-items-center rounded-full bg-[#39AD6C] text-white transition hover:bg-[#39AD6C]/90"
                                 aria-label={`Add one ${option.label}`}
                               >
                                 <Plus className="size-5" />
@@ -2509,7 +2536,7 @@ function TourDetailContent() {
                     <Button
                       type="button"
                       onClick={() => setIsTravelerPickerOpen(false)}
-                      className="mt-8 h-12 w-full rounded-full bg-[#1A4530] text-sm font-black !text-white hover:bg-[#163b29]"
+                      className="mt-8 h-12 w-full rounded-full bg-[#39AD6C] text-sm font-black !text-white hover:bg-[#39AD6C]/90"
                     >
                       Update search
                     </Button>

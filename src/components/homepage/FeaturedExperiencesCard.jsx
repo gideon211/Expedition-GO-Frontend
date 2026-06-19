@@ -155,18 +155,20 @@ export function FeaturedExperiencesCard({
       {/* ---- Card.Body ---- */}
       <CardContent className={`relative z-0 flex flex-1 flex-col gap-2 ${bodyPaddingClass}`}>
         {/* Card.Subtitle — Location (muted, above title) */}
-        {location && (
-          <div className="flex items-center gap-1">
-            <MapPin className="size-3 shrink-0 text-slate-400" />
-            <span className="truncate text-[13px] font-bold text-slate-500 sm:text-[15px] xl:text-[14px]">
-              {location}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-1 min-h-[20px]">
+          {location ? (
+            <>
+              <MapPin className="size-3 shrink-0 text-slate-400" />
+              <span className="truncate text-[13px] font-bold text-slate-500 sm:text-[15px] xl:text-[14px]">
+                {location}
+              </span>
+            </>
+          ) : null}
+        </div>
 
         {/* Card.Title */}
         <h5
-          className="line-clamp-2 min-h-[2.4em] text-[18px] leading-[24px] tracking-normal font-bold text-slate-900"
+          className="line-clamp-3 min-h-[4em] text-[18px] leading-[24px] tracking-normal font-bold text-slate-900"
         >
           {title}
         </h5>

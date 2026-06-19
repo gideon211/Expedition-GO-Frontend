@@ -156,12 +156,12 @@ export function AuthModal({ isOpen, onClose, title, description }) {
                 animate={contentAnimate}
                 className="mt-6 flex flex-row items-center justify-center gap-3"
               >
-                <Button asChild variant="default" size="lg" className="min-w-[148px] !text-white">
+                <Button asChild variant="default" size="lg" className="min-w-[148px] !text-white !bg-[#39AD6C] hover:!bg-[#39AD6C]/90">
                   <Link to="/signin" onClick={onClose}>
                     Sign In
                   </Link>
                 </Button>
-                <Button asChild variant="default" size="lg" className="min-w-[148px] !text-white">
+                <Button asChild variant="default" size="lg" className="min-w-[148px] !text-white !bg-[#39AD6C] hover:!bg-[#39AD6C]/90">
                   <Link to="/register" onClick={onClose}>
                     Create Account
                   </Link>

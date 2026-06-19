@@ -251,9 +251,6 @@ function HomePageContent() {
   const dealsScrollRef = useRef(null);
   const experiencesScrollRef = useRef(null);
   const continuePlanningScrollRef = useRef(null);
-  const continuePlanningLeftRef = useRef(null);
-  const continuePlanningRightRef = useRef(null);
-  const [continuePlanningOverflow, setContinuePlanningOverflow] = useState(false);
   const scrollDeals = useCallback((direction) => {
     const container = dealsScrollRef.current;
     if (!container) return;
@@ -276,52 +273,7 @@ function HomePageContent() {
     container.scrollTo({ left: target, behavior: 'smooth' });
   }, []);
 
-  const updateContinuePlanningEdges = useCallback(() => {
-    const el = continuePlanningScrollRef.current;
-    if (!el) return;
-    const { scrollLeft, scrollWidth, clientWidth } = el;
-    const max = scrollWidth - clientWidth;
-    const eps = 6;
-    const canLeft = scrollLeft > eps;
-    const canRight = max > eps && scrollLeft < max - eps;
-    if (continuePlanningLeftRef.current) {
-      continuePlanningLeftRef.current.style.opacity = canLeft ? '1' : '0';
-      continuePlanningLeftRef.current.style.pointerEvents = canLeft ? 'auto' : 'none';
-    }
-    if (continuePlanningRightRef.current) {
-      continuePlanningRightRef.current.style.opacity = canRight ? '1' : '0';
-      continuePlanningRightRef.current.style.pointerEvents = canRight ? 'auto' : 'none';
-    }
-  }, []);
 
-  useEffect(() => {
-    const container = continuePlanningScrollRef.current;
-    if (!container || recentlyViewed.length === 0) return;
-    const check = () => {
-      if (container) {
-        setContinuePlanningOverflow(container.scrollWidth > container.clientWidth + 2);
-      }
-    };
-    check();
-    const observer = new ResizeObserver(check);
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [recentlyViewed]);
-
-  useEffect(() => {
-    const el = continuePlanningScrollRef.current;
-    if (!el || recentlyViewed.length === 0) return;
-    requestAnimationFrame(updateContinuePlanningEdges);
-    el.addEventListener('scroll', updateContinuePlanningEdges, { passive: true });
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateContinuePlanningEdges) : null;
-    ro?.observe(el);
-    window.addEventListener('resize', updateContinuePlanningEdges);
-    return () => {
-      el.removeEventListener('scroll', updateContinuePlanningEdges);
-      ro?.disconnect();
-      window.removeEventListener('resize', updateContinuePlanningEdges);
-    };
-  }, [recentlyViewed.length, updateContinuePlanningEdges]);
 
   useEffect(() => {
     if (!showPostAuthSplash) {
@@ -478,44 +430,44 @@ function HomePageContent() {
                     <h2
                       className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
                       style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
-                      title="Continue planning our Trip"
+                      title="Continue Planning Your Trip"
                     >
-                      Continue planning our Trip
+                      Continue Planning Your Trip
                     </h2>
                   </div>
+                  <div className="section-header-actions">
+                    <div className="section-header-scroll-arrows">
+                      <button
+                        onClick={() => scrollContinuePlanning('left')}
+                        className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+                        aria-label="Scroll left"
+                      >
+                        <ChevronLeft className="size-4" />
+                      </button>
+                      <button
+                        onClick={() => scrollContinuePlanning('right')}
+                        className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+                        aria-label="Scroll right"
+                      >
+                        <ChevronRight className="size-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                  <div className="flex items-center gap-0 xl:gap-1">
-                    <button
-                      ref={continuePlanningLeftRef}
-                      onClick={() => scrollContinuePlanning('left')}
-                      className="z-10 hidden shrink-0 xl:grid size-11 place-items-center rounded-full bg-white text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-slate-100 transition-all duration-200 hover:shadow-[0_6px_20px_rgba(0,0,0,0.22)] hover:text-[color:var(--brand-green)] hover:border-slate-200 hover:scale-105 active:scale-95"
-                      aria-label="Scroll left"
-                    >
-                      <ChevronLeft className="size-5" strokeWidth={2.5} />
-                    </button>
-                  <div
-                    ref={continuePlanningScrollRef}
-                    className="flex-1 flex gap-4 overflow-x-auto xl:overflow-x-hidden overflow-y-hidden overscroll-x-contain scrollbar-hide items-stretch"
-                    style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+                <div
+                  ref={continuePlanningScrollRef}
+                  className="flex gap-4 overflow-x-auto xl:overflow-x-hidden overflow-y-hidden overscroll-x-contain scrollbar-hide items-stretch pb-1"
+                  style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
                 >
                   {recentlyViewed.map((item, index) => (
                     <div
                       key={`${item.title}-${index}`}
-                      className="w-[290px] md:w-[380px] shrink-0 h-full"
+                      className="w-[290px] md:w-[380px] shrink-0"
                       style={{ scrollSnapAlign: 'start' }}
                     >
                       <ContinuePlanningCard {...item} />
                     </div>
                   ))}
-                </div>
-                    <button
-                      ref={continuePlanningRightRef}
-                      onClick={() => scrollContinuePlanning('right')}
-                      className="z-10 hidden shrink-0 xl:grid size-11 place-items-center rounded-full bg-white text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-slate-100 transition-all duration-200 hover:shadow-[0_6px_20px_rgba(0,0,0,0.22)] hover:text-[color:var(--brand-green)] hover:border-slate-200 hover:scale-105 active:scale-95"
-                      aria-label="Scroll right"
-                    >
-                      <ChevronRight className="size-5" strokeWidth={2.5} />
-                    </button>
                 </div>
               </section>
             )}

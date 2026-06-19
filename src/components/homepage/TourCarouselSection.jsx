@@ -170,13 +170,13 @@ export function TourCarouselSection({
           gap={12}
           clipAt="xl"
           syncSectionClipWidth
-          trackClassName="gap-3 overflow-x-hidden pb-1 overscroll-x-contain scrollbar-hide"
+          trackClassName="gap-3 overflow-x-hidden pb-1 overscroll-x-contain scrollbar-hide items-stretch"
           style={{ scrollSnapType: 'x mandatory' }}
         >
           {infiniteItems.map((item, index) => (
             <div
               key={`${item.title}-${index}`}
-              className="w-[280px] shrink-0 h-full"
+               className="w-[280px] shrink-0 self-stretch"
               style={{ scrollSnapAlign: 'start' }}
             >
               <Card {...item} badge={badge} />
@@ -202,7 +202,7 @@ export function TourCarouselSection({
         cardWidth={280}
         gap={12}
         clipAt={false}
-        trackClassName="gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 scrollbar-hide"
+        trackClassName="gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 scrollbar-hide items-stretch"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollSnapType: 'x mandatory',
@@ -211,7 +211,7 @@ export function TourCarouselSection({
         {infiniteItems.map((item, index) => (
           <div
             key={`${item.title}-${index}`}
-            className="w-[280px] shrink-0 h-full"
+            className="w-[280px] shrink-0 self-stretch"
             style={{ scrollSnapAlign: 'start' }}
           >
             <Card {...item} />

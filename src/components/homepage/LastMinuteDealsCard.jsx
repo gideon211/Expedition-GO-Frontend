@@ -117,7 +117,7 @@ export function LastMinuteDealsCard({
       onPointerCancel={endPointerGesture}
       className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/50 bg-white font-card shadow-sm transition-shadow duration-300 hover:shadow-md contain-none touch-manipulation"
     >
-      <div className="relative z-0 h-36 sm:h-40 xl:h-44 shrink-0 overflow-hidden bg-slate-100">
+      <div className="relative z-0 h-32 sm:h-40 xl:h-44 shrink-0 overflow-hidden bg-slate-100">
         <img
           src={image}
           alt=""
@@ -129,7 +129,7 @@ export function LastMinuteDealsCard({
           {discount}
         </span>
       </div>
-      <CardContent className="relative z-0 flex flex-1 flex-col gap-2 p-3 pb-4 sm:p-4 sm:pb-5 xl:p-4 xl:pb-5">
+      <CardContent className="relative z-0 flex flex-1 flex-col gap-2 p-4 pb-6 min-h-[190px] sm:p-4 sm:pb-5 xl:p-4 xl:pb-5">
         {/* Location + Timer inline row */}
         <div className="flex items-center justify-between gap-2">
           {location ? (
@@ -158,7 +158,7 @@ export function LastMinuteDealsCard({
           </div>
         </div>
 
-        <p className="line-clamp-2 min-h-[2.4em] text-[18px] leading-[24px] tracking-normal font-bold text-slate-900">
+        <p className="line-clamp-3 min-h-[4em] text-[18px] leading-[24px] tracking-normal font-bold text-slate-900">
           {title}
         </p>
 

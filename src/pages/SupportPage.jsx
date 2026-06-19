@@ -7,7 +7,6 @@
 import { useTranslation } from 'react-i18next';
 import { Navbar } from '@/components/homepage/Navbar';
 import { Footer } from '@/components/homepage/Footer';
-import { openTawkChat } from '@/lib/tawk';
 
 export default function SupportPage() {
   const { t } = useTranslation();
@@ -101,8 +100,7 @@ export default function SupportPage() {
               <p className="text-slate-700 mb-4">{t('support.chatDesc')}</p>
               <button
                 type="button"
-                onClick={() => openTawkChat()}
-                className="w-full rounded-lg bg-[color:var(--brand-green)] px-4 py-2 font-semibold text-white transition hover:bg-[color:var(--brand-green)]/90"
+                className="w-full rounded-lg bg-[color:var(--brand-green)] px-4 py-2 font-semibold text-white transition hover:bg-[color:var(--brand-green)]/90 cursor-default"
               >
                 {t('support.chatButton')}
               </button>

@@ -5,9 +5,10 @@
  */
 import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const peopleReviews = [
+export const peopleReviews = [
   {
     title: 'Accra Guided City Tour Cultural and Historical Experience',
     image:
@@ -102,60 +103,70 @@ const peopleReviews = [
 
 export function ReviewsCarousel() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [activeReview, setActiveReview] = useState(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const checkScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
-  };
 
   const scroll = (direction) => {
     const el = scrollRef.current;
     if (!el) return;
-    const cardWidth = el.firstElementChild?.clientWidth || 320;
-    const gap = 16;
-    el.scrollBy({ left: direction * (cardWidth + gap), behavior: 'smooth' });
-    setTimeout(checkScroll, 300);
+    const card = el.firstElementChild;
+    if (!card) return;
+    const cardWidth = card.clientWidth;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 16;
+    const scrollAmount = cardWidth + gap;
+    const target = el.scrollLeft + direction * scrollAmount;
+    el.scrollTo({ left: Math.max(0, Math.min(target, el.scrollWidth - el.clientWidth)), behavior: 'smooth' });
   };
 
   return (
-    <section className="relative bg-white py-12 sm:py-16 lg:py-20">
-      <div className="mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-8">
-        <h5 className="mb-8 text-left text-xl font-semibold tracking-tight text-slate-900 sm:mb-10 sm:text-2xl">
-          {t('reviews.heading', 'Stories from TravioAfrica Experiences')}
-        </h5>
+    <section id="reviews-carousel" className="relative bg-white py-4 md:py-4 xl:py-5">
+        <div className="section-header-row relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
+          <div className="min-w-0 flex-1">
+            <h2
+              className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
+              style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+              title="What are Travellers Saying"
+            >
+              What are Travellers Saying
+            </h2>
+          </div>
+          <div className="section-header-actions">
+            <Link
+              to="/reviews/all"
+              state={{ returnTo: '/#reviews-carousel' }}
+              className="group relative inline-flex min-h-[44px] min-w-[44px] shrink-0 touch-manipulation items-center justify-center gap-1 whitespace-nowrap rounded-md py-2 pl-2 pr-1.5 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100/90 hover:text-slate-950 sm:text-[13px] lg:min-h-0 lg:min-w-0 lg:py-1.5 lg:px-2 lg:text-[14px]"
+            >
+              <span className="relative">
+                {t('sections.viewAll')}
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-[color:var(--brand-green)] transition-all duration-300 group-hover:w-full" />
+              </span>
+              <ChevronRight className="size-4 text-slate-500 transition group-hover:text-[color:var(--brand-green)]" />
+            </Link>
+            <div className="section-header-scroll-arrows">
+              <button
+                onClick={() => scroll(-1)}
+                className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+              <button
+                onClick={() => scroll(1)}
+                className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="size-4" />
+              </button>
+            </div>
+          </div>
+        </div>
 
-        {/* Desktop arrows */}
-        <div className="relative lg:px-12 xl:px-14">
-          <button
-            type="button"
-            onClick={() => scroll(-1)}
-            disabled={!canScrollLeft}
-            className="absolute left-2 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30 lg:grid lg:size-10"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => scroll(1)}
-            disabled={!canScrollRight}
-            className="absolute right-2 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30 lg:grid lg:size-10"
-          >
-            <ChevronRight className="size-5" />
-          </button>
-
-          {/* Scroll container */}
-          <div
-            ref={scrollRef}
-            onScroll={checkScroll}
-            className="flex gap-4 overflow-x-auto px-1 pb-4 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory sm:px-2 lg:gap-5 lg:overflow-hidden lg:px-0 lg:pb-0 lg:pt-0 lg:snap-none [&::-webkit-scrollbar]:hidden"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-4 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory overscroll-x-contain pr-1 sm:pr-2 lg:gap-5 lg:overflow-x-hidden lg:pb-0 lg:pt-0 lg:pr-0 lg:snap-none [&::-webkit-scrollbar]:hidden"
+          style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
+        >
             {peopleReviews.map((review, idx) => (
               <article
                 key={`${review.title}-${idx}`}
@@ -186,6 +197,7 @@ export function ReviewsCarousel() {
                 <div className="mt-4">
                   <button
                     type="button"
+                    onClick={() => navigate(`/review/${encodeURIComponent(review.title)}`, { state: { returnTo: '/#reviews-carousel', tour: { title: review.title, image: review.image, rating: 5, reviews: 120, duration: '4h', location: 'Ghana' } } })}
                     className="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
                   >
                     View Experience
@@ -194,8 +206,6 @@ export function ReviewsCarousel() {
               </article>
             ))}
           </div>
-        </div>
-      </div>
 
       {/* Review modal */}
       {activeReview && (

@@ -1230,35 +1230,8 @@ export default function BookingPage() {
 
   const handleNext = (nextStep) => setStep(nextStep);
 
-  const [isBooking, setIsBooking] = useState(false);
-
-  const handleBook = async () => {
-    if (isBooking) return;
-    setIsBooking(true);
-    try {
-      const travelers = {
-        adults: editableTour.adults || 1,
-        seniors: editableTour.seniors || 0,
-        youths: editableTour.youths || 0,
-        children: editableTour.children || 0,
-        infants: editableTour.infants || 0,
-      };
-
-      await createBooking({
-        tourId: editableTour.tourId,
-        selectedDate: editableTour.selectedDate,
-        travelers,
-        specialRequests: activity.pickupLocation || '',
-        paymentMethodId: payment.paymentMethod,
-      });
-
-      toast.success('Booking confirmed! Check your email for details.');
-      navigate('/');
-    } catch (err) {
-      toast.error(err?.message || 'Booking failed. Please try again.');
-    } finally {
-      setIsBooking(false);
-    }
+  const handleBook = () => {
+    navigate(`/review/${encodeURIComponent(tour.title)}`, { state: { tour: { title: tour.title, image: tour.image, rating: tour.rating, reviews: tour.reviews, duration: tour.duration, location: tour.location, price: tour.price } } });
   };
 
   const handleApplyPromo = useCallback(async () => {

@@ -78,7 +78,7 @@ export function ContinuePlanningCard({
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="group relative touch-manipulation overflow-hidden rounded-xl border border-slate-200 bg-white font-card shadow-md transition duration-200 hover:shadow-lg h-[400px] md:h-full"
+      className="group relative touch-manipulation overflow-hidden rounded-xl border border-slate-200 bg-white font-card shadow-sm transition duration-200 h-[400px] md:h-full"
     >
       {/* Mobile: vertical layout (image top, content below) */}
       <div className="flex flex-col md:hidden h-full">

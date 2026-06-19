@@ -14,6 +14,8 @@
  *   /signin, /register   Consumer auth
  *   /supplier/*          Supplier auth, payout, and external dashboard redirects
  *   /booking             Checkout flow (state passed via react-router location)
+ *   /review/:tourTitle   Review submission page for completed tour experiences
+ *   /reviews/all          All traveller reviews page with similar experiences
  *   /support, /settings  Account & help pages
  *
  * Note: `/supplier/dashboard` and `/supplier/earnings` redirect to the external
@@ -24,10 +26,10 @@
  */
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster } from 'sonner';
 
 import { AuthProvider } from '@/components/auth/AuthProvider';
-import { useAuth } from '@/components/auth/AuthProvider';
 import BrandLoader from '@/components/ui/BrandLoader';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { NavigationProvider } from '@/contexts/NavigationContext';
@@ -56,13 +58,11 @@ import SettingsPage from '@/pages/SettingsPage';
 import BookingPage from '@/pages/BookingPage';
 import { BlogPage } from '@/pages/BlogPage';
 import { ArticleDetailPage } from '@/pages/ArticleDetailPage';
+import ReviewExperiencePage from '@/pages/ReviewExperiencePage';
+import AllReviewsPage from '@/pages/AllReviewsPage';
 
 function AppContent() {
   useScrollRestoration();
-  const { loading } = useAuth();
-  const [splashShown, setSplashShown] = useState(() =>
-    sessionStorage.getItem('eg_splash_shown') === 'true'
-  );
 
   const routes = (
     <WishlistProvider>
@@ -92,25 +92,52 @@ function AppContent() {
           <Route path="/supplier/profile/:tourTitle" element={<SupplierPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
+          <Route path="/review/:tourTitle" element={<ReviewExperiencePage />} />
+          <Route path="/reviews/all" element={<AllReviewsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </CartProvider>
     </WishlistProvider>
   );
 
-  const showSplash = loading && !splashShown;
+  const [showSplash, setShowSplash] = useState(() => {
+    if (typeof sessionStorage === 'undefined') return false;
+    return sessionStorage.getItem('eg_splash_shown') !== 'true';
+  });
 
   useEffect(() => {
-    if (!showSplash && !splashShown) {
+    if (!showSplash) return;
+    const timer = setTimeout(() => {
       sessionStorage.setItem('eg_splash_shown', 'true');
-      setSplashShown(true);
-    }
-  }, [showSplash, splashShown]);
+      setShowSplash(false);
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [showSplash]);
 
   return (
     <>
-      {showSplash && <BrandLoader fullScreen initial />}
-      <div style={{ display: showSplash ? 'none' : undefined }}>{routes}</div>
+      <AnimatePresence>
+        {showSplash && (
+          <motion.div
+            key="splash"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="fixed inset-0 z-[200]"
+          >
+            <BrandLoader fullScreen />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: showSplash ? 0 : 1 }}
+        transition={{ duration: 0.35, delay: 0.1, ease: 'easeOut' }}
+        style={{ pointerEvents: showSplash ? 'none' : undefined }}
+      >
+        {routes}
+      </motion.div>
     </>
   );
 }

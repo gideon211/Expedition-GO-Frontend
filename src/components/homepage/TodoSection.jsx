@@ -163,7 +163,7 @@ export function TodoSection() {
               backgroundPosition: 'center',
             }}
           >
-            <span className="absolute left-4 top-4 rounded-full bg-[color:var(--brand-green)]/90 px-3 py-1 text-[12px] font-semibold text-white shadow-sm backdrop-blur-sm">
+            <span className="absolute left-4 top-4 rounded-full bg-[#39AD6C]/90 px-3 py-1 text-[12px] font-semibold text-white shadow-sm backdrop-blur-sm">
               {category.tag}
             </span>
             <span className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[12px] font-bold text-slate-700 shadow-sm backdrop-blur-sm">
