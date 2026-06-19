@@ -301,6 +301,7 @@ function CartPage() {
                             rating: item.rating || 4.8,
                             reviews: item.reviews || 120,
                             date: formatBookingDateLabel(item.selectedDate, item.selectedDateEnd),
+                            selectedDate: item.selectedDate,
                             time: item.time || '9:00 AM',
                             duration: item.duration,
                             travelers: `${totalTravelers} ${totalTravelers === 1 ? 'adult' : 'travelers'}`,
@@ -311,6 +312,15 @@ function CartPage() {
                             cancellation:
                               item.cancellation || 'Free cancellation up to 24 hours before',
                             language: item.language || 'English - Guide',
+                            tourId: item.tourId,
+                            adults: item.adults || 0,
+                            seniors: item.seniors || 0,
+                            youths: item.youths || 0,
+                            children: item.children || 0,
+                            infants: item.infants || 0,
+                            promoCode: item.promoCode || '',
+                            discount: item.discount || 0,
+                            finalPrice: item.finalPrice || item.price,
                           },
                         },
                       });

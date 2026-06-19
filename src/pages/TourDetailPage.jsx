@@ -27,7 +27,6 @@ import {
   Clock,
   Star,
   Heart,
-  Info,
   Check,
   X,
   Languages,
@@ -41,7 +40,6 @@ import {
   MessageSquare,
   Phone,
   Mail,
-  Building2,
   Globe,
   Tag,
 } from 'lucide-react';
@@ -65,6 +63,7 @@ import { useNavigationLoader } from '@/contexts/NavigationContext';
 import { useTourById } from '@/hooks/useTourById';
 import { useRecentlyViewedStorage } from '@/hooks/useRecentlyViewedStorage';
 import { fetchTourAvailability, fetchTourOffers } from '@/api/tours';
+import { validatePromoCode } from '@/api/bookings';
 import {
   adaptTourDetail,
   buildOverviewHighlights,
@@ -181,7 +180,7 @@ const isDayInInclusiveRange = (day, rangeStart, rangeEnd) => {
   return t >= lo && t <= hi;
 };
 
-const parseReviewCount = (value) => {
+const _parseReviewCount = (value) => {
   if (typeof value === 'number') return value;
   const parsed = Number.parseInt(String(value || '').replace(/[^\d]/g, ''), 10);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -444,7 +443,7 @@ function BookingCalendarPopover({
   );
 }
 
-const OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT = [
+const _OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT = [
   {
     title: 'Start Your Journey from Accra to Cape Coast:',
     body: 'Set out from Accra on a scenic drive of approximately three hours along the coast. Along the way you’ll pass villages, palm-lined roads, and ocean views as you head toward one of Ghana’s most historic regions.',
@@ -903,9 +902,13 @@ function TourDetailContent() {
     setPromoApplied(false);
     setPromoDiscount(0);
     try {
-      const data = await fetchTourOffers({ promoCode: code });
-      if (data?.offers?.length > 0) {
-        const offer = data.offers[0];
+      const data = await validatePromoCode({
+        promoCode: code,
+        tourId: id,
+        selectedDate: bookingDateRange?.start?.toISOString() || new Date().toISOString(),
+      });
+      if (data?.valid && data?.offer) {
+        const offer = data.offer;
         let amount = 0;
         if (offer.discountType === 'PERCENTAGE') {
           amount = totalPrice * (offer.discountPercentage / 100);
@@ -920,7 +923,7 @@ function TourDetailContent() {
     } catch {
       setPromoError('Could not validate promo code. Please try again.');
     }
-  }, [promoCode, totalPrice]);
+  }, [promoCode, totalPrice, id, bookingDateRange]);
 
   const confirmBooking = useCallback(() => {
     if (!availabilityDialog || !bookingDateRange?.start) return;
@@ -1972,7 +1975,7 @@ function TourDetailContent() {
                             {(fullDescriptionExpanded
                               ? OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT
                               : OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT.slice(0, 2)
-                            ).map((step, index) => (
+                            ).map((step) => (
                               <li key={step.title}>
                                 <div className="min-w-0 text-sm leading-7 text-slate-700">
                                   <p className="text-[1.3em] font-bold text-slate-900">

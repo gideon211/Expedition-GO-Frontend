@@ -12,7 +12,8 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchTourOffers } from '@/api/tours';
+import { toast } from 'sonner';
+import { validatePromoCode, createBooking } from '@/api/bookings';
 import {
   Check,
   ChevronRight,
@@ -25,7 +26,6 @@ import {
   MessageSquare,
   Globe,
   ShieldCheck,
-  Clock,
   CreditCard,
   Info,
   ArrowLeft,
@@ -225,7 +225,7 @@ function SelectInput({ value, onChange, options }) {
 /* ------------------------------------------------------------------ */
 /*  Sidebar                                                            */
 /* ------------------------------------------------------------------ */
-function BookingSidebar({ tour, promoCode, setPromoCode, onApplyPromo, onChangeClick }) {
+function BookingSidebar({ tour, promoCode, setPromoCode, onApplyPromo, onChangeClick, discount, finalPrice }) {
   const { t } = useTranslation();
   const stars = useMemo(() => {
     const full = Math.floor(tour.rating);
@@ -1183,7 +1183,16 @@ export default function BookingPage() {
     date: tour.date,
     time: tour.time,
     travelers: tour.travelers,
-    price: tour.price,
+    price: tour.finalPrice || tour.price,
+    tourId: tour.tourId || null,
+    selectedDate: tour.selectedDate || null,
+    adults: tour.adults || 0,
+    seniors: tour.seniors || 0,
+    youths: tour.youths || 0,
+    children: tour.children || 0,
+    infants: tour.infants || 0,
+    promoCode: tour.promoCode || '',
+    discount: tour.discount || 0,
   });
 
   /* Validation helpers */
@@ -1221,17 +1230,48 @@ export default function BookingPage() {
 
   const handleNext = (nextStep) => setStep(nextStep);
 
-  const handleBook = () => {
-    // Booking action placeholder — no-op for now
+  const [isBooking, setIsBooking] = useState(false);
+
+  const handleBook = async () => {
+    if (isBooking) return;
+    setIsBooking(true);
+    try {
+      const travelers = {
+        adults: editableTour.adults || 1,
+        seniors: editableTour.seniors || 0,
+        youths: editableTour.youths || 0,
+        children: editableTour.children || 0,
+        infants: editableTour.infants || 0,
+      };
+
+      await createBooking({
+        tourId: editableTour.tourId,
+        selectedDate: editableTour.selectedDate,
+        travelers,
+        specialRequests: activity.pickupLocation || '',
+        paymentMethodId: payment.paymentMethod,
+      });
+
+      toast.success('Booking confirmed! Check your email for details.');
+      navigate('/');
+    } catch (err) {
+      toast.error(err?.message || 'Booking failed. Please try again.');
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   const handleApplyPromo = useCallback(async () => {
     const code = promoCode.trim();
     if (!code) return;
     try {
-      const data = await fetchTourOffers({ promoCode: code });
-      if (data?.offers?.length > 0) {
-        const offer = data.offers[0];
+      const data = await validatePromoCode({
+        promoCode: code,
+        tourId: editableTour.tourId,
+        selectedDate: editableTour.selectedDate,
+      });
+      if (data?.valid && data?.offer) {
+        const offer = data.offer;
         let amount = 0;
         if (offer.discountType === 'PERCENTAGE') {
           amount = editableTour.price * (offer.discountPercentage / 100);
@@ -1245,7 +1285,7 @@ export default function BookingPage() {
     } catch {
       setDiscount(0);
     }
-  }, [promoCode, editableTour.price]);
+  }, [promoCode, editableTour.price, editableTour.tourId, editableTour.selectedDate]);
 
   const finalPrice = editableTour.price - discount;
   const activeTour = { ...tour, ...editableTour, price: finalPrice };
@@ -1345,6 +1385,8 @@ export default function BookingPage() {
                   setPromoCode={setPromoCode}
                   onApplyPromo={handleApplyPromo}
                   onChangeClick={() => setIsChangeModalOpen(true)}
+                  discount={discount}
+                  finalPrice={finalPrice}
                 />
               </div>
             </aside>
