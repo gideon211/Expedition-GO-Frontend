@@ -45,7 +45,8 @@ function SupplierRegisterPage() {
           navigate(SUPPLIER_PAYOUT_PATH, { replace: true });
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err?.status === 401) return;
         // No application yet — show the registration form
       })
       .finally(() => {

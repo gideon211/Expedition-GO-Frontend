@@ -153,6 +153,14 @@ export async function apiRequest(path, options = {}) {
           body: payload,
           signal,
         });
+        if (response.status === 401) {
+          window.location.href = '/signin';
+          throw new ApiError({
+            message: 'Session expired. Please sign in again.',
+            status: 401,
+            url,
+          });
+        }
       } else {
         window.location.href = '/signin';
         throw new ApiError({

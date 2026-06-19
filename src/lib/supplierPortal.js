@@ -145,6 +145,9 @@ export async function fetchSupplierAccessSnapshot() {
 
   const statusData = statusResult.status === 'fulfilled' ? statusResult.value : null;
   const statusError = statusResult.status === 'rejected' ? statusResult.reason : null;
+
+  if (statusError?.status === 401) throw statusError;
+
   const statusNotFound = isSupplierApplicationNotFoundError(statusError);
 
   const parsed = parseSupplierStatusResponse(statusData);
