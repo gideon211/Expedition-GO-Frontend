@@ -125,7 +125,7 @@ export function ReviewsCarousel() {
           <div className="min-w-0 flex-1">
             <h2
               className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-              style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+              style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
               title="What are Travellers Saying"
             >
               What are Travellers Saying

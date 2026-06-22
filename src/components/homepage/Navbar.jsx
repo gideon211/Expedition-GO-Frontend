@@ -33,6 +33,7 @@ import { useSearchAutocomplete } from '@/hooks/useSearchAutocomplete';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { Input } from '@/components/ui/input';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
+import { useSupplierNav } from '@/hooks/useSupplierNav';
 
 export function Navbar({
   sharedDateRange,
@@ -63,6 +64,7 @@ export function Navbar({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  const supplierNav = useSupplierNav(user);
   const { navigateWithLoader } = useNavigationLoader();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isNavigatingToAuth, setIsNavigatingToAuth] = useState(false);
@@ -300,11 +302,17 @@ export function Navbar({
     const heroSearch = document.getElementById('hero-search-bar');
     if (!heroSearch) return;
 
+    // Defensive reset on mount so stale body classes never survive a remount
+    document.body.classList.remove('hero--search-sticky');
+    setSearchBarSticky(false);
+
     const header = document.querySelector('header');
     const navbarHeight = header ? header.offsetHeight : 88;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
+        // Skip callbacks where the element hasn't been laid out yet
+        if (entry.boundingClientRect.height === 0) return;
         const topOfBar = entry.boundingClientRect.top;
         const sticky = topOfBar <= navbarHeight;
         document.body.classList.toggle('hero--search-sticky', sticky);
@@ -328,6 +336,7 @@ export function Navbar({
     return () => {
       observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
+      document.body.classList.remove('hero--search-sticky');
     };
   }, [location.pathname, forceShowCompactSearch]);
 
@@ -444,12 +453,14 @@ export function Navbar({
             </span>
           </Link>
           <Link
-            to="/supplier/portal"
+            to={supplierNav.portalReady ? supplierNav.href : '/supplier/portal'}
             className="group font-semibold flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 lg:p-2 xl:p-0"
           >
             <Store className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
             <span className="hidden xl:block text-xs relative font-semibold whitespace-nowrap">
-              {t('nav.listAnExperience', 'List an experience')}
+              {supplierNav.portalReady
+                ? t('nav.dashboard', 'Dashboard')
+                : t('nav.listAnExperience', 'List an experience')}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
           </Link>
@@ -481,7 +492,7 @@ export function Navbar({
                       <img
                         src={user.photoURL}
                         alt={user.name}
-                        onLoad={() => setPhotoLoaded(true)}
+                          onLoad={() => setPhotoLoaded(true)}
                         className={`absolute inset-0 size-12 rounded-full border-2 border-slate-200 object-cover transition hover:border-[color:var(--brand-green)] ${photoLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
                       />
                     )}
@@ -859,12 +870,16 @@ export function Navbar({
                 <span className="text-sm">{t('nav.support')}</span>
               </Link>
               <Link
-                to="/supplier/portal"
+                to={supplierNav.portalReady ? supplierNav.href : '/supplier/portal'}
                 onClick={closeMobileMenu}
                 className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950"
               >
                 <Store className="size-4" />
-                <span className="text-sm">{t('nav.listAnExperience', 'List an experience')}</span>
+                <span className="text-sm">
+                  {supplierNav.portalReady
+                    ? t('nav.dashboard', 'Dashboard')
+                    : t('nav.listAnExperience', 'List an experience')}
+                </span>
               </Link>
               {!loading && user && (
                 <>

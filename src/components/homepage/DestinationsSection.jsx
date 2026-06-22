@@ -219,7 +219,7 @@ export function DestinationsSection({ apiDestinations = [] }) {
       <div className="section-header-row mb-[0.6375rem] md:mb-2.5 xl:mb-3 flex items-center justify-between gap-3">
         <h2
           className="whitespace-nowrap font-bold leading-[1.15] tracking-tight text-slate-900"
-          style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+          style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
         >
           {t('sections.destinations')}
         </h2>

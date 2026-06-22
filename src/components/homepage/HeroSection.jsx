@@ -115,7 +115,7 @@ export function HeroSection({
     <>
       <section
         id="home"
-        className="relative z-10 min-h-[50vh] sm:min-h-[52vh] md:min-h-[50vh] lg:min-h-[52vh] xl:min-h-[60vh] flex items-start pt-[10vh] overflow-visible bg-(--brand-green) text-white pb-4"
+        className="relative z-10 min-h-[50vh] sm:min-h-[52vh] md:min-h-[50vh] lg:min-h-[52vh] xl:min-h-[60vh] flex items-center overflow-visible bg-(--brand-green) text-white pb-4"
       >
         <HeroImageCarousel />
 

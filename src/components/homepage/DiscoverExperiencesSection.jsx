@@ -19,11 +19,11 @@ const TABS = [
 ];
 
 const TAB_DATA = {
-  more: pickupTours.slice(0, 5),
-  attractions: recommendedTours.slice(0, 5),
-  nearby: topRatedTours.slice(0, 5),
-  best: leisureTours.slice(0, 5),
-  trending: lastMinuteDeals.slice(0, 5),
+  more: pickupTours.slice(0, 10),
+  attractions: recommendedTours.slice(0, 10),
+  nearby: topRatedTours.slice(0, 10),
+  best: leisureTours.slice(0, 10),
+  trending: lastMinuteDeals.slice(0, 10),
 };
 
 export function DiscoverExperiencesSection() {
@@ -35,12 +35,12 @@ export function DiscoverExperiencesSection() {
   const scroll = (direction) => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = 300;
+    const amount = 340;
     el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
   };
 
   return (
-    <section className="pt-3 pb-6 sm:pt-5 sm:pb-10">
+    <section className="py-6 sm:py-10 lg:py-12">
       <div className="section-header-row relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
         <div className="min-w-0 flex-1">
           <h4 className="truncate relative inline-block text-lg font-bold tracking-tight text-slate-900 sm:text-2xl">
@@ -99,6 +99,7 @@ export function DiscoverExperiencesSection() {
       </div>
 
       <AnimatePresence mode="wait">
+        <div className="relative">
         <motion.div
           key={activeTab}
           ref={scrollRef}
@@ -106,7 +107,7 @@ export function DiscoverExperiencesSection() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="flex gap-3 overflow-x-auto xl:overflow-x-hidden pb-3 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:gap-5"
+          className="flex gap-3 overflow-x-auto xl:overflow-x-hidden pb-3 pr-3 snap-x snap-mandatory scroll-px-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:gap-5 sm:pr-5 sm:scroll-px-5"
         >
           {items.map((tour, i) => (
             <motion.div
@@ -114,12 +115,14 @@ export function DiscoverExperiencesSection() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: i * 0.05, ease: 'easeOut' }}
-              className="w-[240px] shrink-0 snap-start lg:w-[260px]"
+              className="w-[280px] shrink-0 snap-start lg:w-[340px]"
             >
               <DiscoverExperiencesCard {...tour} />
             </motion.div>
           ))}
         </motion.div>
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent" aria-hidden="true" />
+        </div>
       </AnimatePresence>
 
       <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-4 sm:mt-8 sm:flex-row sm:justify-center sm:gap-5 sm:px-6 sm:py-5">

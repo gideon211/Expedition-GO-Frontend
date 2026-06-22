@@ -18,9 +18,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 import { Navbar } from '@/components/homepage/Navbar';
 import { Footer } from '@/components/homepage/Footer';
+import { EmptyCartIllustration } from '@/components/homepage/EmptyCartIllustration';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -48,6 +50,26 @@ const formatRemainingTime = (ms) => {
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
   const seconds = String(totalSeconds % 60).padStart(2, '0');
   return `${minutes}:${seconds}`;
+};
+
+const emptyContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.14,
+      delayChildren: 0.35,
+    },
+  },
+};
+
+const emptyItem = {
+  hidden: { opacity: 0, y: 22 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 110, damping: 14 },
+  },
 };
 
 function CartPage() {
@@ -134,24 +156,37 @@ function CartPage() {
         </div>
 
         {cart.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm sm:py-24">
-            <div className="mb-6 grid size-20 place-items-center rounded-full bg-[color:var(--brand-mist)] sm:size-24">
-              <ShoppingCart className="size-10 text-[color:var(--brand-green)] sm:size-12" />
+          <motion.div
+            className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm sm:py-24"
+            variants={emptyContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            <div className="mb-6 w-full max-w-[320px] sm:max-w-[400px]">
+              <EmptyCartIllustration className="w-full" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-slate-900 sm:text-2xl">
+            <motion.h2
+              className="mb-2 text-xl font-bold text-slate-900 sm:text-2xl"
+              variants={emptyItem}
+            >
               Your cart is empty
-            </h2>
-            <p className="mb-8 max-w-xs text-base leading-relaxed text-slate-500">
+            </motion.h2>
+            <motion.p
+              className="mb-8 max-w-xs text-base leading-relaxed text-slate-500"
+              variants={emptyItem}
+            >
               Activities you add will appear here. You have up to 25 minutes to complete your
               booking.
-            </p>
-            <Link
-              to="/tours"
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--brand-green)] px-8 py-3 text-base font-semibold !text-white shadow-lg shadow-[color:var(--brand-green)]/25 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30 sm:text-sm"
-            >
-              Explore activities
-            </Link>
-          </div>
+            </motion.p>
+            <motion.div variants={emptyItem}>
+              <Link
+                to="/tours"
+                className="inline-flex items-center justify-center rounded-full bg-[color:var(--brand-green)] px-8 py-3 text-base font-semibold !text-white shadow-lg shadow-[color:var(--brand-green)]/25 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30 hover:scale-[1.03] active:scale-[0.98] sm:text-sm"
+              >
+                Explore activities
+              </Link>
+            </motion.div>
+          </motion.div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
             {/* Items */}

@@ -10,6 +10,7 @@ import { useRef } from 'react';
 
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { slugify } from '@/lib/slugify';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 
 /**
@@ -59,7 +60,7 @@ export function NewExperiencesCard({
   const handleHeartClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist({ title, duration, price, rating, reviews, image, discount });
+    toggleWishlist({ title, slug, duration, price, rating, reviews, image, discount });
   };
 
   const handlePointerDown = (e) => {
@@ -103,7 +104,7 @@ export function NewExperiencesCard({
     navigateWithLoader(detailTo);
   };
 
-  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
+  const detailTo = `/tour/${slug || slugify(title)}`;
 
   return (
     <div

@@ -73,6 +73,7 @@ import {
   formatItineraryMeta,
 } from '@/lib/tourDetailAdapter';
 import { getTourByTitle, getAllTours } from '@/lib/tourData';
+import { slugify, titleMatchesSlug } from '@/lib/slugify';
 import { mapSupplierProfile, normalizeWebsiteUrl } from '@/lib/supplierProfile';
 import { DotSpinner } from '@/components/ui/DotSpinner';
 import { toast } from 'sonner';
@@ -489,9 +490,12 @@ function TourDetailContent() {
   }, [id]);
 
   const fallbackTour = useMemo(() => {
-    if (!error || rawTour) return null;
     const decoded = safeDecodeRouteParam(id);
-    const staticTour = getTourByTitle(decoded);
+    let staticTour = getTourByTitle(decoded);
+    if (!staticTour) {
+      const allTours = getAllTours();
+      staticTour = allTours.find((tour) => titleMatchesSlug(tour.title, decoded));
+    }
     if (!staticTour) return null;
     const durationMinutes = (() => {
       if (!staticTour.duration) return undefined;
@@ -528,6 +532,15 @@ function TourDetailContent() {
     };
   }, [rawTour, error, id]);
   const effectiveRawTour = rawTour || fallbackTour;
+  useEffect(() => {
+    const tourTitle = effectiveRawTour?.title;
+    if (tourTitle) {
+      document.title = `TravioAfrica | ${tourTitle}`;
+    }
+    return () => {
+      document.title = 'TravioAfrica';
+    };
+  }, [effectiveRawTour?.title]);
   const tourData = useMemo(() => adaptTourDetail(effectiveRawTour), [effectiveRawTour]);
   const OVERVIEW_HIGHLIGHTS_DEFAULT = useMemo(() => buildOverviewHighlights(rawTour), [rawTour]);
   const OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT = useMemo(
@@ -553,8 +566,8 @@ function TourDetailContent() {
   const selectedTourDuration = tourData?.duration || 'Flexible';
   const selectedTourPriceNumber = tourData?.price || 0;
   const selectedTourTitle = useMemo(
-    () => rawTour?.title || rawTour?.name || rawTour?.metaTitle || safeDecodeRouteParam(id) || id,
-    [id, rawTour, tourData]
+    () => effectiveRawTour?.title || rawTour?.name || rawTour?.metaTitle || safeDecodeRouteParam(id) || id,
+    [id, effectiveRawTour]
   );
   const selectedTourRatingNumber = Number(tourData?.ratingsAverage) || 4.8;
   const selectedTourReviewsNumber = tourData?.ratingsQuantity ?? 0;
@@ -750,6 +763,7 @@ function TourDetailContent() {
   const handleWishlistToggle = () => {
     toggleWishlist({
       title: selectedTourTitle,
+      slug: effectiveRawTour?.slug || id,
       duration: selectedTourDuration,
       price: selectedTourPriceNumber,
       rating: String(selectedTourRatingNumber),

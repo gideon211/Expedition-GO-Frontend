@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { slugify } from '@/lib/slugify';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 
@@ -30,12 +31,12 @@ function AttractionCard({ title, slug, price, image, location }) {
   const isFavorited = isInWishlist(title);
   const convertedPrice = convertPrice(price);
 
-  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
+  const detailTo = `/tour/${slug || slugify(title)}`;
 
   const handleHeartClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist({ title, price, image });
+    toggleWishlist({ title, slug, price, image });
   };
 
   const handleDetailLinkClick = (e) => {
@@ -157,7 +158,7 @@ export function TopAttractionsNearby() {
         <div className="min-w-0 flex-1">
           <h2
             className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-            style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+            style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
             title="Top Attractions Nearby"
           >
             Top Attractions Nearby
