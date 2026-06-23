@@ -67,7 +67,7 @@ function LoadingCarouselSection({ title }) {
         <div className="min-w-0 flex-1">
           <h2
             className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-            style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+            style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
             title={title}
           >
             {title}
@@ -429,7 +429,7 @@ function HomePageContent() {
                   <div className="min-w-0 flex-1">
                     <h2
                       className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-                      style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+                      style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
                       title="Continue Planning Your Trip"
                     >
                       Continue Planning Your Trip
@@ -521,7 +521,7 @@ function HomePageContent() {
                 <div className="min-w-0 flex-1">
                   <h2
                     className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-                    style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+                    style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
                     title={t('sections.lastMinuteDeals')}
                   >
                     {t('sections.lastMinuteDeals')}
@@ -588,7 +588,7 @@ function HomePageContent() {
                 <div className="min-w-0 flex-1">
                   <h2
                     className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-                    style={{ fontSize: 'clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem)' }}
+                    style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
                     title={t('sections.newExperiences')}
                   >
                     {t('sections.newExperiences')}
@@ -664,7 +664,7 @@ function HomePageContent() {
         </div>
 
         {/* Features Section - Full Width before footer */}
-        <div className="mx-auto mb-8 max-w-[1520px] px-4 sm:px-6">
+        <div className="mx-auto mb-14 max-w-[1520px] px-4 sm:px-6">
           <FeaturesSection />
         </div>
 

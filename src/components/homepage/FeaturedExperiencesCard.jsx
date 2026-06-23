@@ -14,6 +14,7 @@ import { useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { slugify } from '@/lib/slugify';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 
 export function FeaturedExperiencesCard({
@@ -52,7 +53,7 @@ export function FeaturedExperiencesCard({
   const handleHeartClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist({ title, duration, price, rating, reviews, image, discount });
+    toggleWishlist({ title, slug, duration, price, rating, reviews, image, discount });
   };
 
   const resetPanTracking = () => {
@@ -104,11 +105,12 @@ export function FeaturedExperiencesCard({
       return;
     }
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    if (e.currentTarget.target === '_blank') return;
     e.preventDefault();
     navigateWithLoader(detailTo);
   };
 
-  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
+  const detailTo = `/tour/${slug || slugify(title)}`;
 
   const imageHeightClass =
     variant === 'allTours'
@@ -243,6 +245,8 @@ export function FeaturedExperiencesCard({
       {/* ---- Whole-card clickable overlay ---- */}
       <Link
         to={detailTo}
+        target="_blank"
+        rel="noopener noreferrer"
         onClick={handleDetailLinkClick}
         aria-label={`${t('common.viewDetails', { defaultValue: 'View details' })}: ${title}`}
         className="absolute inset-0 z-[5] rounded-xl outline-none ring-inset xl:focus-visible:ring-2 xl:focus-visible:ring-slate-400"

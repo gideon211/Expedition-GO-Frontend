@@ -91,7 +91,7 @@ export function useHomePageData({
           title: city,
           region: countries[i % countries.length] || '',
           tours: '',
-          image: '',
+          image: null,
         }));
       }
 

@@ -54,28 +54,48 @@ export function CartProvider({ children }) {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const addToCart = useCallback((item) => {
-    if (!item?.selectedDate) {
-      toast.error('Please select a date first.');
-      return false;
-    }
+  const hasItem = useCallback(
+    (item) => {
+      const key = getItemKey(item);
+      return cart.find((existing) => existing.key === key) || null;
+    },
+    [cart]
+  );
 
-    const now = Date.now();
-    const nextItem = {
-      ...item,
-      key: getItemKey(item),
-      addedAt: now,
-      expiresAt: now + CART_ITEM_TTL_MS,
-    };
+  const addToCart = useCallback(
+    (item, { skipDuplicateCheck = false } = {}) => {
+      if (!item?.selectedDate) {
+        toast.error('Please select a date first.');
+        return { added: false, isDuplicate: false, existingItem: null };
+      }
 
-    setCart((prev) => {
-      const withoutDuplicate = prev.filter((existing) => existing.key !== nextItem.key);
-      return [...withoutDuplicate, nextItem];
-    });
+      const key = getItemKey(item);
 
-    toast.success('Tour added to cart');
-    return true;
-  }, []);
+      if (!skipDuplicateCheck) {
+        const existing = cart.find((c) => c.key === key);
+        if (existing) {
+          return { added: false, isDuplicate: true, existingItem: existing };
+        }
+      }
+
+      const now = Date.now();
+      const nextItem = {
+        ...item,
+        key,
+        addedAt: now,
+        expiresAt: now + CART_ITEM_TTL_MS,
+      };
+
+      setCart((prev) => {
+        const withoutDuplicate = prev.filter((existing) => existing.key !== nextItem.key);
+        return [...withoutDuplicate, nextItem];
+      });
+
+      toast.success('Tour added to cart');
+      return { added: true, isDuplicate: false, existingItem: null };
+    },
+    [cart]
+  );
 
   const removeFromCart = useCallback((itemKey) => {
     setCart((prev) => prev.filter((item) => item.key !== itemKey));
@@ -88,12 +108,13 @@ export function CartProvider({ children }) {
   const value = useMemo(
     () => ({
       cart,
+      hasItem,
       addToCart,
       removeFromCart,
       clearCart,
       cartTtlMs: CART_ITEM_TTL_MS,
     }),
-    [cart, addToCart, removeFromCart, clearCart]
+    [cart, hasItem, addToCart, removeFromCart, clearCart]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

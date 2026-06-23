@@ -617,9 +617,8 @@ button:disabled,
   transform: translateY(-6px) scale(0.96);
   pointer-events: none;
   transition:
-    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
+    opacity 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body.hero--search-sticky .navbar-compact-search {
@@ -639,8 +638,8 @@ body.hero--search-sticky .navbar-compact-search {
 .navbar-brand {
   max-width: 400px;
   transition:
-    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (max-width: 1023px) {
@@ -657,8 +656,8 @@ body.hero--search-sticky .navbar-compact-search {
 .navbar-hamburger {
   max-width: 3rem;
   transition:
-    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (max-width: 1023px) {
@@ -674,8 +673,8 @@ body.hero--search-sticky .navbar-compact-search {
 /* ── Hero search wrap — crossfades out as navbar search fades in ── */
 .hero-search-wrap {
   transition:
-    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body.hero--search-sticky .hero-search-wrap {

@@ -22,6 +22,7 @@ import {
   Search,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -33,6 +34,7 @@ import { useSearchAutocomplete } from '@/hooks/useSearchAutocomplete';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { Input } from '@/components/ui/input';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
+import { useSupplierNav } from '@/hooks/useSupplierNav';
 
 export function Navbar({
   sharedDateRange,
@@ -63,6 +65,7 @@ export function Navbar({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  const supplierNav = useSupplierNav(user);
   const { navigateWithLoader } = useNavigationLoader();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isNavigatingToAuth, setIsNavigatingToAuth] = useState(false);
@@ -283,7 +286,7 @@ export function Navbar({
     ? (externalSearchQuery ?? '')
     : compactSearchQuery;
   const _compactSearchMaxWidthClass = forceShowCompactSearch ? 'max-w-[460px]' : 'max-w-[360px]';
-
+ 
   // Morph hero search bar into navbar on scroll
   useEffect(() => {
     if (forceShowCompactSearch) {
@@ -300,27 +303,43 @@ export function Navbar({
     const heroSearch = document.getElementById('hero-search-bar');
     if (!heroSearch) return;
 
+    // Defensive reset on mount so stale body classes never survive a remount
+    document.body.classList.remove('hero--search-sticky');
+    setSearchBarSticky(false);
+
     const header = document.querySelector('header');
     const navbarHeight = header ? header.offsetHeight : 88;
 
+    let lastSticky = false;
+
+    const applySticky = (sticky) => {
+      if (sticky === lastSticky) return;
+      lastSticky = sticky;
+      document.body.classList.toggle('hero--search-sticky', sticky);
+      setSearchBarSticky(sticky);
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (entry.boundingClientRect.height === 0) return;
+
         const topOfBar = entry.boundingClientRect.top;
-        const sticky = topOfBar <= navbarHeight;
-        document.body.classList.toggle('hero--search-sticky', sticky);
-        setSearchBarSticky(sticky);
+        const sticky = topOfBar <= navbarHeight + 4;
+        applySticky(sticky);
       },
-      { threshold: [0, 1] }
+      {
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+      }
     );
 
     observer.observe(heroSearch);
 
-    // Safety net for mobile: on fast scroll-to-top gestures, IntersectionObserver
-    // can lag. Force-remove sticky immediately when we are at the very top.
+    // Instant snap on fast scroll-to-top: the observer is async and can lag
+    // by several frames (or seconds under main-thread pressure). A scroll
+    // listener catches the top-of-page case synchronously.
     const handleScroll = () => {
-      if (window.scrollY < 10 && document.body.classList.contains('hero--search-sticky')) {
-        document.body.classList.remove('hero--search-sticky');
-        setSearchBarSticky(false);
+      if (window.scrollY < 10) {
+        applySticky(false);
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -328,6 +347,7 @@ export function Navbar({
     return () => {
       observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
+      document.body.classList.remove('hero--search-sticky');
     };
   }, [location.pathname, forceShowCompactSearch]);
 
@@ -410,7 +430,7 @@ export function Navbar({
                 />
                 </div>
               </div>
-              <div className="pr-1 py-1 sm:pr-1.5 sm:py-1.5">
+              <div className={`pr-1 py-1 sm:pr-1.5 sm:py-1.5${forceShowCompactSearch ? ' hidden sm:block' : ''}`}>
                 <button
                   type="submit"
                   className="rounded-full bg-[#39AD6C] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-[#2d8a56] sm:px-6 sm:py-2.5 sm:text-[14px]"
@@ -420,15 +440,18 @@ export function Navbar({
               </div>
             </form>
 
-            <div ref={navAutocompleteRef}>
-              <SearchAutocomplete
-                results={navSearchResults}
-                onSelect={handleNavAutocompleteSelect}
-                isVisible={showNavAutocomplete}
-                searchQuery={activeSearchQuery}
-                className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[360px] sm:w-[420px] lg:w-[640px] max-h-[400px] overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg z-50"
-              />
-            </div>
+            {showNavAutocomplete &&
+              createPortal(
+                <SearchAutocomplete
+                  ref={navAutocompleteRef}
+                  results={navSearchResults}
+                  onSelect={handleNavAutocompleteSelect}
+                  isVisible={showNavAutocomplete}
+                  searchQuery={activeSearchQuery}
+                  className="fixed left-1/2 -translate-x-1/2 top-[var(--navbar-logo-height)] mt-1 w-[calc(100vw-2rem)] max-w-[640px] max-h-[400px] overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg z-50"
+                />,
+                document.body
+              )}
           </div>
         )}
 
@@ -444,12 +467,14 @@ export function Navbar({
             </span>
           </Link>
           <Link
-            to="/supplier/portal"
+            to={supplierNav.portalReady ? supplierNav.href : '/supplier/portal'}
             className="group font-semibold flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 lg:p-2 xl:p-0"
           >
             <Store className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
             <span className="hidden xl:block text-xs relative font-semibold whitespace-nowrap">
-              {t('nav.listAnExperience', 'List an experience')}
+              {supplierNav.portalReady
+                ? t('nav.dashboard', 'Dashboard')
+                : t('nav.listAnExperience', 'List an experience')}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
           </Link>
@@ -481,7 +506,7 @@ export function Navbar({
                       <img
                         src={user.photoURL}
                         alt={user.name}
-                        onLoad={() => setPhotoLoaded(true)}
+                          onLoad={() => setPhotoLoaded(true)}
                         className={`absolute inset-0 size-12 rounded-full border-2 border-slate-200 object-cover transition hover:border-[color:var(--brand-green)] ${photoLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
                       />
                     )}
@@ -522,11 +547,8 @@ export function Navbar({
                           <span>{t('nav.cart')}</span>
                         </Link>
                         <Link
-                          to="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsUserMenuOpen(false);
-                          }}
+                          to="/bookings"
+                          onClick={() => setIsUserMenuOpen(false)}
                           className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                         >
                           <svg
@@ -612,11 +634,8 @@ export function Navbar({
                           <span>{t('nav.cart')}</span>
                         </Link>
                         <Link
-                          to="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsUserMenuOpen(false);
-                          }}
+                          to="/bookings"
+                          onClick={() => setIsUserMenuOpen(false)}
                           className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                         >
                           <svg
@@ -859,12 +878,16 @@ export function Navbar({
                 <span className="text-sm">{t('nav.support')}</span>
               </Link>
               <Link
-                to="/supplier/portal"
+                to={supplierNav.portalReady ? supplierNav.href : '/supplier/portal'}
                 onClick={closeMobileMenu}
                 className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950"
               >
                 <Store className="size-4" />
-                <span className="text-sm">{t('nav.listAnExperience', 'List an experience')}</span>
+                <span className="text-sm">
+                  {supplierNav.portalReady
+                    ? t('nav.dashboard', 'Dashboard')
+                    : t('nav.listAnExperience', 'List an experience')}
+                </span>
               </Link>
               {!loading && user && (
                 <>

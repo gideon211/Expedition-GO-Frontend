@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useRef } from 'react';
 
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { slugify } from '@/lib/slugify';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 
 export function HeroTourCard({
@@ -88,7 +89,7 @@ export function HeroTourCard({
     navigateWithLoader(detailTo);
   };
 
-  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
+  const detailTo = `/tour/${slug || slugify(title)}`;
 
   return (
     <div

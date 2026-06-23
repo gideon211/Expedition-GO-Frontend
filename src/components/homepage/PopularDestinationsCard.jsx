@@ -29,7 +29,7 @@ export function PopularDestinationsCard({ title, tours, image, variant = 'defaul
     <Card className="group cursor-pointer overflow-hidden rounded-[12px] border border-slate-200/50 bg-white font-card shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-300 hover:shadow-md">
       <div className={`relative ${imageHeightClass} overflow-hidden`}>
         <img
-          src={image}
+          src={image || undefined}
           alt={title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />

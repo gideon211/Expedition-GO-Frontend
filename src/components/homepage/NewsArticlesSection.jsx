@@ -55,7 +55,7 @@ export function NewsArticlesSection() {
   };
 
   return (
-    <section className="py-6 sm:py-10">
+    <section className="py-6 sm:py-10 lg:py-12">
       <div className="mb-4 flex items-start justify-between gap-3 sm:mb-6 sm:gap-4">
         <div className="flex-1">
           <h2 className="relative inline-block text-xl font-bold tracking-tight text-slate-900 sm:text-3xl">

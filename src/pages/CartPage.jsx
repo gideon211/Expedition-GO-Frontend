@@ -9,39 +9,26 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  CalendarDays,
-  Clock3,
   ShoppingCart,
   Trash2,
-  ShieldCheck,
-  Users,
+  Lock,
+  CheckCircle2,
+  MessageCircle,
+  Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 import { Navbar } from '@/components/homepage/Navbar';
 import { Footer } from '@/components/homepage/Footer';
+import { CartEmptyState } from '@/components/cart/CartEmptyState';
+import { CartItemCard } from '@/components/cart/CartItemCard';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { AuthModal } from '@/components/ui/auth-modal';
-import BrandLoader from '@/components/ui/BrandLoader';
 
-const formatCartDate = (dateString) =>
-  new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
-const formatBookingDateLabel = (selectedDate, selectedDateEnd) => {
-  const start = formatCartDate(selectedDate);
-  if (!selectedDateEnd) return start;
-  const end = formatCartDate(selectedDateEnd);
-  return start === end ? start : `${start} – ${end}`;
-};
 
 const formatRemainingTime = (ms) => {
   const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
@@ -50,16 +37,48 @@ const formatRemainingTime = (ms) => {
   return `${minutes}:${seconds}`;
 };
 
+const groupByDate = (items) => {
+  return items.reduce((groups, item) => {
+    const date = new Date(item.selectedDate);
+    const key = date.toDateString();
+    if (!groups[key]) {
+      groups[key] = { date, items: [] };
+    }
+    groups[key].items.push(item);
+    return groups;
+  }, {});
+};
+
+const formatGroupDate = (date) =>
+  date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+const emptyContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.14,
+      delayChildren: 0.35,
+    },
+  },
+};
+
+const emptyItem = {
+  hidden: { opacity: 0, y: 22 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 110, damping: 14 },
+  },
+};
+
 function CartPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { navigateWithLoader } = useNavigationLoader();
   const { cart, removeFromCart, clearCart } = useCart();
   const { convertPrice } = useCurrency();
-  const { user } = useAuth();
   const [now, setNow] = useState(Date.now());
-  const [showSplash, setShowSplash] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setNow(Date.now()), 1000);
@@ -78,15 +97,30 @@ function CartPage() {
     });
   };
 
-  const total = useMemo(() => {
-    return cart.reduce((acc, item) => {
-      const raw =
-        typeof item.price === 'number'
-          ? item.price
-          : Number.parseFloat(String(item.price).replace(/[^\d.]/g, '')) || 0;
-      return acc + raw;
-    }, 0);
-  }, [cart]);
+  const { total, finalTotal, hasDiscount, savings, minRemainingMs } = useMemo(() => {
+    const parsePrice = (value) =>
+      typeof value === 'number'
+        ? value
+        : Number.parseFloat(String(value).replace(/[^\d.]/g, '')) || 0;
+
+    const original = cart.reduce((acc, item) => acc + parsePrice(item.price), 0);
+    const discounted = cart.reduce(
+      (acc, item) => acc + (item.finalPrice != null ? parsePrice(item.finalPrice) : parsePrice(item.price)),
+      0
+    );
+    const savings = original - discounted;
+    const minRemainingMs = cart.length > 0
+      ? Math.max(0, Math.min(...cart.map((item) => Number(item.expiresAt) - now)))
+      : 0;
+
+    return {
+      total: original,
+      finalTotal: discounted,
+      hasDiscount: discounted < original,
+      savings,
+      minRemainingMs,
+    };
+  }, [cart, now]);
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--page-bg)] text-slate-900">
@@ -134,238 +168,133 @@ function CartPage() {
         </div>
 
         {cart.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm sm:py-24">
-            <div className="mb-6 grid size-20 place-items-center rounded-full bg-[color:var(--brand-mist)] sm:size-24">
-              <ShoppingCart className="size-10 text-[color:var(--brand-green)] sm:size-12" />
+          <motion.div
+            className="flex flex-col items-center justify-center py-16 text-center sm:py-24"
+            variants={emptyContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            <div className="mb-6 flex w-full justify-center">
+              <CartEmptyState className="h-48 w-48 sm:h-56 sm:w-56" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-slate-900 sm:text-2xl">
+            <motion.h2
+              className="mb-2 text-xl font-bold text-slate-900 sm:text-2xl"
+              variants={emptyItem}
+            >
               Your cart is empty
-            </h2>
-            <p className="mb-8 max-w-xs text-base leading-relaxed text-slate-500">
+            </motion.h2>
+            <motion.p
+              className="mb-8 max-w-xs text-base leading-relaxed text-slate-500"
+              variants={emptyItem}
+            >
               Activities you add will appear here. You have up to 25 minutes to complete your
               booking.
-            </p>
-            <Link
-              to="/tours"
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--brand-green)] px-8 py-3 text-base font-semibold !text-white shadow-lg shadow-[color:var(--brand-green)]/25 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30 sm:text-sm"
-            >
-              Explore activities
-            </Link>
-          </div>
+            </motion.p>
+            <motion.div variants={emptyItem}>
+              <Link
+                to="/tours"
+                className="inline-flex items-center justify-center rounded-full bg-[color:var(--brand-green)] px-8 py-3 text-base font-semibold !text-white shadow-lg shadow-[color:var(--brand-green)]/25 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30 hover:scale-[1.03] active:scale-[0.98] sm:text-sm"
+              >
+                Explore activities
+              </Link>
+            </motion.div>
+          </motion.div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-            {/* Items */}
-            <div className="space-y-4">
-              {cart.map((item) => {
-                const remainingMs = Math.max(0, Number(item.expiresAt) - now);
-                const converted = convertPrice(item.price);
-                const isExpired = remainingMs <= 0;
+          <>
+            {/* Reservation countdown banner */}
+            <div className="mb-5 inline-flex items-center gap-2 rounded-lg bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700">
+              <Clock className="size-4" />
+              We'll hold your spot for {formatRemainingTime(minRemainingMs)} minutes.
+            </div>
 
-                return (
-                  <article
-                    key={item.key}
-                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md"
-                  >
-                    <div className="absolute left-0 top-0 h-full w-1.5 bg-[color:var(--brand-green)]" />
-                    <div className="flex items-start gap-3 p-3 pl-4 sm:gap-5 sm:p-5 sm:pl-6">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="h-36 w-[7rem] shrink-0 rounded-xl object-cover object-center shadow-sm sm:h-80 sm:w-36 lg:h-40 lg:w-44"
+            <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+              {/* Items grouped by date */}
+              <div className="space-y-8">
+              {Object.values(groupByDate(cart)).map(({ date, items }) => (
+                <section key={date.toDateString()}>
+                  <h3 className="mb-3 text-lg font-bold text-slate-900 sm:text-xl">
+                    {formatGroupDate(date)}
+                  </h3>
+                  <div className="space-y-4">
+                    {items.map((item) => (
+                      <CartItemCard
+                        key={item.key}
+                        item={item}
+                        now={now}
+                        onRemove={handleRemove}
                       />
-                      <div className="flex min-w-0 flex-1 flex-col">
-                        <div className="flex items-start justify-between gap-2">
-                          <h5 className="line-clamp-2 text-base font-bold leading-snug text-slate-900 sm:text-base lg:text-lg">
-                            {item.title}
-                          </h5>
-                          <button
-                            type="button"
-                            onClick={() => handleRemove(item.key)}
-                            className="hidden shrink-0 rounded-full p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 sm:block"
-                            aria-label="Remove item"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
-                        </div>
-
-                        <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
-                          <Clock3 className="size-3.5 sm:size-4" />
-                          {item.duration}
-                        </p>
-
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 sm:text-xs">
-                            <CalendarDays className="size-3.5" />
-                            {formatBookingDateLabel(item.selectedDate, item.selectedDateEnd)}
-                          </span>
-                          {(item.adults ||
-                            item.seniors ||
-                            item.youths ||
-                            item.children ||
-                            item.infants) && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 sm:text-xs">
-                              <Users className="size-3.5" />
-                              {(item.adults || 0) +
-                                (item.seniors || 0) +
-                                (item.youths || 0) +
-                                (item.children || 0) +
-                                (item.infants || 0)}{' '}
-                              travelers
-                            </span>
-                          )}
-                          {!isExpired ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700 sm:text-xs">
-                              <span className="relative flex size-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                                <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
-                              </span>
-                              Expires in {formatRemainingTime(remainingMs)}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-500 sm:text-xs">
-                              Expired
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between sm:mt-auto sm:pt-4">
-                          <p className="text-base font-bold text-slate-900 sm:text-lg lg:text-xl">
-                            {converted.formatted}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => handleRemove(item.key)}
-                            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-base font-medium text-rose-600 transition hover:bg-rose-50 sm:hidden"
-                          >
-                            <Trash2 className="size-4" />
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+                    ))}
+                  </div>
+                </section>
+              ))}
             </div>
 
             {/* Summary */}
             <aside className="h-fit space-y-4 lg:sticky lg:top-28">
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <h5 className="text-base font-bold text-slate-900 sm:text-lg lg:text-xl">
-                  Order Summary
-                </h5>
-
-                <div className="mt-5 space-y-3">
-                  <div className="flex items-center justify-between text-base text-slate-600 sm:text-sm">
-                    <span>
-                      Subtotal ({cart.length} {cart.length === 1 ? 'item' : 'items'})
-                    </span>
-                    <span>{convertPrice(total).formatted}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-base text-slate-600 sm:text-sm">
-                    <span>Taxes & Fees</span>
-                    <span className="text-slate-400">Calculated at checkout</span>
-                  </div>
-                </div>
-
-                <div className="my-4 h-px bg-slate-100" />
-
-                <div className="flex items-center justify-between">
-                  <span className="text-base font-semibold text-slate-900">Total</span>
+                <div className="flex items-start justify-between">
                   <span className="text-lg font-bold text-slate-900 sm:text-xl">
-                    {convertPrice(total).formatted}
+                    Subtotal ({cart.length} {cart.length === 1 ? 'item' : 'items'})
                   </span>
+                  <div className="text-right">
+                    {hasDiscount && (
+                      <p className="text-sm text-slate-400 line-through">
+                        {convertPrice(total).formatted}
+                      </p>
+                    )}
+                    <p className="text-xl font-bold text-rose-600 sm:text-2xl">
+                      {convertPrice(finalTotal).formatted}
+                    </p>
+                  </div>
                 </div>
+
+                <p className="mt-1 text-right text-sm font-medium text-[color:var(--brand-green)]">
+                  All taxes and fees included
+                </p>
+
+                {hasDiscount && savings > 0 && (
+                  <div className="mt-4 flex items-start gap-2 rounded-lg bg-green-50 p-3">
+                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-green-600" />
+                    <p className="text-sm font-semibold text-green-700">
+                      Save {convertPrice(savings).formatted} with the activity provider's special
+                      offer
+                    </p>
+                  </div>
+                )}
 
                 <Button
-                  onClick={() => {
-                    if (!user) {
-                      setIsAuthModalOpen(true);
-                      return;
-                    }
-                    setShowSplash(true);
-                    const item = cart[0];
-                    const totalTravelers =
-                      (item.adults || 0) +
-                      (item.seniors || 0) +
-                      (item.youths || 0) +
-                      (item.children || 0) +
-                      (item.infants || 0);
-                    window.setTimeout(() => {
-                      navigate('/booking', {
-                        state: {
-                          tour: {
-                            title: item.title,
-                            image: item.image,
-                            provider: item.provider || 'Expedition GO Tours',
-                            rating: item.rating || 4.8,
-                            reviews: item.reviews || 120,
-                            date: formatBookingDateLabel(item.selectedDate, item.selectedDateEnd),
-                            selectedDate: item.selectedDate,
-                            time: item.time || '9:00 AM',
-                            duration: item.duration,
-                            travelers: `${totalTravelers} ${totalTravelers === 1 ? 'adult' : 'travelers'}`,
-                            price:
-                              typeof item.price === 'number'
-                                ? item.price
-                                : Number.parseFloat(String(item.price).replace(/[^\d.]/g, '')) || 0,
-                            cancellation:
-                              item.cancellation || 'Free cancellation up to 24 hours before',
-                            language: item.language || 'English - Guide',
-                            tourId: item.tourId,
-                            adults: item.adults || 0,
-                            seniors: item.seniors || 0,
-                            youths: item.youths || 0,
-                            children: item.children || 0,
-                            infants: item.infants || 0,
-                            promoCode: item.promoCode || '',
-                            discount: item.discount || 0,
-                            finalPrice: item.finalPrice || item.price,
-                          },
-                        },
-                      });
-                    }, 1200);
-                  }}
-                  className="mt-6 w-full bg-[color:var(--brand-green)] py-6 text-base font-semibold !text-white shadow-lg shadow-[color:var(--brand-green)]/20 transition hover:bg-[color:var(--brand-green)]/90 hover:shadow-xl hover:shadow-[color:var(--brand-green)]/30"
+                  onClick={() => navigate('/checkout')}
+                  className="mt-6 w-full bg-blue-600 py-6 text-base font-semibold !text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30"
                 >
-                  Continue to Checkout
+                  Go to checkout
                 </Button>
-
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-500 sm:text-xs">
-                  <ShieldCheck className="size-3.5 text-slate-400" />
-                  <span>Secure checkout &middot; No hidden fees</span>
-                </div>
               </div>
 
-              {/* Trust / Help small card */}
+              {/* Why book with us? */}
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <h4 className="mb-3 text-base font-semibold text-slate-900 sm:text-lg">
-                  Need help?
+                <h4 className="mb-4 text-base font-semibold text-slate-900 sm:text-lg">
+                  Why book with us?
                 </h4>
-                <p className="text-base leading-relaxed text-slate-500 sm:text-sm">
-                  Your items are reserved for 25 minutes. If you have questions, visit our{' '}
-                  <Link
-                    to="/help"
-                    className="font-medium text-[color:var(--brand-green)] hover:underline"
-                  >
-                    Help Centre
-                  </Link>
-                  .
-                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3 text-sm text-slate-600">
+                    <Lock className="size-4 text-slate-400" />
+                    Secure payment
+                  </li>
+                  <li className="flex items-center gap-3 text-sm text-slate-600">
+                    <CheckCircle2 className="size-4 text-slate-400" />
+                    No hidden costs
+                  </li>
+                  <li className="flex items-center gap-3 text-sm text-slate-600">
+                    <MessageCircle className="size-4 text-slate-400" />
+                    24/7 customer support worldwide
+                  </li>
+                </ul>
               </div>
             </aside>
           </div>
+          </>
         )}
       </main>
-
-      {showSplash && <BrandLoader fullScreen splash label="Loading checkout..." />}
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        title="Sign in to complete your booking"
-        description="Create an account or sign in to continue with checkout."
-      />
 
       <Footer />
     </div>

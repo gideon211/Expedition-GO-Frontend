@@ -4,17 +4,21 @@
  *
  * @see hooks/useSearchAutocomplete.js — fuzzy matching logic
  */
+import { forwardRef } from 'react';
 import { MapPin, Clock, Star } from 'lucide-react';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
-export function SearchAutocomplete({
-  results,
-  onSelect,
-  isVisible,
-  searchQuery,
-  className = 'absolute top-full left-0 right-0 mt-1 min-w-[320px] max-h-[400px] overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg z-50',
-}) {
+export const SearchAutocomplete = forwardRef(function SearchAutocomplete(
+  {
+    results,
+    onSelect,
+    isVisible,
+    searchQuery,
+    className = 'absolute top-full left-0 right-0 mt-1 min-w-[260px] sm:min-w-[320px] max-h-[400px] overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg z-50',
+  },
+  ref
+) {
   const { navigateWithLoader } = useNavigationLoader();
   const { convertPrice } = useCurrency();
 
@@ -40,7 +44,7 @@ export function SearchAutocomplete({
   };
 
   return (
-    <div className={className}>
+    <div ref={ref} className={className}>
       {/* Destinations Section */}
       {results.destinations.length > 0 && (
         <div className="border-b border-slate-100">
@@ -119,4 +123,4 @@ export function SearchAutocomplete({
       </button>
     </div>
   );
-}
+});

@@ -31,7 +31,7 @@ export function NewsletterSection() {
   };
 
   return (
-    <section className="py-4 sm:py-12">
+    <section className="py-6 sm:py-10 lg:py-12">
       <div className="grid items-stretch gap-0 overflow-hidden rounded-xl border border-slate-200 shadow-lg sm:rounded-2xl lg:grid-cols-2">
         {/* Image Side */}
         <div className="relative h-[220px] overflow-hidden sm:h-[260px] lg:h-auto">

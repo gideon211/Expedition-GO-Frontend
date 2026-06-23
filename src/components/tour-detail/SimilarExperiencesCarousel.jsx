@@ -54,13 +54,14 @@ export const SimilarExperiencesCarousel = forwardRef(function SimilarExperiences
   if (!isLoading && paddedItems.length === 0) return null;
 
   return (
-    <section>
+    <section className="relative">
       <CarouselClipTrack
         ref={scrollRef}
         className="min-w-0 flex-1"
-        cardWidth={280}
-        gap={16}
-        trackClassName="gap-4 overflow-x-auto xl:overflow-x-hidden pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-5 md:gap-5 [&::-webkit-scrollbar]:hidden"
+        cardWidth={260}
+        gap={14}
+        maxCards={5}
+        trackClassName="gap-3.5 overflow-x-auto xl:overflow-x-hidden pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-4 md:gap-4 [&::-webkit-scrollbar]:hidden"
         style={{
           WebkitOverflowScrolling: 'touch',
           overflowY: 'unset',
@@ -79,6 +80,7 @@ export const SimilarExperiencesCarousel = forwardRef(function SimilarExperiences
           ))
         )}
       </CarouselClipTrack>
+      <div className="pointer-events-none absolute right-0 inset-y-0 w-32 bg-gradient-to-r from-transparent to-white z-10 hidden xl:block" />
     </section>
   );
 });

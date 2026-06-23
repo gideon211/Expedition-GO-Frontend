@@ -57,7 +57,7 @@ export function FeaturesSection() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-white pt-8 pb-16 sm:pt-10 sm:pb-20 lg:pt-12 lg:pb-24">
+    <section className="relative overflow-hidden bg-white py-8 sm:py-12 lg:py-16">
       <div className="relative mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-10 text-center sm:mb-12 lg:mb-14">

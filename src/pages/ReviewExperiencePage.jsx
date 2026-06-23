@@ -142,15 +142,7 @@ export default function ReviewExperiencePage() {
         {/* Back Button */}
         <button
           type="button"
-          onClick={() => {
-            const returnTo = location.state?.returnTo;
-            if (returnTo) {
-              sessionStorage.removeItem('eg_splash_shown');
-              navigate(returnTo, { replace: true });
-            } else {
-              navigate(-1);
-            }
-          }}
+          onClick={() => navigate(-1)}
           className="mb-6 inline-flex items-center gap-1.5 text-[14px] font-semibold text-slate-600 transition hover:text-emerald-700"
         >
           <ArrowLeft className="size-4" />

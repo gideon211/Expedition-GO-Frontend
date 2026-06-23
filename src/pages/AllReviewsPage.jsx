@@ -1,5 +1,6 @@
 import { useRef, useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, X, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Navbar } from '@/components/homepage/Navbar';
 import { NewExperiencesCard } from '@/components/homepage/NewExperiencesCard';
@@ -9,6 +10,7 @@ import { sidebarTopRated, lastMinuteDeals } from '@/components/homepage/data';
 const REVIEWS_PER_PAGE = 6;
 
 export default function AllReviewsPage() {
+  const navigate = useNavigate();
   const similarScrollRef = useRef(null);
   const [activeReview, setActiveReview] = useState(null);
   const [page, setPage] = useState(0);
@@ -45,7 +47,7 @@ export default function AllReviewsPage() {
             type="button"
             onClick={() => {
               sessionStorage.removeItem('eg_splash_shown');
-              window.location.href = '/';
+              navigate('/', { replace: true });
             }}
             className="mb-6 inline-flex items-center gap-1.5 text-[14px] font-semibold text-slate-600 transition hover:text-emerald-700"
           >

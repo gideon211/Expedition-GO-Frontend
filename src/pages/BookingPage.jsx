@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/homepage/Navbar';
 import { Footer } from '@/components/homepage/Footer';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -1179,6 +1180,7 @@ export default function BookingPage() {
 
   /* Change booking modal state */
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
+  const [bookingConfirmation, setBookingConfirmation] = useState(null);
   const [editableTour, setEditableTour] = useState({
     date: tour.date,
     time: tour.time,
@@ -1249,15 +1251,36 @@ export default function BookingPage() {
         },
       };
       const data = await createBooking(payload);
-      toast.success(t('booking.success') || 'Booking confirmed!');
-      navigate(`/review/${encodeURIComponent(tour.title)}`, {
-        state: {
-          booking: data,
-          tour: { title: tour.title, image: tour.image, rating: tour.rating, reviews: tour.reviews, duration: tour.duration, location: tour.location, price: tour.price },
+      setBookingConfirmation({
+        booking: data,
+        tour: {
+          title: tour.title,
+          image: tour.image,
+          rating: tour.rating,
+          reviews: tour.reviews,
+          duration: tour.duration,
+          location: tour.location,
+          price: tour.price,
         },
+        date: editableTour.selectedDate
+          ? new Date(editableTour.selectedDate).toLocaleDateString('en-US', {
+              weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+            })
+          : selectedDate,
+        travelers: editableTour.adults || travelers,
       });
     } catch (err) {
-      toast.error(err?.message || 'Booking failed. Please try again.');
+      if (err?.status === 409) {
+        toast.error(err?.message || 'You already have a booking for this tour. Please check your existing bookings.', {
+          action: {
+            label: 'View Bookings',
+            onClick: () => navigate('/bookings'),
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.error(err?.message || 'Booking failed. Please try again.');
+      }
     }
   };
 
@@ -1410,6 +1433,78 @@ export default function BookingPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Booking confirmation dialog */}
+      <Dialog open={!!bookingConfirmation} onOpenChange={() => setBookingConfirmation(null)}>
+        <DialogContent className="max-w-[480px] text-slate-900">
+          <DialogTitle className="flex items-center gap-3 pr-8">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-100">
+              <Check className="size-6 text-emerald-600" />
+            </span>
+            <span className="text-xl font-black text-slate-900">Booking Confirmed!</span>
+          </DialogTitle>
+
+          <div className="mt-4 space-y-3 text-sm text-slate-600">
+            <p className="font-semibold text-slate-900">
+              {bookingConfirmation?.tour?.title}
+            </p>
+
+            {bookingConfirmation?.booking?.bookings?.[0]?.bookingNumber && (
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="text-xs font-medium text-slate-500">Booking reference</p>
+                <p className="text-base font-bold text-slate-900">
+                  {bookingConfirmation.booking.bookings[0].bookingNumber}
+                </p>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <CalendarDays className="size-4 shrink-0 text-slate-400" />
+              <span>{bookingConfirmation?.date}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Users className="size-4 shrink-0 text-slate-400" />
+              <span>
+                {bookingConfirmation?.travelers}{' '}
+                {bookingConfirmation?.travelers === 1 ? 'traveler' : 'travelers'}
+              </span>
+            </div>
+
+            <p className="text-sm leading-relaxed text-slate-500">
+              Your booking has been placed successfully. You'll receive a confirmation email shortly with all the details. The supplier will reach out with pickup information before your tour date.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Button
+              onClick={() => {
+                setBookingConfirmation(null);
+                navigate('/');
+              }}
+              className="flex-1 bg-[color:var(--brand-green)] text-white hover:bg-[color:var(--brand-green)]/90"
+            >
+              Back to Home
+            </Button>
+            <button
+              type="button"
+              onClick={() => {
+                const data = bookingConfirmation;
+                setBookingConfirmation(null);
+                navigate(`/review/${encodeURIComponent(data?.tour?.title || '')}`, {
+                  state: {
+                    booking: data?.booking,
+                    tour: data?.tour,
+                  },
+                });
+              }}
+              className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            >
+              Write a Review
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

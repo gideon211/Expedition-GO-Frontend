@@ -1,9 +1,10 @@
-import { Star, CircleCheck, MapPin } from 'lucide-react';
+import { Star, StarHalf } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useRef } from 'react';
 
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { slugify } from '@/lib/slugify';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 
 export function ContinuePlanningCard({
@@ -70,7 +71,23 @@ export function ContinuePlanningCard({
     navigateWithLoader(detailTo);
   };
 
-  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
+  const detailTo = `/tour/${slug || slugify(title)}`;
+
+  const numRating = Number(rating) || 0;
+  const fullStars = Math.floor(numRating);
+  const hasHalf = numRating - fullStars >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+
+  const starElements = [];
+  for (let i = 0; i < fullStars; i++) {
+    starElements.push(<Star key={`f-${i}`} className="size-3.5 fill-[#39AD6C] text-[#39AD6C]" />);
+  }
+  if (hasHalf) {
+    starElements.push(<StarHalf key="h" className="size-3.5 fill-[#39AD6C] text-[#39AD6C]" />);
+  }
+  for (let i = 0; i < emptyStars; i++) {
+    starElements.push(<Star key={`e-${i}`} className="size-3.5 text-[#D1D5DB]" />);
+  }
 
   return (
     <div
@@ -78,95 +95,65 @@ export function ContinuePlanningCard({
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerGesture}
       onPointerCancel={endPointerGesture}
-      className="group relative touch-manipulation overflow-hidden rounded-xl border border-slate-200 bg-white font-card shadow-sm transition duration-200 h-[400px] md:h-full"
+      className="group relative touch-manipulation overflow-hidden rounded-xl border border-slate-200 bg-white font-card shadow-sm transition duration-200 h-[400px] md:h-auto"
     >
-      {/* Mobile: vertical layout (image top, content below) */}
+      {/* Mobile: vertical layout */}
       <div className="flex flex-col md:hidden h-full">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
           <img
-            src={image}
+            src={image || undefined}
             alt=""
             aria-hidden={true}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         </div>
-        <div className="flex flex-1 flex-col gap-2 p-5">
-          <h3 className="text-[14px] font-bold leading-snug text-slate-900">
+        <div className="flex flex-1 flex-col justify-between p-4">
+          <h3 className="text-[15px] font-bold leading-snug text-[#111827] line-clamp-2">
             {title}
           </h3>
-          <div className="mt-auto flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <CircleCheck className="size-3.5 text-emerald-500" />
-                <span className="text-[11px] font-semibold text-slate-600">
-                  {t('features.freeCancellation')}
-                </span>
-              </div>
-              <p className="text-[12px] text-slate-500">{duration}</p>
+          <div className="flex flex-col gap-2">
+            <p className="text-[12px] text-[#6B7280]">
+              {duration}{' '}&bull;{' '}{t('features.freeCancellation')}
+            </p>
+            <div className="flex items-center gap-1">
+              {starElements}
+              <span className="ml-1 text-[12px] font-bold text-[#1F2937]">{rating}</span>
+              <span className="text-[11px] text-[#6B7280]">({reviews})</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Star className="size-4 fill-[#39AD6C] text-[#39AD6C]" />
-                <span className="text-[13px] font-bold text-slate-900">{rating}</span>
-                <span className="text-[11px] text-slate-500">({reviews})</span>
-              </div>
-              <div className="text-right">
-                <p className="text-[20px] leading-[24px] tracking-normal font-bold text-slate-900">
-                  <span className="text-[10px] font-normal text-slate-500">{t('common.from')} </span>
-                  {convertedPrice.formatted}
-                </p>
-              </div>
-            </div>
+            <p className="text-[18px] font-bold text-[#111827]">
+              <span className="text-[12px] font-normal text-[#6B7280]">{t('common.from')} </span>
+              {convertedPrice.formatted}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Desktop: horizontal layout (image left, content right) — getyourguide style */}
-      <div className="hidden md:flex md:min-h-[172px] md:flex-row h-full">
-        <div className="relative w-[130px] shrink-0 overflow-hidden bg-slate-100">
+      {/* Desktop: horizontal layout — getyourguide style */}
+      <div className="hidden md:flex md:flex-row h-[145px]">
+        <div className="relative w-[145px] shrink-0 h-[145px] p-3">
           <img
-            src={image}
+            src={image || undefined}
             alt=""
             aria-hidden={true}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+            className="h-full w-full rounded-lg object-cover transition duration-300 group-hover:scale-105"
           />
         </div>
-        <div className="flex min-w-0 flex-1 flex-col justify-between p-5">
-          <div className="min-w-0">
-            <h3 className="text-[14px] font-bold leading-snug text-slate-900">
-              {title}
-            </h3>
-            {location && (
-              <div className="mt-1 flex items-center gap-1">
-                <MapPin className="size-3 shrink-0 text-slate-400" />
-                <span className="truncate text-[13px] font-bold text-slate-500">{location}</span>
-              </div>
-            )}
+        <div className="flex min-w-0 flex-1 flex-col justify-between py-3 pr-4">
+          <h3 className="text-[15px] font-bold leading-snug text-[#111827] line-clamp-2">
+            {title}
+          </h3>
+          <p className="text-[13px] text-[#6B7280]">
+            {duration}{' '}&bull;{' '}{t('features.freeCancellation')}
+          </p>
+          <div className="flex items-center gap-0.5">
+            {starElements}
+            <span className="ml-1.5 text-[13px] font-bold text-[#1F2937]">{rating}</span>
+            <span className="text-[12px] text-[#6B7280]">({reviews})</span>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <CircleCheck className="size-3.5 text-emerald-500" />
-                <span className="text-[11px] font-semibold text-slate-600">
-                  {t('features.freeCancellation')}
-                </span>
-              </div>
-              <p className="text-[12px] text-slate-500">{duration}</p>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Star className="size-4 fill-[#39AD6C] text-[#39AD6C]" />
-                <span className="text-[13px] font-bold text-slate-900">{rating}</span>
-                <span className="text-[11px] text-slate-500">({reviews})</span>
-              </div>
-              <div className="text-right">
-                <p className="text-[20px] leading-[24px] tracking-normal font-bold text-slate-900">
-                  <span className="text-[10px] font-normal text-slate-500">{t('common.from')} </span>
-                  {convertedPrice.formatted}
-                </p>
-              </div>
-            </div>
-          </div>
+          <p className="text-[18px] font-bold text-[#111827]">
+            <span className="text-[13px] font-normal text-[#6B7280]">{t('common.from')} </span>
+            {convertedPrice.formatted}
+          </p>
         </div>
       </div>
 

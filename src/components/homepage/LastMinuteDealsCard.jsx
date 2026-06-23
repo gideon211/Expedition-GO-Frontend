@@ -10,6 +10,7 @@ import { useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { slugify } from '@/lib/slugify';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 
 export function LastMinuteDealsCard({
@@ -58,6 +59,7 @@ export function LastMinuteDealsCard({
     e.stopPropagation();
     toggleWishlist({
       title,
+      slug,
       price,
       image,
       duration: countdown,
@@ -107,7 +109,7 @@ export function LastMinuteDealsCard({
     navigateWithLoader(detailTo);
   };
 
-  const detailTo = slug ? `/tour/${slug}` : `/tour/${encodeURIComponent(title)}`;
+  const detailTo = `/tour/${slug || slugify(title)}`;
 
   return (
     <Card

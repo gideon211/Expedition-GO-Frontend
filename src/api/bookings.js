@@ -43,6 +43,14 @@ export async function createBooking(payload) {
   return unwrap(data);
 }
 
+export async function getMyBookings(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const data = await apiRequest(`/bookings/my-bookings${query ? `?${query}` : ''}`, {
+    auth: true,
+  });
+  return unwrap(data);
+}
+
 export async function validatePromoCode(payload) {
   const data = await apiRequest('/tours/offers/validate-promo', {
     method: 'POST',
