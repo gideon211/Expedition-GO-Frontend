@@ -544,33 +544,6 @@ function TourDetailContent() {
   }, [effectiveRawTour?.title]);
   const tourData = useMemo(() => adaptTourDetail(effectiveRawTour), [effectiveRawTour]);
 
-  useEffect(() => {
-    if (!rawTour?.id) return;
-    fetchTourReviews(rawTour.id, { limit: 10, page: 1 })
-      .then((data) => {
-        if (data?.reviews) setPaginatedReviews(data.reviews);
-        if (data?.ratingDistribution) setRatingDistribution(data.ratingDistribution);
-        if (data?.pagination) setHasMoreReviews(data.pagination.currentPage < data.pagination.totalPages);
-      })
-      .catch(() => {});
-  }, [rawTour?.id]);
-
-  const loadMoreReviews = useCallback(async () => {
-    if (!rawTour?.id || loadingMoreReviews) return;
-    setLoadingMoreReviews(true);
-    try {
-      const nextPage = reviewPage + 1;
-      const data = await fetchTourReviews(rawTour.id, { limit: 10, page: nextPage });
-      if (data?.reviews) {
-        setPaginatedReviews((prev) => [...prev, ...data.reviews]);
-        setReviewPage(nextPage);
-        if (data?.pagination) setHasMoreReviews(nextPage < data.pagination.totalPages);
-      }
-    } catch { /* ignore */ } finally {
-      setLoadingMoreReviews(false);
-    }
-  }, [rawTour?.id, reviewPage, loadingMoreReviews]);
-
   const OVERVIEW_HIGHLIGHTS_DEFAULT = useMemo(() => buildOverviewHighlights(rawTour), [rawTour]);
   const OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT = useMemo(
     () => buildDescriptionSteps(rawTour),
@@ -665,6 +638,34 @@ function TourDetailContent() {
     highlights: true,
   });
   const [fullDescriptionExpanded, setFullDescriptionExpanded] = useState(true);
+
+  useEffect(() => {
+    if (!rawTour?.id) return;
+    fetchTourReviews(rawTour.id, { limit: 10, page: 1 })
+      .then((data) => {
+        if (data?.reviews) setPaginatedReviews(data.reviews);
+        if (data?.ratingDistribution) setRatingDistribution(data.ratingDistribution);
+        if (data?.pagination) setHasMoreReviews(data.pagination.currentPage < data.pagination.totalPages);
+      })
+      .catch(() => {});
+  }, [rawTour?.id]);
+
+  const loadMoreReviews = useCallback(async () => {
+    if (!rawTour?.id || loadingMoreReviews) return;
+    setLoadingMoreReviews(true);
+    try {
+      const nextPage = reviewPage + 1;
+      const data = await fetchTourReviews(rawTour.id, { limit: 10, page: nextPage });
+      if (data?.reviews) {
+        setPaginatedReviews((prev) => [...prev, ...data.reviews]);
+        setReviewPage(nextPage);
+        if (data?.pagination) setHasMoreReviews(nextPage < data.pagination.totalPages);
+      }
+    } catch { /* ignore */ } finally {
+      setLoadingMoreReviews(false);
+    }
+  }, [rawTour?.id, reviewPage, loadingMoreReviews]);
+
   const reviewBreakdown = useMemo(() => {
     const labels = [
       { label: '5 stars', stars: 5 },
