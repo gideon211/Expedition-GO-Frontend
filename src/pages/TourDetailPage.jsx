@@ -905,7 +905,7 @@ function TourDetailContent() {
     setCheckingAvailability(true);
 
     try {
-      const result = await fetchTourAvailability(id, startDate, endDate);
+      const result = await fetchTourAvailability(rawTour?.id, startDate, endDate);
       const dayData = result?.calendar?.[0];
 
       if (dayData?.status === 'BLOCKED') {
@@ -937,7 +937,7 @@ function TourDetailContent() {
     try {
       const data = await validatePromoCode({
         promoCode: code,
-        tourId: id,
+        tourId: rawTour?.id,
         selectedDate: bookingDateRange?.start?.toISOString() || new Date().toISOString(),
       });
       if (data?.valid && data?.offer) {
@@ -956,7 +956,7 @@ function TourDetailContent() {
     } catch {
       setPromoError('Could not validate promo code. Please try again.');
     }
-  }, [promoCode, totalPrice, id, bookingDateRange]);
+  }, [promoCode, totalPrice, rawTour?.id, bookingDateRange]);
 
   const confirmBooking = useCallback(() => {
     if (!availabilityDialog || !bookingDateRange?.start) return;
