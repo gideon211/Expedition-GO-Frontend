@@ -180,6 +180,14 @@ function SupplierSignInPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  useEffect(() => {
+    const onPageShow = (e) => {
+      if (e.persisted) setGoogleLoading(false);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
+
   const [supplierStatus, setSupplierStatus] = useState(null);
   const [payoutComplete, setPayoutComplete] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
