@@ -105,12 +105,13 @@ export default function ReviewExperiencePage() {
   const [reviewText, setReviewText] = useState('');
   const [reviewTitle, setReviewTitle] = useState('');
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
   const [certified, setCertified] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
-  const tourId = stateTour?.tourId || null;
-  const bookingId = stateTour?.bookingId || null;
+  const tourId = stateTour?.tourId || stateTour?.id || null;
+  const bookingId = stateTour?.bookingId || location.state?.booking?.id || null;
 
   const handleSubmitReview = async () => {
     if (!overallRating) {
@@ -178,12 +179,15 @@ export default function ReviewExperiencePage() {
 
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setUploadedPhotos((prev) => [...prev, ...urls].slice(0, 12));
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setUploadedPhotos((prev) => [...prev, ...files].slice(0, 12));
+    setPhotoPreviews((prev) => [...prev, ...newPreviews].slice(0, 12));
   };
 
   const removePhoto = (index) => {
+    URL.revokeObjectURL(photoPreviews[index]);
     setUploadedPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -514,7 +518,7 @@ export default function ReviewExperiencePage() {
               {/* Uploaded Photos Preview */}
               {uploadedPhotos.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-3">
-                  {uploadedPhotos.map((url, i) => (
+                  {photoPreviews.map((url, i) => (
                     <div key={i} className="relative">
                       <img
                         src={url}

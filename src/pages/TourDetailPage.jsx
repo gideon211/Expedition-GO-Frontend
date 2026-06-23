@@ -64,7 +64,7 @@ import { useTourById } from '@/hooks/useTourById';
 import { useRecentlyViewedStorage } from '@/hooks/useRecentlyViewedStorage';
 import { fetchTourAvailability, fetchTourOffers } from '@/api/tours';
 import { validatePromoCode } from '@/api/bookings';
-import { createReview } from '@/api/reviews';
+import { createReview, fetchTourReviews } from '@/api/reviews';
 import {
   adaptTourDetail,
   buildOverviewHighlights,
@@ -543,6 +543,34 @@ function TourDetailContent() {
     };
   }, [effectiveRawTour?.title]);
   const tourData = useMemo(() => adaptTourDetail(effectiveRawTour), [effectiveRawTour]);
+
+  useEffect(() => {
+    if (!rawTour?.id) return;
+    fetchTourReviews(rawTour.id, { limit: 10, page: 1 })
+      .then((data) => {
+        if (data?.reviews) setPaginatedReviews(data.reviews);
+        if (data?.ratingDistribution) setRatingDistribution(data.ratingDistribution);
+        if (data?.pagination) setHasMoreReviews(data.pagination.currentPage < data.pagination.totalPages);
+      })
+      .catch(() => {});
+  }, [rawTour?.id]);
+
+  const loadMoreReviews = useCallback(async () => {
+    if (!rawTour?.id || loadingMoreReviews) return;
+    setLoadingMoreReviews(true);
+    try {
+      const nextPage = reviewPage + 1;
+      const data = await fetchTourReviews(rawTour.id, { limit: 10, page: nextPage });
+      if (data?.reviews) {
+        setPaginatedReviews((prev) => [...prev, ...data.reviews]);
+        setReviewPage(nextPage);
+        if (data?.pagination) setHasMoreReviews(nextPage < data.pagination.totalPages);
+      }
+    } catch { /* ignore */ } finally {
+      setLoadingMoreReviews(false);
+    }
+  }, [rawTour?.id, reviewPage, loadingMoreReviews]);
+
   const OVERVIEW_HIGHLIGHTS_DEFAULT = useMemo(() => buildOverviewHighlights(rawTour), [rawTour]);
   const OVERVIEW_FULL_DESCRIPTION_STEPS_DEFAULT = useMemo(
     () => buildDescriptionSteps(rawTour),
@@ -601,6 +629,11 @@ function TourDetailContent() {
   const [replyConfirmation, setReplyConfirmation] = useState('');
   const [reviewStarFilter, setReviewStarFilter] = useState(null);
   const [reviewSearchQuery, setReviewSearchQuery] = useState('');
+  const [ratingDistribution, setRatingDistribution] = useState([]);
+  const [paginatedReviews, setPaginatedReviews] = useState([]);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [hasMoreReviews, setHasMoreReviews] = useState(false);
+  const [loadingMoreReviews, setLoadingMoreReviews] = useState(false);
   const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
   const [writeReviewDisplayName, setWriteReviewDisplayName] = useState('');
   const [writeReviewRating, setWriteReviewRating] = useState(5);
@@ -632,10 +665,25 @@ function TourDetailContent() {
     highlights: true,
   });
   const [fullDescriptionExpanded, setFullDescriptionExpanded] = useState(true);
-  const reviewBreakdown = useMemo(
-    () => buildReviewBreakdown(selectedTourRatingNumber, selectedTourReviewsNumber),
-    [selectedTourRatingNumber, selectedTourReviewsNumber]
-  );
+  const reviewBreakdown = useMemo(() => {
+    const labels = [
+      { label: '5 stars', stars: 5 },
+      { label: '4 stars', stars: 4 },
+      { label: '3 stars', stars: 3 },
+      { label: '2 stars', stars: 2 },
+      { label: '1 star', stars: 1 },
+    ];
+    if (ratingDistribution.length > 0) {
+      const distMap = {};
+      ratingDistribution.forEach((d) => { distMap[d.rating] = d._count; });
+      const total = selectedTourReviewsNumber || 1;
+      return labels.map((item) => {
+        const count = distMap[item.stars] || 0;
+        return { ...item, count, percentage: Math.round((count / total) * 100) };
+      });
+    }
+    return buildReviewBreakdown(selectedTourRatingNumber, selectedTourReviewsNumber);
+  }, [ratingDistribution, selectedTourRatingNumber, selectedTourReviewsNumber]);
 
   useEffect(() => {
     if (activeDetailTab !== 'itinerary') {
@@ -1056,11 +1104,13 @@ function TourDetailContent() {
       const result = await createReview(fd);
       const created = result?.review || result;
 
-      const photoUrls = writeReviewFiles.map((file) => {
-        const url = URL.createObjectURL(file);
-        persistedReviewPhotoUrlsRef.current.add(url);
-        return url;
-      });
+      const photoUrls = (created?.photos && created.photos.length > 0)
+        ? created.photos
+        : writeReviewFiles.map((file) => {
+            const url = URL.createObjectURL(file);
+            persistedReviewPhotoUrlsRef.current.add(url);
+            return url;
+          });
 
       setTravelerSubmittedReviews((prev) => [
         ...prev,
@@ -1412,11 +1462,13 @@ function TourDetailContent() {
   const itineraryStops = useMemo(() => parseItineraryStops(effectiveRawTour), [effectiveRawTour]);
 
   const apiReviewCards = useMemo(() => {
-    if (!rawTour?.reviews?.length) return [];
-    return rawTour.reviews.map((review) => ({
+    const source = paginatedReviews.length > 0 ? paginatedReviews : rawTour?.reviews || [];
+    if (!source.length) return [];
+    return source.map((review) => ({
       id: review.id || `review-${Date.now()}-${Math.random()}`,
       name: review.customer?.name || 'Anonymous',
       tag: review.verified ? 'Verified' : 'Traveler',
+      title: review.title || null,
       date: review.createdAt
         ? new Date(review.createdAt).toLocaleDateString('en-US', {
             month: 'short',
@@ -1426,8 +1478,15 @@ function TourDetailContent() {
       rating: review.rating || 5,
       text: review.comment || '',
       photos: review.photos || [],
+      supplierResponse: review.supplierResponse || null,
+      supplierResponseAt: review.supplierResponseAt || null,
+      valueForMoneyRating: review.valueForMoneyRating || null,
+      guideRating: review.guideRating || null,
+      meetingRating: review.meetingRating || null,
+      travelMonth: review.travelMonth || null,
+      companions: review.companions || [],
     }));
-  }, [rawTour]);
+  }, [paginatedReviews, rawTour]);
 
   const allReviewCards = useMemo(
     () => [...apiReviewCards, ...travelerSubmittedReviews],
@@ -2338,7 +2397,7 @@ function TourDetailContent() {
                               </p>
                             ) : (
                               filteredReviewCards.map((review) => (
-                                <article key={`review-${review.id}`}>
+                                <article key={`review-${review.id}`} className="border-b border-slate-100 pb-4 last:border-0">
                                   <p className="font-black">{review.name}</p>
                                   <p className="text-xs text-[color:var(--brand-green)]/65">
                                     {review.date} • {review.tag}
@@ -2354,11 +2413,31 @@ function TourDetailContent() {
                                       />
                                     ))}
                                   </div>
-                                  <p className="mt-3 text-sm leading-7 text-[color:var(--brand-green)]/85">
+                                  {review.title && (
+                                    <p className="mt-2 text-sm font-bold text-slate-900">{review.title}</p>
+                                  )}
+                                  <p className="mt-1 text-sm leading-7 text-[color:var(--brand-green)]/85">
                                     {review.text}
                                   </p>
+                                  {(review.valueForMoneyRating || review.guideRating || review.meetingRating) && (
+                                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
+                                      {review.valueForMoneyRating && <span>Value: {review.valueForMoneyRating}/5</span>}
+                                      {review.guideRating && <span>Guide: {review.guideRating}/5</span>}
+                                      {review.meetingRating && <span>Meeting: {review.meetingRating}/5</span>}
+                                    </div>
+                                  )}
+                                  {(review.travelMonth || (review.companions && review.companions.length > 0)) && (
+                                    <div className="mt-1 flex flex-wrap gap-2">
+                                      {review.travelMonth && (
+                                        <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">{review.travelMonth}</span>
+                                      )}
+                                      {review.companions?.map((c) => (
+                                        <span key={c} className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 capitalize">{c}</span>
+                                      ))}
+                                    </div>
+                                  )}
                                   {(review.photos || []).length > 0 && (
-                                    <div className="mt-4 flex flex-wrap gap-2">
+                                    <div className="mt-3 flex flex-wrap gap-2">
                                       {(review.photos || []).map((photoUrl, i) => (
                                         <img
                                           key={`${review.id}-inline-${i}`}
@@ -2371,8 +2450,31 @@ function TourDetailContent() {
                                       ))}
                                     </div>
                                   )}
+                                  {review.supplierResponse && (
+                                    <div className="mt-3 rounded-lg border-l-4 border-emerald-300 bg-emerald-50 p-3">
+                                      <p className="text-xs font-bold text-emerald-800">
+                                        Response from supplier
+                                        {review.supplierResponseAt && (
+                                          <span className="ml-2 font-normal text-emerald-600">
+                                            {new Date(review.supplierResponseAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                          </span>
+                                        )}
+                                      </p>
+                                      <p className="mt-1 text-sm text-emerald-900">{review.supplierResponse}</p>
+                                    </div>
+                                  )}
                                 </article>
                               ))
+                            )}
+                            {hasMoreReviews && !reviewStarFilter && !reviewSearchQuery.trim() && (
+                              <button
+                                type="button"
+                                onClick={loadMoreReviews}
+                                disabled={loadingMoreReviews}
+                                className="mt-4 w-full rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-semibold text-[color:var(--brand-green)] transition hover:bg-slate-50 disabled:opacity-50"
+                              >
+                                {loadingMoreReviews ? 'Loading...' : 'Load more reviews'}
+                              </button>
                             )}
                           </div>
                         </div>

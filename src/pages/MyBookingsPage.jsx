@@ -201,6 +201,7 @@ export default function MyBookingsPage() {
                               booking,
                               tour: {
                                 title: booking.tour.title,
+                                tourId: booking.tour?.id,
                                 image: tourImage,
                                 duration: '',
                                 location: '',
