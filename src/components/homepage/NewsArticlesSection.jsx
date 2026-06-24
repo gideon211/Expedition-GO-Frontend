@@ -58,7 +58,7 @@ export function NewsArticlesSection() {
     <section className="py-6 sm:py-10 lg:py-12">
       <div className="mb-4 flex items-start justify-between gap-3 sm:mb-6 sm:gap-4">
         <div className="flex-1">
-          <h2 className="relative inline-block text-xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <h2 className="relative inline-block text-lg font-bold tracking-tight text-slate-900 sm:text-3xl">
             Travel Stories & News
             <span className="absolute bottom-[-8px] left-0 h-1 w-16 rounded-full bg-gradient-to-r from-[color:var(--brand-green)] to-emerald-400 sm:bottom-[-10px] sm:w-20" />
           </h2>

@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { getMyBookings } from '@/api/bookings';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { setAuthReturnTo } from '@/lib/auth';
 import { Navbar } from '@/components/homepage/Navbar';
 import { Footer } from '@/components/homepage/Footer';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ export default function MyBookingsPage() {
 
   useEffect(() => {
     if (!user) {
+      setAuthReturnTo(window.location.pathname + window.location.search);
       navigate('/signin');
       return;
     }

@@ -63,7 +63,7 @@ export function FeaturesSection() {
         <div className="mb-10 text-center sm:mb-12 lg:mb-14">
           <h5
             className="font-semibold tracking-tight text-slate-900"
-            style={{ fontSize: 'clamp(1.75rem, 3vw + 0.5rem, 2.5rem)' }}
+            style={{ fontSize: 'clamp(1.35rem, 3vw + 0.5rem, 2.5rem)' }}
           >
             {t('features.whyBookHeading')}
           </h5>

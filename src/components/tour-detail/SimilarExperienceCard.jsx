@@ -28,7 +28,7 @@ export function SimilarExperienceCard({ tour, index, onImageError }) {
 
   return (
     <article className="w-[260px] shrink-0 sm:w-[280px]">
-        <div className="relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/50 bg-white font-card shadow-[0_1px_4px_rgba(15,23,42,0.08)] transition hover:shadow-md">
+        <div className="relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/50 bg-white font-card transition">
         <div className="relative">
           <Link
             to={detailTo}
@@ -60,7 +60,7 @@ export function SimilarExperienceCard({ tour, index, onImageError }) {
                 image: tour.image,
               })
             }
-            className="absolute right-2 top-2 z-10 grid size-9 place-items-center rounded-full border border-slate-200/90 bg-white text-slate-700 shadow-sm transition hover:scale-105"
+            className="absolute right-2 top-2 z-10 grid size-9 place-items-center rounded-full border border-slate-200/90 bg-white text-slate-700 transition hover:scale-105"
             aria-label={t('nav.wishlist')}
           >
             <Heart

@@ -1,4 +1,5 @@
 const AUTH_STORAGE_KEY = 'expedition_go_auth';
+const AUTH_RETURN_TO_KEY = 'eg_auth_return_to';
 const AUTH_PROVIDER = import.meta.env.VITE_AUTH_PROVIDER || 'mock';
 const isBackend = AUTH_PROVIDER === 'backend';
 
@@ -30,6 +31,31 @@ function storeAuth(data) {
 function clearAuth() {
   try {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+export function setAuthReturnTo(path) {
+  if (!path) return;
+  try {
+    sessionStorage.setItem(AUTH_RETURN_TO_KEY, path);
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+export function getAuthReturnTo() {
+  try {
+    return sessionStorage.getItem(AUTH_RETURN_TO_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearAuthReturnTo() {
+  try {
+    sessionStorage.removeItem(AUTH_RETURN_TO_KEY);
   } catch {
     // Ignore storage failures.
   }

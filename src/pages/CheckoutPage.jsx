@@ -173,7 +173,7 @@ function OrderSummary({ item, contact, prices, currentStep }) {
                   key={i}
                   className={`size-3 ${
                     i < Math.round(Number(item.rating) || 0)
-                      ? 'fill-amber-400 text-amber-400'
+                      ? 'fill-emerald-500 text-emerald-500'
                       : 'fill-slate-200 text-slate-200'
                   }`}
                 />

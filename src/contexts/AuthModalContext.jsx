@@ -8,13 +8,17 @@
  * @see components/ui/auth-modal.jsx — modal UI
  */
 import { createContext, useContext, useState } from 'react';
+import { setAuthReturnTo } from '@/lib/auth';
 
 const AuthModalContext = createContext();
 
 export function AuthModalProvider({ children }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  const openAuthModal = () => setIsAuthModalOpen(true);
+  const openAuthModal = () => {
+    setAuthReturnTo(window.location.pathname + window.location.search);
+    setIsAuthModalOpen(true);
+  };
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
   return (

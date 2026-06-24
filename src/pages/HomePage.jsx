@@ -67,7 +67,7 @@ function LoadingCarouselSection({ title }) {
         <div className="min-w-0 flex-1">
           <h2
             className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-            style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
+            style={{ fontSize: 'clamp(1rem, 1.5vw + 0.5rem, 1.75rem)' }}
             title={title}
           >
             {title}
@@ -432,7 +432,7 @@ function HomePageContent() {
                   <div className="min-w-0 flex-1">
                     <h2
                       className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-                      style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
+                      style={{ fontSize: 'clamp(1rem, 1.5vw + 0.5rem, 1.75rem)' }}
                       title="Continue Planning Your Trip"
                     >
                       Continue Planning Your Trip
@@ -524,7 +524,7 @@ function HomePageContent() {
                 <div className="min-w-0 flex-1">
                   <h2
                     className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-                    style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
+                    style={{ fontSize: 'clamp(1rem, 1.5vw + 0.5rem, 1.75rem)' }}
                     title={t('sections.lastMinuteDeals')}
                   >
                     {t('sections.lastMinuteDeals')}
@@ -592,7 +592,7 @@ function HomePageContent() {
                 <div className="min-w-0 flex-1">
                   <h2
                     className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-                    style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
+                    style={{ fontSize: 'clamp(1rem, 1.5vw + 0.5rem, 1.75rem)' }}
                     title={t('sections.newExperiences')}
                   >
                     {t('sections.newExperiences')}

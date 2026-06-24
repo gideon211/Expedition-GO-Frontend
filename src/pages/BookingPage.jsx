@@ -30,10 +30,12 @@ import {
   Info,
   ArrowLeft,
   Star,
+  Clock,
 } from 'lucide-react';
 import { Navbar } from '@/components/homepage/Navbar';
 import { Footer } from '@/components/homepage/Footer';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -119,41 +121,44 @@ function MobileSummaryCard({ tour, onChangeClick }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Step indicator                                                     */
+/*  Hold timer banner                                                  */
 /* ------------------------------------------------------------------ */
-function StepIndicator({ steps, currentStep }) {
+function HoldTimer() {
+  const [seconds, setSeconds] = useState(4 * 60 + 22);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-3">
-      {steps.map((step, i) => {
-        const isActive = i + 1 === currentStep;
-        const isCompleted = i + 1 < currentStep;
-        const num = i + 1;
-        return (
-          <div key={step} className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div
-                className={`grid size-7 sm:size-8 place-items-center rounded-full text-xs sm:text-sm font-bold transition-colors ${
-                  isCompleted
-                    ? 'bg-[color:var(--brand-green)] text-white'
-                    : isActive
-                      ? 'bg-[color:var(--brand-green)] text-white'
-                      : 'border-2 border-slate-300 text-slate-400'
-                }`}
-              >
-                {isCompleted ? <Check className="size-3.5 sm:size-4" /> : num}
-              </div>
-              <span
-                className={`hidden sm:inline text-sm font-semibold ${
-                  isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'
-                }`}
-              >
-                {step}
-              </span>
-            </div>
-            {i < steps.length - 1 && <ChevronRight className="size-3.5 sm:size-4 text-slate-300" />}
-          </div>
-        );
-      })}
+    <div className="flex items-center gap-2 rounded-xl bg-rose-100 px-4 py-3 text-sm font-semibold text-rose-800">
+      <Clock className="size-4 shrink-0" />
+      <span>
+        We&apos;ll hold your spot for {String(m).padStart(2, '0')}:{String(s).padStart(2, '0')} minutes
+      </span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Step badge (vertical stepper)                                      */
+/* ------------------------------------------------------------------ */
+function StepBadge({ number, active, completed }) {
+  return (
+    <div
+      className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold transition-colors ${
+        completed || active
+          ? 'bg-[color:var(--brand-green)] text-white'
+          : 'border-2 border-slate-300 text-slate-400'
+      }`}
+    >
+      {completed ? <Check className="size-4" /> : number}
     </div>
   );
 }
@@ -238,18 +243,13 @@ function BookingSidebar({ tour, promoCode, setPromoCode, onApplyPromo, onChangeC
       {/* Tour summary card */}
       <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
         <div className="flex gap-3 p-4">
-          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-            <img
-              src={tour.image}
-              alt={tour.title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h3 className="text-sm font-bold leading-tight text-slate-900 line-clamp-2">
               {tour.title}
             </h3>
+            <p className="mt-0.5 text-xs text-slate-500">
+              By <span className="font-semibold text-slate-700">{tour.provider}</span>
+            </p>
             <div className="mt-1 flex items-center gap-1">
               <span className="text-sm font-bold text-slate-900">{tour.rating}</span>
               <div className="flex items-center gap-0.5">
@@ -262,9 +262,14 @@ function BookingSidebar({ tour, promoCode, setPromoCode, onApplyPromo, onChangeC
               </div>
               <span className="text-xs text-slate-500">({tour.reviews})</span>
             </div>
-            <p className="mt-0.5 text-xs text-slate-500">
-              By <span className="font-semibold text-slate-700">{tour.provider}</span>
-            </p>
+          </div>
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+            <img
+              src={tour.image}
+              alt={tour.title}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
           </div>
         </div>
 
@@ -371,15 +376,24 @@ function BookingSidebar({ tour, promoCode, setPromoCode, onApplyPromo, onChangeC
 /* ------------------------------------------------------------------ */
 /*  Step 1 – Contact details                                           */
 /* ------------------------------------------------------------------ */
-function ContactDetailsStep({ data, onChange, onNext, valid }) {
+function ContactDetailsStep({ data, onChange, onNext, valid, step, setStep }) {
   const { t } = useTranslation();
+  const isActive = step === 1;
+  const isCompleted = step > 1;
+
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
-        <h2 className="text-lg font-bold text-slate-900">{t('booking.contactTitle')}</h2>
-        <p className="mt-0.5 text-sm text-slate-500">{t('booking.contactDesc')}</p>
+        <div className="flex items-start gap-3">
+          <StepBadge number={1} active={isActive} completed={isCompleted} />
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">{t('booking.contactTitle')}</h2>
+            <p className="mt-0.5 text-sm text-slate-500">{t('booking.contactDesc')}</p>
+          </div>
+        </div>
       </div>
 
+      {isActive && (
       <div className="space-y-5 p-6 sm:p-8">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
@@ -459,6 +473,26 @@ function ContactDetailsStep({ data, onChange, onNext, valid }) {
           </button>
         </div>
       </div>
+      )}
+
+      {isCompleted && (
+        <div className="space-y-2 p-6 sm:p-8">
+          <p className="text-sm font-semibold text-slate-900">
+            {data.firstName} {data.lastName}
+          </p>
+          <p className="text-sm text-slate-600">{data.email}</p>
+          <p className="text-sm text-slate-600">
+            {data.countryCode} {data.phone}
+          </p>
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="mt-1 text-sm font-semibold text-[color:var(--brand-green)] underline underline-offset-2"
+          >
+            Edit
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -466,8 +500,10 @@ function ContactDetailsStep({ data, onChange, onNext, valid }) {
 /* ------------------------------------------------------------------ */
 /*  Step 2 – Activity details                                          */
 /* ------------------------------------------------------------------ */
-function ActivityDetailsStep({ data, onChange, tour, onNext, valid }) {
+function ActivityDetailsStep({ data, onChange, tour, onNext, valid, step, setStep }) {
   const { t } = useTranslation();
+  const isActive = step === 2;
+  const isCompleted = step > 2;
   const [pickupQuery, setPickupQuery] = useState(data.pickupLocation);
 
   const pickupLocations = useMemo(
@@ -479,142 +515,168 @@ function ActivityDetailsStep({ data, onChange, tour, onNext, valid }) {
     return pickupLocations.filter((l) => l.toLowerCase().includes(pickupQuery.toLowerCase()));
   }, [pickupQuery, pickupLocations]);
 
+  const tourSummaryCard = (
+    <div className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+        <img
+          src={tour.image}
+          alt={tour.title}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-start gap-1.5">
+          <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-[color:var(--brand-green)]" />
+          <p className="text-xs font-medium text-[color:var(--brand-green)]">
+            {tour.cancellation}
+          </p>
+        </div>
+        <h3 className="mt-1 text-sm font-bold text-slate-900 line-clamp-2">{tour.title}</h3>
+        <p className="mt-0.5 text-xs text-slate-500 line-clamp-1">{tour.title}</p>
+        <p className="mt-0.5 text-xs text-slate-500">
+          {tour.date} &bull; {tour.time}
+        </p>
+        <p className="mt-0.5 text-xs text-slate-500">{tour.travelers}</p>
+      </div>
+    </div>
+  );
+
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
-        <h2 className="text-lg font-bold text-slate-900">{t('booking.activityTitle')}</h2>
+        <div className="flex items-start gap-3">
+          <StepBadge number={2} active={isActive} completed={isCompleted} />
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">{t('booking.activityTitle')}</h2>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-5 p-6 sm:p-8">
-        {/* Tour summary */}
-        <div className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
-          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-            <img
-              src={tour.image}
-              alt={tour.title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-start gap-1.5">
-              <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-[color:var(--brand-green)]" />
-              <p className="text-xs font-medium text-[color:var(--brand-green)]">
-                {tour.cancellation}
-              </p>
-            </div>
-            <h3 className="mt-1 text-sm font-bold text-slate-900 line-clamp-2">{tour.title}</h3>
-            <p className="mt-0.5 text-xs text-slate-500 line-clamp-1">{tour.title}</p>
-            <p className="mt-0.5 text-xs text-slate-500">
-              {tour.date} &bull; {tour.time}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-500">{tour.travelers}</p>
-          </div>
-        </div>
+      {isActive && (
+        <div className="space-y-5 p-6 sm:p-8">
+          {/* Tour summary */}
+          {tourSummaryCard}
 
-        {/* Lead traveler */}
-        <div>
-          <p className="mb-3 text-sm font-semibold text-slate-900">{t('booking.leadTraveler')}</p>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <FieldLabel required>First Name</FieldLabel>
-              <TextInput
-                value={data.leadFirstName}
-                onChange={(e) => onChange('leadFirstName', e.target.value)}
-                placeholder=""
-                valid={valid.leadFirstName}
-              />
-            </div>
-            <div>
-              <FieldLabel required>Last Name</FieldLabel>
-              <TextInput
-                value={data.leadLastName}
-                onChange={(e) => onChange('leadLastName', e.target.value)}
-                placeholder=""
-                valid={valid.leadLastName}
-              />
+          {/* Lead traveler */}
+          <div>
+            <p className="mb-3 text-sm font-semibold text-slate-900">{t('booking.leadTraveler')}</p>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <FieldLabel required>First Name</FieldLabel>
+                <TextInput
+                  value={data.leadFirstName}
+                  onChange={(e) => onChange('leadFirstName', e.target.value)}
+                  placeholder=""
+                  valid={valid.leadFirstName}
+                />
+              </div>
+              <div>
+                <FieldLabel required>Last Name</FieldLabel>
+                <TextInput
+                  value={data.leadLastName}
+                  onChange={(e) => onChange('leadLastName', e.target.value)}
+                  placeholder=""
+                  valid={valid.leadLastName}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Pickup location */}
-        <div className="relative">
-          <FieldLabel required>{t('booking.pickupLocation')}</FieldLabel>
-          <p className="mb-2 text-xs text-slate-500">{t('booking.pickupLocationDesc')}</p>
+          {/* Pickup location */}
           <div className="relative">
-            <input
-              type="text"
-              value={pickupQuery}
-              onChange={(e) => {
-                setPickupQuery(e.target.value);
-                onChange('pickupLocation', e.target.value);
-              }}
-              placeholder=""
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[color:var(--brand-green)] focus:ring-2 focus:ring-[color:var(--brand-green)]/15"
-            />
-            {pickupQuery && (
-              <button
-                type="button"
-                onClick={() => {
-                  setPickupQuery('');
-                  onChange('pickupLocation', '');
+            <FieldLabel required>{t('booking.pickupLocation')}</FieldLabel>
+            <p className="mb-2 text-xs text-slate-500">{t('booking.pickupLocationDesc')}</p>
+            <div className="relative">
+              <input
+                type="text"
+                value={pickupQuery}
+                onChange={(e) => {
+                  setPickupQuery(e.target.value);
+                  onChange('pickupLocation', e.target.value);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-          {filteredPickup.length > 0 && pickupQuery && (
-            <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-              {filteredPickup.map((loc) => (
+                placeholder=""
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[color:var(--brand-green)] focus:ring-2 focus:ring-[color:var(--brand-green)]/15"
+              />
+              {pickupQuery && (
                 <button
-                  key={loc}
                   type="button"
                   onClick={() => {
-                    setPickupQuery(loc);
-                    onChange('pickupLocation', loc);
+                    setPickupQuery('');
+                    onChange('pickupLocation', '');
                   }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  <MapPin className="size-3.5 text-slate-400" />
-                  {loc}
+                  <X className="size-4" />
                 </button>
-              ))}
+              )}
             </div>
-          )}
-        </div>
+            {filteredPickup.length > 0 && pickupQuery && (
+              <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                {filteredPickup.map((loc) => (
+                  <button
+                    key={loc}
+                    type="button"
+                    onClick={() => {
+                      setPickupQuery(loc);
+                      onChange('pickupLocation', loc);
+                    }}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                  >
+                    <MapPin className="size-3.5 text-slate-400" />
+                    {loc}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-        {/* Tour language */}
-        <div className="flex items-center gap-2">
-          <Globe className="size-4 text-slate-400" />
-          <span className="text-sm font-semibold text-slate-700">{t('booking.tourLanguage')}</span>
-          <span className="text-sm text-slate-600">{tour.language}</span>
-        </div>
+          {/* Tour language */}
+          <div className="flex items-center gap-2">
+            <Globe className="size-4 text-slate-400" />
+            <span className="text-sm font-semibold text-slate-700">{t('booking.tourLanguage')}</span>
+            <span className="text-sm text-slate-600">{tour.language}</span>
+          </div>
 
-        <div className="flex justify-end pt-2">
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={onNext}
+              disabled={!valid.all}
+              className={`inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-semibold shadow-sm transition active:scale-[0.98] ${
+                valid.all
+                  ? 'bg-[color:var(--brand-green)] text-white hover:brightness-110'
+                  : 'cursor-not-allowed bg-slate-300 text-white'
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!isActive && (
+        <div className="space-y-3 p-6 sm:p-8">
+          {tourSummaryCard}
           <button
-            onClick={onNext}
-            disabled={!valid.all}
-            className={`inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-semibold shadow-sm transition active:scale-[0.98] ${
-              valid.all
-                ? 'bg-[color:var(--brand-green)] text-white hover:brightness-110'
-                : 'cursor-not-allowed bg-slate-300 text-white'
-            }`}
+            type="button"
+            onClick={() => setStep(2)}
+            className="text-sm font-semibold text-[color:var(--brand-green)] underline underline-offset-2"
           >
-            Next
+            Edit
           </button>
         </div>
-      </div>
+      )}
     </section>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Step 3 – Payment details                                           */
+/*  Step 3 – Payment details                                          */
 /* ------------------------------------------------------------------ */
-function PaymentDetailsStep({ data, onChange, tour, onBook }) {
+function PaymentDetailsStep({ data, onChange, tour, onBook, step, setStep }) {
   const { t } = useTranslation();
+  const isActive = step === 3;
+  const isCompleted = step > 3;
   const [cardForm, setCardForm] = useState({
     name: '',
     number: '',
@@ -653,12 +715,31 @@ function PaymentDetailsStep({ data, onChange, tour, onBook }) {
         ? 'Buy with Google Pay'
         : t('booking.bookNow');
 
+  const paymentSummary = (
+    <div className="space-y-2 text-sm text-slate-700">
+      <p>
+        <span className="font-semibold">When to pay:</span>{' '}
+        {data.paymentTiming === 'now' ? `Pay now — $${tour.price.toFixed(2)}` : 'Reserve now, pay later'}
+      </p>
+      <p>
+        <span className="font-semibold">Payment method:</span>{' '}
+        {PAYMENT_METHODS.find((m) => m.id === data.paymentMethod)?.label || 'Credit / Debit Card'}
+      </p>
+    </div>
+  );
+
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
-        <h2 className="text-lg font-bold text-slate-900">{t('booking.paymentTitle')}</h2>
+        <div className="flex items-start gap-3">
+          <StepBadge number={3} active={isActive} completed={isCompleted} />
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">{t('booking.paymentTitle')}</h2>
+          </div>
+        </div>
       </div>
 
+      {isActive && (
       <div className="space-y-6 p-6 sm:p-8">
         {/* Choose when to pay */}
         <div>
@@ -950,6 +1031,22 @@ function PaymentDetailsStep({ data, onChange, tour, onBook }) {
           time.
         </p>
       </div>
+      )}
+
+      {!isActive && (
+        <div className="space-y-3 p-6 sm:p-8">
+          {paymentSummary}
+          {isCompleted && (
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="text-sm font-semibold text-[color:var(--brand-green)] underline underline-offset-2"
+            >
+              Edit
+            </button>
+          )}
+        </div>
+      )}
     </section>
   );
 }
@@ -1267,8 +1364,8 @@ export default function BookingPage() {
           ? new Date(editableTour.selectedDate).toLocaleDateString('en-US', {
               weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
             })
-          : selectedDate,
-        travelers: editableTour.adults || travelers,
+          : 'Date not selected',
+        travelers: editableTour.adults || 1,
       });
     } catch (err) {
       if (err?.status === 409) {
@@ -1314,8 +1411,6 @@ export default function BookingPage() {
   const finalPrice = editableTour.price - discount;
   const activeTour = { ...tour, ...editableTour, price: finalPrice };
 
-  const steps = [t('booking.step1'), t('booking.step2'), t('booking.step3')];
-
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Navbar />
@@ -1332,77 +1427,47 @@ export default function BookingPage() {
             {t('common.back')}
           </button>
 
-          {/* Step indicator */}
-          <div className="mb-8">
-            <StepIndicator steps={steps} currentStep={step} />
-          </div>
-
           {/* Mobile summary card */}
           <div className="mb-6 md:hidden">
             <MobileSummaryCard tour={activeTour} onChangeClick={() => setIsChangeModalOpen(true)} />
           </div>
 
-          <div className="grid gap-8 md:grid-cols-[1fr_300px] lg:grid-cols-[1fr_360px]">
-            {/* ─── Left: Form steps ─── */}
+          <div className="grid gap-8 md:grid-cols-[1fr_360px]">
+            {/* ─── Left: Vertical stepper ─── */}
             <div className="min-w-0 space-y-6">
-              <AnimatePresence mode="wait">
-                {step === 1 && (
-                  <motion.div
-                    key="step1"
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 12 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <ContactDetailsStep
-                      data={contact}
-                      onChange={handleContactChange}
-                      onNext={() => (contactValid.all ? handleNext(2) : undefined)}
-                      valid={contactValid}
-                    />
-                  </motion.div>
-                )}
+              <ContactDetailsStep
+                data={contact}
+                onChange={handleContactChange}
+                onNext={() => (contactValid.all ? handleNext(2) : undefined)}
+                valid={contactValid}
+                step={step}
+                setStep={setStep}
+              />
 
-                {step === 2 && (
-                  <motion.div
-                    key="step2"
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 12 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <ActivityDetailsStep
-                      data={activity}
-                      onChange={handleActivityChange}
-                      tour={activeTour}
-                      onNext={() => (activityValid.all ? handleNext(3) : undefined)}
-                      valid={activityValid}
-                    />
-                  </motion.div>
-                )}
+              <ActivityDetailsStep
+                data={activity}
+                onChange={handleActivityChange}
+                tour={activeTour}
+                onNext={() => (activityValid.all ? handleNext(3) : undefined)}
+                valid={activityValid}
+                step={step}
+                setStep={setStep}
+              />
 
-                {step === 3 && (
-                  <motion.div
-                    key="step3"
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 12 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <PaymentDetailsStep
-                      data={payment}
-                      onChange={handlePaymentChange}
-                      tour={activeTour}
-                      onBook={handleBook}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <PaymentDetailsStep
+                data={payment}
+                onChange={handlePaymentChange}
+                tour={activeTour}
+                onBook={handleBook}
+                step={step}
+                setStep={setStep}
+              />
             </div>
 
             {/* ─── Right: Sticky sidebar ─── */}
             <aside className="hidden md:block">
-              <div className="sticky top-28">
+              <div className="sticky top-28 space-y-4">
+                <HoldTimer />
                 <BookingSidebar
                   tour={activeTour}
                   promoCode={promoCode}

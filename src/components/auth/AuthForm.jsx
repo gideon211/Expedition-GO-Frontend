@@ -5,7 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signInWithGoogle } from "@/lib/auth";
+import {
+  signInWithGoogle,
+  getAuthReturnTo,
+  setAuthReturnTo,
+  clearAuthReturnTo,
+} from "@/lib/auth";
 
 function GoogleIcon() {
   return (
@@ -163,7 +168,10 @@ export function AuthForm({
           : t("auth.successWelcomeBack"),
       );
 
-      navigate("/", {
+      const returnTo = getAuthReturnTo() || "/";
+      clearAuthReturnTo();
+
+      navigate(returnTo, {
         state: {
           postAuthSplash: true,
           splashKind: isRegister ? "register" : "signin",
@@ -183,6 +191,11 @@ export function AuthForm({
     setGoogleLoading(true);
 
     try {
+      // Make sure the page to return to after OAuth is saved before the
+      // browser leaves for the Google flow. If nothing was saved (e.g. the
+      // user landed directly on /signin), default to home.
+      setAuthReturnTo(getAuthReturnTo() || "/");
+
       const result = await signInWithGoogle();
 
       // signInWithGoogle redirects the page for backend auth — skip navigate
@@ -190,7 +203,10 @@ export function AuthForm({
 
       setSuccess(t("auth.successGoogleSignIn"));
 
-      navigate("/", {
+      const returnTo = getAuthReturnTo() || "/";
+      clearAuthReturnTo();
+
+      navigate(returnTo, {
         state: { postAuthSplash: true, splashKind: "signin", handoffId: Date.now() },
       });
     } catch (submissionError) {

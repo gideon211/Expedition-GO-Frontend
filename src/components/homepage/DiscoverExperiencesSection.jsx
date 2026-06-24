@@ -45,7 +45,7 @@ export function DiscoverExperiencesSection() {
     <section className="py-6 sm:py-10 lg:py-12">
       <div className="section-header-row relative z-30 isolate mb-[0.6375rem] flex items-start justify-between gap-4 md:mb-2.5 xl:mb-3">
         <div className="min-w-0 flex-1">
-          <h4 className="truncate relative inline-block text-lg font-bold tracking-tight text-slate-900 sm:text-2xl">
+          <h4 className="truncate relative inline-block text-base font-bold tracking-tight text-slate-900 sm:text-2xl">
             Discover experiences your way
             <span className="absolute bottom-[-8px] left-0 h-1 w-16 rounded-full bg-gradient-to-r from-[color:var(--brand-green)] to-emerald-400 sm:bottom-[-10px] sm:w-20" />
           </h4>
@@ -123,7 +123,6 @@ export function DiscoverExperiencesSection() {
             </motion.div>
           ))}
         </motion.div>
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent" aria-hidden="true" />
         </div>
       </AnimatePresence>
 

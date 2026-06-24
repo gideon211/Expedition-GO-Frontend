@@ -111,7 +111,7 @@ export function CartItemCard({ item, now, onRemove }) {
                         key={i}
                         className={`size-3.5 ${
                           i < Math.round(rating)
-                            ? 'fill-amber-400 text-amber-400'
+                            ? 'fill-emerald-500 text-emerald-500'
                             : 'fill-slate-200 text-slate-200'
                         }`}
                       />

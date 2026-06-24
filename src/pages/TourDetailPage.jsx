@@ -593,8 +593,36 @@ function TourDetailContent() {
   const [showMobilePriceBar, setShowMobilePriceBar] = useState(false);
   const headerRef = useRef(null);
   const pricingRef = useRef(null);
+  const DUMMY_REVIEWS = [
+    { id: 'dummy-1', name: 'Sarah Johnson', date: 'Mar 2026', rating: 5, text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.' },
+    { id: 'dummy-2', name: 'Michael Chen', date: 'Feb 2026', rating: 4, text: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.' },
+    { id: 'dummy-3', name: 'Emma Williams', date: 'Jan 2026', rating: 5, text: 'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.' },
+    { id: 'dummy-4', name: 'James Rodriguez', date: 'Dec 2025', rating: 4, text: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.' },
+    { id: 'dummy-5', name: 'Olivia Brown', date: 'Nov 2025', rating: 5, text: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam.' },
+    { id: 'dummy-6', name: 'David Kim', date: 'Oct 2025', rating: 3, text: 'Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur. Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
+  ];
+
   const storedCleanup = useRef(null);
   const similarCarouselRef = useRef(null);
+  const travellersLovedRef = useRef(null);
+  const [reviewDetail, setReviewDetail] = useState(null);
+  const [showTravellersLovedLeftArrow, setShowTravellersLovedLeftArrow] = useState(false);
+  const [showTravellersLovedRightArrow, setShowTravellersLovedRightArrow] = useState(true);
+
+  const handleTravellersLovedScroll = useCallback(() => {
+    const el = travellersLovedRef.current;
+    if (!el) return;
+    setShowTravellersLovedLeftArrow(el.scrollLeft > 4);
+    setShowTravellersLovedRightArrow(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }, []);
+
+  const scrollTravellersLovedLeft = useCallback(() => {
+    travellersLovedRef.current?.scrollBy({ left: -960, behavior: 'smooth' });
+  }, []);
+
+  const scrollTravellersLovedRight = useCallback(() => {
+    travellersLovedRef.current?.scrollBy({ left: 960, behavior: 'smooth' });
+  }, []);
   const dateCalendarRef = useRef(null);
   const travelerPickerRef = useRef(null);
   const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
@@ -1050,6 +1078,56 @@ function TourDetailContent() {
       finalPrice: Math.max(0, totalPrice - discountAmount),
     };
 
+    // Logged-in users skip the cart and go straight to the checkout page
+    if (user) {
+      const travelerParts = [];
+      if (adults > 0) travelerParts.push(`${adults} Adult${adults > 1 ? 's' : ''}`);
+      if (seniors > 0) travelerParts.push(`${seniors} Senior${seniors > 1 ? 's' : ''}`);
+      if (youths > 0) travelerParts.push(`${youths} Youth${youths > 1 ? 's' : ''}`);
+      if (children > 0) travelerParts.push(`${children} Child${children > 1 ? 'ren' : ''}`);
+      if (infants > 0) travelerParts.push(`${infants} Infant${infants > 1 ? 's' : ''}`);
+
+      const tourTimeStr = timeSlots.length ? timeSlots.join(', ') : '9:00 AM';
+      let tourDateTime = new Date(bookingDateRange.start);
+      const timeMatch = tourTimeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2], 10);
+        const period = timeMatch[3].toUpperCase();
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+        tourDateTime.setHours(hours, minutes, 0, 0);
+      }
+
+      const cutoffHours = cancellationPolicy.cutoffHours || 24;
+      const cancellationDeadline = new Date(tourDateTime.getTime() - cutoffHours * 60 * 60 * 1000);
+      const cancellationText = cancellationPolicy.cutoffHours
+        ? `Free cancellation before ${cancellationDeadline.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} on ${cancellationDeadline.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} (tour local time)`
+        : refundRules || 'Free cancellation is available up to 24 hours before the experience starts local time.';
+
+      const bookingTour = {
+        ...cartItem,
+        provider: supplierData.name || 'Expedition GO Tours',
+        rating: Number(selectedTourRatingNumber) || 0,
+        reviews: Number(selectedTourReviewsNumber) || 0,
+        date: tourDateTime.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        time: tourTimeStr,
+        travelers: travelerParts.join(', ') || '1 Adult',
+        cancellation: cancellationText,
+        language: languages.length ? languages.join(', ') : tourData?.language || 'English',
+      };
+
+      setAvailabilityDialog(null);
+      navigate('/booking', { state: { tour: bookingTour } });
+      return;
+    }
+
+    // Guest users: add to cart
     const existing = hasItem(cartItem);
     if (existing) {
       setAvailabilityDialog(null);
@@ -1065,7 +1143,7 @@ function TourDetailContent() {
         navigate('/cart');
       }, 800);
     }
-  }, [availabilityDialog, bookingDateRange, id, selectedTourTitle, selectedTourDuration, totalPrice, selectedTourPriceNumber, selectedTourRatingNumber, selectedTourReviewsNumber, mergedImages, tourData, fallbackTourImage, adults, seniors, youths, children, infants, addToCart, navigate, promoApplied, promoCode, promoDiscount, hasItem]);
+  }, [availabilityDialog, bookingDateRange, id, effectiveRawTour, selectedTourTitle, selectedTourDuration, totalPrice, selectedTourPriceNumber, selectedTourRatingNumber, selectedTourReviewsNumber, mergedImages, tourData, fallbackTourImage, adults, seniors, youths, children, infants, addToCart, navigate, promoApplied, promoCode, promoDiscount, hasItem, user]);
 
   const handleOpenReplyDialog = (question) => {
     setReplyTargetQuestion(question);
@@ -2155,6 +2233,103 @@ function TourDetailContent() {
                       </div>
                     )}
 
+                    {(() => {
+                      const displayReviews = paginatedReviews.length > 0 ? paginatedReviews.slice(0, 8) : DUMMY_REVIEWS;
+                      return (
+                      <section className="mt-8">
+                        <div className="flex items-center justify-between mb-6">
+                          <h2 className="text-[calc(0.875rem*1.3)] font-black text-slate-900">
+                            What travellers loved
+                          </h2>
+                          <Link
+                            to="#reviews"
+                            onClick={() => setActiveDetailTab('reviews')}
+                            className="text-sm font-bold text-[color:var(--brand-green)] hover:underline whitespace-nowrap"
+                          >
+                            See all reviews <span aria-hidden="true">&rarr;</span>
+                          </Link>
+                        </div>
+
+                        <div className="relative">
+                          <div
+                            ref={travellersLovedRef}
+                            className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                            onScroll={handleTravellersLovedScroll}
+                          >
+                            {displayReviews.map((review) => {
+                              const initials = review.name
+                                ? review.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+                                : '?';
+                              return (
+                              <article
+                                key={review.id}
+                                className="min-w-[300px] max-w-[340px] snap-start shrink-0 rounded-xl border border-slate-200 bg-white p-5"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="grid size-9 shrink-0 place-items-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+                                    {initials}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="text-sm font-bold text-slate-900 truncate">
+                                        {review.name}
+                                      </p>
+                                      <span className="text-slate-300">·</span>
+                                      <span className="shrink-0 text-xs text-slate-400">
+                                        {review.date}
+                                      </span>
+                                    </div>
+                                    <div className="mt-0.5 flex gap-0.5 text-emerald-600" aria-hidden>
+                                      {[...Array(5)].map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          className={`size-3 ${i < review.rating ? 'fill-current' : 'fill-none text-slate-200'}`}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <p className="mt-3 text-sm leading-6 text-slate-600 line-clamp-3">
+                                  {review.text}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewDetail(review)}
+                                  className="mt-2 text-xs font-bold text-slate-700 hover:text-[color:var(--brand-green)] hover:underline"
+                                >
+                                  Read more
+                                </button>
+                              </article>
+                              );
+                            })}
+                          </div>
+
+                          {showTravellersLovedLeftArrow && (
+                            <button
+                              type="button"
+                              onClick={scrollTravellersLovedLeft}
+                              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 grid size-8 place-items-center rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md transition z-10"
+                              aria-label="Scroll left"
+                            >
+                              <ChevronLeft className="size-4 text-slate-600" />
+                            </button>
+                          )}
+                          {showTravellersLovedRightArrow && (
+                            <button
+                              type="button"
+                              onClick={scrollTravellersLovedRight}
+                              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 grid size-8 place-items-center rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md transition z-10"
+                              aria-label="Scroll right"
+                            >
+                              <ChevronRight className="size-4 text-slate-600" />
+                            </button>
+                          )}
+                        </div>
+                      </section>
+                      );
+                    })()}
+
                     <div className="mt-8 space-y-2 pt-6">
                       <div>
                         <button
@@ -2591,7 +2766,7 @@ function TourDetailContent() {
             </div>
           </div>
 
-          <section className="px-5 py-8 sm:px-6">
+          <section className="py-8">
             <div className="section-header-row relative z-30 isolate mb-3 flex items-center justify-between gap-4">
               <h2 className="text-xl font-bold text-slate-900">Similar Experiences</h2>
               <div className="section-header-actions">
@@ -2776,6 +2951,42 @@ function TourDetailContent() {
               {assistanceAside}
             </div>
           </aside>
+
+          <Dialog open={!!reviewDetail} onOpenChange={() => setReviewDetail(null)}>
+            <DialogContent className="max-w-[560px] text-slate-900">
+              <DialogTitle className="pr-8 text-lg font-black text-slate-900">
+                Review details
+              </DialogTitle>
+              {reviewDetail && (
+                <div className="mt-2 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-600 text-sm font-bold text-white">
+                      {reviewDetail.name
+                        ? reviewDetail.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+                        : '?'}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">{reviewDetail.name}</p>
+                      <p className="text-xs text-slate-400">{reviewDetail.date}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-0.5 text-emerald-600" aria-hidden>
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`size-4 ${i < reviewDetail.rating ? 'fill-current' : 'fill-none text-slate-200'}`}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="text-sm leading-7 text-slate-600">
+                    {reviewDetail.text}
+                  </p>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
 
           <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
             <DialogContent className="max-w-[560px] text-[color:var(--brand-green)]">
@@ -3155,7 +3366,7 @@ function TourDetailContent() {
               onClick={confirmBooking}
               className="flex-1 bg-[color:var(--brand-green)] text-white hover:bg-[color:var(--brand-green)]/90"
             >
-              Add to Cart
+              {user ? 'Reserve Now' : 'Add to Cart'}
             </Button>
             <button
               type="button"
@@ -3324,12 +3535,12 @@ function SupplierTabContent({
               <div className="mt-1 pl-0.1 flex items-center gap-2 text-sm text-slate-500">
                 {ratingDisplay && (
                   <>
-                    <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                    <Star className="size-3.5 fill-emerald-500 text-emerald-500" />
                     <span className="font-semibold text-slate-900">{ratingDisplay}</span>
                     <span>•</span>
                   </>
                 )}
-                <span>{supplierData.toursCount} tours</span>
+                <span>{supplierTours.length} tours</span>
               </div>
             </div>
           </div>
@@ -3412,25 +3623,38 @@ function SupplierTabContent({
       </div>
 
       <div className="mt-6">
-        <h3 className="text-[calc(1rem*1.3)] font-black text-slate-900">Tours by this supplier</h3>
-        <div className="mt-4 flex items-center gap-2 sm:gap-3">
-          <button
-            ref={scrollBtnLeftRef}
-            type="button"
-            className="hidden size-9 shrink-0 place-items-center rounded-full border border-slate-900 bg-white text-slate-900 shadow-md transition-opacity duration-200 sm:grid sm:size-10"
-            style={{ opacity: 0, pointerEvents: 'none' }}
-            aria-label={t('tourDetail.similarScrollPrev')}
-            onClick={() => scrollByDirection(-1)}
-          >
-            <ChevronLeft className="size-5" strokeWidth={2} aria-hidden />
-          </button>
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <h3 className="text-[calc(1rem*1.3)] font-black text-slate-900">Tours by this supplier</h3>
+          <div className="flex items-center gap-2">
+            <button
+              ref={scrollBtnLeftRef}
+              type="button"
+              className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+              style={{ opacity: 0, pointerEvents: 'none' }}
+              aria-label={t('tourDetail.similarScrollPrev')}
+              onClick={() => scrollByDirection(-1)}
+            >
+              <ChevronLeft className="size-4" strokeWidth={2} aria-hidden />
+            </button>
+            <button
+              ref={scrollBtnRightRef}
+              type="button"
+              className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[color:var(--brand-green)] hover:text-[color:var(--brand-green)]"
+              aria-label={t('tourDetail.similarScrollNext')}
+              onClick={() => scrollByDirection(1)}
+            >
+              <ChevronRight className="size-4" strokeWidth={2} aria-hidden />
+            </button>
+          </div>
+        </div>
 
+        <div>
           <CarouselClipTrack
             ref={scrollRef}
             className="min-w-0 flex-1"
             cardWidth={280}
             gap={16}
-            clipAt="xl"
+            clipAt={false}
             trackClassName="gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-5 md:gap-5 [&::-webkit-scrollbar]:hidden"
             style={{ WebkitOverflowScrolling: 'touch', overflowY: 'unset' }}
           >
@@ -3498,7 +3722,7 @@ function SupplierTabContent({
                       <div className="mt-auto flex items-end justify-between gap-2 pt-3">
                         <div className="flex min-w-0 items-center gap-1">
                           <Star
-                            className="size-4 shrink-0 fill-amber-500 text-amber-500"
+                            className="size-4 shrink-0 fill-emerald-500 text-emerald-500"
                             strokeWidth={1.5}
                             aria-hidden
                           />
@@ -3524,17 +3748,6 @@ function SupplierTabContent({
               );
             })}
           </CarouselClipTrack>
-
-          <button
-            ref={scrollBtnRightRef}
-            type="button"
-            className="hidden size-9 shrink-0 place-items-center rounded-full border border-slate-900 bg-white text-slate-900 shadow-md transition-opacity duration-200 sm:grid sm:size-10"
-            style={{ opacity: 0, pointerEvents: 'none' }}
-            aria-label={t('tourDetail.similarScrollNext')}
-            onClick={() => scrollByDirection(1)}
-          >
-            <ChevronRight className="size-5" strokeWidth={2} aria-hidden />
-          </button>
         </div>
       </div>
     </section>

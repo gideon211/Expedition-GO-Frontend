@@ -159,7 +159,7 @@ export function TopAttractionsNearby() {
         <div className="min-w-0 flex-1">
           <h2
             className="truncate font-bold tracking-tight text-slate-900 leading-[1.15]"
-            style={{ fontSize: 'clamp(1.25rem, 1.5vw + 0.625rem, 1.75rem)' }}
+            style={{ fontSize: 'clamp(1rem, 1.5vw + 0.5rem, 1.75rem)' }}
             title="Top Attractions Nearby"
           >
             Top Attractions Nearby

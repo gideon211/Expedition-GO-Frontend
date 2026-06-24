@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { fetchCurrentUser } from "@/lib/auth";
+import { fetchCurrentUser, getAuthReturnTo, clearAuthReturnTo } from "@/lib/auth";
 import companyLogo from "@/assets/images/new_logo.png";
 
 const AUTH_STORAGE_KEY = 'expedition_go_auth';
@@ -31,7 +31,8 @@ function AuthCallback() {
 
         window.dispatchEvent(new Event("auth-storage-changed"));
 
-        const redirect = searchParams.get("state") || "/";
+        const redirect = getAuthReturnTo() || "/";
+        clearAuthReturnTo();
         navigate(redirect, { replace: true });
       } catch (err) {
         console.error("Auth callback error:", err);

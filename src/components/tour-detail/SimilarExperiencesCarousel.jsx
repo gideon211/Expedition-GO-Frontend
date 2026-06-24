@@ -61,7 +61,8 @@ export const SimilarExperiencesCarousel = forwardRef(function SimilarExperiences
         cardWidth={260}
         gap={14}
         maxCards={5}
-        trackClassName="gap-3.5 overflow-x-auto xl:overflow-x-hidden pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-4 md:gap-4 [&::-webkit-scrollbar]:hidden"
+        clipAt={false}
+        trackClassName="gap-3.5 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-4 md:gap-4 [&::-webkit-scrollbar]:hidden"
         style={{
           WebkitOverflowScrolling: 'touch',
           overflowY: 'unset',
@@ -80,7 +81,6 @@ export const SimilarExperiencesCarousel = forwardRef(function SimilarExperiences
           ))
         )}
       </CarouselClipTrack>
-      <div className="pointer-events-none absolute right-0 inset-y-0 w-32 bg-gradient-to-r from-transparent to-white z-10 hidden xl:block" />
     </section>
   );
 });

@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import companyPic from '@/assets/images/new_logo.png';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { setAuthReturnTo } from '@/lib/auth';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useSearchAutocomplete } from '@/hooks/useSearchAutocomplete';
 import { SearchAutocomplete } from './SearchAutocomplete';
@@ -137,6 +138,7 @@ export function Navbar({
       event.preventDefault();
       if (isNavigatingToAuth) return;
 
+      setAuthReturnTo(window.location.pathname + window.location.search);
       setIsNavigatingToAuth(true);
       setIsUserMenuOpen(false);
       setIsMobileMenuOpen(false);
@@ -530,14 +532,17 @@ export function Navbar({
                           <Headset className="size-4" />
                           <span>{t('nav.support')}</span>
                         </Link>
-                        <button
-                          onClick={() => setIsUserMenuOpen(false)}
+                        <Link
+                          to="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsUserMenuOpen(false);
+                          }}
                           className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                         >
                           <Globe className="size-4" />
                           <span>{t('nav.updates')}</span>
-                        </button>
-                        <div className="border-t border-slate-100 my-1" />
+                        </Link>
                         <Link
                           to="/cart"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -565,6 +570,14 @@ export function Navbar({
                             />
                           </svg>
                           <span>{t('nav.bookings')}</span>
+                        </Link>
+                        <Link
+                          to="/settings"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
+                        >
+                          <Settings className="size-4" />
+                          <span>{t('nav.settings')}</span>
                         </Link>
                       </div>
                       <div className="border-t border-slate-100 p-2">
@@ -624,7 +637,6 @@ export function Navbar({
                           <Globe className="size-4" />
                           <span>{t('nav.updates')}</span>
                         </Link>
-                        <div className="border-t border-slate-100 my-1" />
                         <Link
                           to="/cart"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -876,6 +888,17 @@ export function Navbar({
               >
                 <Headset className="size-4" />
                 <span className="text-sm">{t('nav.support')}</span>
+              </Link>
+              <Link
+                to="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  closeMobileMenu();
+                }}
+                className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950"
+              >
+                <Globe className="size-4" />
+                <span className="text-sm">{t('nav.updates')}</span>
               </Link>
               <Link
                 to={supplierNav.href}

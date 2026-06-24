@@ -229,7 +229,7 @@ function SupplierPage() {
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
               {ratingDisplay && (
                 <>
-                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                  <Star className="size-3.5 fill-emerald-500 text-emerald-500" />
                   <span className="font-semibold text-slate-900">{ratingDisplay}</span>
                   <span>•</span>
                 </>
@@ -341,7 +341,7 @@ function SupplierPage() {
                       <div className="mt-auto flex items-end justify-between gap-2 pt-3">
                         <div className="flex min-w-0 items-center gap-1">
                           <Star
-                            className="size-4 shrink-0 fill-amber-500 text-amber-500"
+                            className="size-4 shrink-0 fill-emerald-500 text-emerald-500"
                             strokeWidth={1.5}
                             aria-hidden
                           />

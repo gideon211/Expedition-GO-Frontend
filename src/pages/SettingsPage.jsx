@@ -5,6 +5,7 @@
  */
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { setAuthReturnTo } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -169,8 +170,10 @@ export default function SettingsPage() {
   /* auth guard */
   useEffect(() => {
     if (loading) return;
-    if (!user) navigate('/signin', { replace: true });
-    else setIsAuthorized(true);
+    if (!user) {
+      setAuthReturnTo(window.location.pathname + window.location.search);
+      navigate('/signin', { replace: true });
+    } else setIsAuthorized(true);
   }, [user, loading, navigate]);
 
   useEffect(() => {
@@ -234,7 +237,7 @@ export default function SettingsPage() {
         <div className="mx-auto max-w-[1520px] px-4 pb-16 pt-6 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
             {/* ─── Sidebar ─── */}
-            <aside className="space-y-6">
+            <aside className="h-fit space-y-6 lg:sticky lg:top-28">
               {/* Profile mini-card */}
               <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
                 <div className="relative px-6 pb-6 pt-16 text-center">

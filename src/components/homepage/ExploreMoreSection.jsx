@@ -86,7 +86,7 @@ export function ExploreMoreSection() {
             <h2
               id="explore-more-heading"
               className="font-bold tracking-tight text-slate-900"
-              style={{ fontSize: 'clamp(1.25rem, 2vw + 0.5rem, 1.75rem)' }}
+              style={{ fontSize: 'clamp(1rem, 2vw + 0.375rem, 1.75rem)' }}
             >
               {t('exploreMore.title')}
             </h2>
