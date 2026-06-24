@@ -63,7 +63,7 @@ import { useNavigationLoader } from '@/contexts/NavigationContext';
 import { useTourById } from '@/hooks/useTourById';
 import { useRecentlyViewedStorage } from '@/hooks/useRecentlyViewedStorage';
 import { fetchTourAvailability, fetchTourOffers } from '@/api/tours';
-import { validatePromoCode } from '@/api/bookings';
+import { validatePromoCode, getMyBookings } from '@/api/bookings';
 import { createReview, fetchTourReviews } from '@/api/reviews';
 import {
   adaptTourDetail,
@@ -608,12 +608,14 @@ function TourDetailContent() {
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
   const [loadingMoreReviews, setLoadingMoreReviews] = useState(false);
   const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
-  const [writeReviewDisplayName, setWriteReviewDisplayName] = useState('');
+  const [writeReviewDisplayName, setWriteReviewDisplayName] = useState(''); // kept for fallback display only
   const [writeReviewRating, setWriteReviewRating] = useState(5);
   const [writeReviewText, setWriteReviewText] = useState('');
   const [writeReviewFiles, setWriteReviewFiles] = useState([]);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [travelerSubmittedReviews, setTravelerSubmittedReviews] = useState([]);
+  const [reviewBookingId, setReviewBookingId] = useState(null);
+  const [reviewBookingChecked, setReviewBookingChecked] = useState(false);
   const persistedReviewPhotoUrlsRef = useRef(new Set());
   const [adults, setAdults] = useState(2);
   const [seniors, setSeniors] = useState(0);
@@ -1068,17 +1070,35 @@ function TourDetailContent() {
     setReplyMessage('');
   };
 
+  useEffect(() => {
+    if (!isWriteReviewOpen || !rawTour?.id || !user) return;
+    let cancelled = false;
+    setReviewBookingId(null);
+    setReviewBookingChecked(false);
+    getMyBookings({ tourId: rawTour.id, status: 'COMPLETED', limit: 1 })
+      .then((data) => {
+        if (!cancelled) {
+          if (data?.bookings?.length) setReviewBookingId(data.bookings[0].id);
+          setReviewBookingChecked(true);
+        }
+      })
+      .catch(() => { if (!cancelled) setReviewBookingChecked(true); });
+    return () => { cancelled = true; };
+  }, [isWriteReviewOpen, rawTour?.id, user]);
+
   const resetWriteReviewForm = () => {
     setWriteReviewDisplayName('');
     setWriteReviewRating(5);
     setWriteReviewText('');
     setWriteReviewFiles([]);
+    setReviewBookingId(null);
+    setReviewBookingChecked(false);
   };
 
   const handleWriteReviewFileInput = (event) => {
     const list = event.target.files;
     if (!list?.length) return;
-    setWriteReviewFiles((prev) => [...prev, ...Array.from(list)].slice(0, 12));
+    setWriteReviewFiles((prev) => [...prev, ...Array.from(list)].slice(0, 10));
     event.target.value = '';
   };
 
@@ -1100,7 +1120,7 @@ function TourDetailContent() {
       const fd = new FormData();
       fd.append('rating', String(writeReviewRating));
       fd.append('tourId', rawTour.id);
-      if (writeReviewDisplayName.trim()) fd.append('title', writeReviewDisplayName.trim());
+      if (reviewBookingId) fd.append('bookingId', reviewBookingId);
       fd.append('comment', text);
       for (const file of writeReviewFiles) {
         fd.append('photos', file);
@@ -1121,7 +1141,7 @@ function TourDetailContent() {
         ...prev,
         {
           id: created?.id || `traveler-${Date.now()}`,
-          name: created?.customer?.name || writeReviewDisplayName.trim() || 'You',
+          name: created?.customer?.name || 'You',
           tag: created?.verified ? 'Verified' : 'Traveler',
           date: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
           rating: writeReviewRating,
@@ -2836,23 +2856,17 @@ function TourDetailContent() {
                 Traveler photos panel.
               </p>
 
+              {reviewBookingChecked && (
+                <p className="mt-2 flex items-center gap-1.5 text-xs">
+                  {reviewBookingId ? (
+                    <><Check className="size-3.5 text-emerald-600" /> <span className="text-emerald-700">Verified review</span></>
+                  ) : (
+                    <span className="text-amber-600">Reviewing as unverified traveler</span>
+                  )}
+                </p>
+              )}
+
               <form onSubmit={handleSubmitTravelerReview} className="mt-5 space-y-4">
-                <div>
-                  <label className="block text-sm font-black" htmlFor="write-review-name">
-                    Your name{' '}
-                    <span className="font-normal text-[color:var(--brand-green)]/65">
-                      (optional)
-                    </span>
-                  </label>
-                  <input
-                    id="write-review-name"
-                    type="text"
-                    value={writeReviewDisplayName}
-                    onChange={(e) => setWriteReviewDisplayName(e.target.value)}
-                    placeholder="e.g. Alex M."
-                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-[color:var(--brand-green)] focus:ring-2 focus:ring-[color:var(--brand-green)]/20"
-                  />
-                </div>
 
                 <div>
                   <p className="text-sm font-black">Your rating</p>

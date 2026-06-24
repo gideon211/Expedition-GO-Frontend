@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import {
@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Navbar } from '@/components/homepage/Navbar';
 import { createReview } from '@/api/reviews';
+import { getMyBookings } from '@/api/bookings';
 
 function RatingCircle({ filled, onClick, size = 'md' }) {
   const sizeClasses = size === 'sm' ? 'size-8' : 'size-9';
@@ -113,7 +114,21 @@ export default function ReviewExperiencePage() {
   const fileInputRef = useRef(null);
 
   const tourId = stateTour?.tourId || stateTour?.id || null;
-  const bookingId = stateTour?.bookingId || location.state?.booking?.id || null;
+  const initialBookingId = stateTour?.bookingId || location.state?.booking?.id || null;
+  const [resolvedBookingId, setResolvedBookingId] = useState(initialBookingId);
+
+  useEffect(() => {
+    if (resolvedBookingId || !tourId || !user) return;
+    let cancelled = false;
+    getMyBookings({ tourId, status: 'COMPLETED', limit: 1 })
+      .then((data) => {
+        if (!cancelled && data?.bookings?.length) {
+          setResolvedBookingId(data.bookings[0].id);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [tourId, user, resolvedBookingId]);
 
   const handleSubmitReview = async () => {
     if (!overallRating) {
@@ -142,7 +157,7 @@ export default function ReviewExperiencePage() {
       const fd = new FormData();
       fd.append('rating', String(overallRating));
       fd.append('tourId', tourId);
-      if (bookingId) fd.append('bookingId', bookingId);
+      if (resolvedBookingId) fd.append('bookingId', resolvedBookingId);
       if (reviewTitle.trim()) fd.append('title', reviewTitle.trim());
       fd.append('comment', reviewText.trim());
       if (subRatings.valueForMoney) fd.append('valueForMoneyRating', String(subRatings.valueForMoney));
@@ -186,8 +201,8 @@ export default function ReviewExperiencePage() {
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
     const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setUploadedPhotos((prev) => [...prev, ...files].slice(0, 12));
-    setPhotoPreviews((prev) => [...prev, ...newPreviews].slice(0, 12));
+    setUploadedPhotos((prev) => [...prev, ...files].slice(0, 10));
+    setPhotoPreviews((prev) => [...prev, ...newPreviews].slice(0, 10));
   };
 
   const removePhoto = (index) => {
