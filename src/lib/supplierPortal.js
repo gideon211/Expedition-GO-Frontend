@@ -4,7 +4,7 @@
  */
 import { getMyPayoutMethods } from '@/api/payout';
 import { getSupplierApplicationStatus } from '@/api/supplier';
-import { waitForAuthToken } from '@/lib/auth';
+import { waitForAuthToken, refreshAuthToken } from '@/lib/auth';
 
 /** Active suppliers manage tours via the external supplier dashboard. */
 export const SUPPLIER_PORTAL_ORIGIN =
@@ -271,7 +271,15 @@ export function getSupplierNavTarget({ hasApplication, portalReady, needsPayout,
 export async function redirectToSupplierPortalLogin() {
   if (typeof window === 'undefined') return;
 
-  const token = await waitForAuthToken(8000);
+  let token = await waitForAuthToken(8000);
+
+  if (!token) {
+    try {
+      token = await refreshAuthToken();
+    } catch {
+    }
+  }
+
   window.location.replace(token ? buildSupplierPortalHandoffUrl(token) : SUPPLIER_PORTAL_LOGIN_URL);
 }
 

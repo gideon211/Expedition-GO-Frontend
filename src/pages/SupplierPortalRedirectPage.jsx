@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import BrandLoader from '@/components/ui/BrandLoader';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { waitForAuthToken } from '@/lib/auth';
+import { waitForAuthToken, refreshAuthToken } from '@/lib/auth';
 import {
   buildSupplierPortalHandoffUrl,
   fetchSupplierAccessSnapshot,
@@ -50,7 +50,16 @@ export default function SupplierPortalRedirectPage() {
           return;
         }
 
-        const token = await waitForAuthToken(8000);
+        let token = await waitForAuthToken(8000);
+        if (cancelled) return;
+
+        if (!token) {
+          try {
+            token = await refreshAuthToken();
+          } catch {
+          }
+        }
+
         if (cancelled) return;
 
         if (!token) {

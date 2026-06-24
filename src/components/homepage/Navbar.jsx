@@ -467,7 +467,7 @@ export function Navbar({
             </span>
           </Link>
           <Link
-            to={supplierNav.portalReady ? supplierNav.href : '/supplier/portal'}
+            to={supplierNav.href}
             className="group font-semibold flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 lg:p-2 xl:p-0"
           >
             <Store className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
@@ -878,7 +878,7 @@ export function Navbar({
                 <span className="text-sm">{t('nav.support')}</span>
               </Link>
               <Link
-                to={supplierNav.portalReady ? supplierNav.href : '/supplier/portal'}
+                to={supplierNav.href}
                 onClick={closeMobileMenu}
                 className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950"
               >

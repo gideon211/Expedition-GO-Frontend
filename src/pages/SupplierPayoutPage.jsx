@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Landmark,
   Smartphone,
@@ -625,7 +626,12 @@ export default function SupplierPayoutPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="flex min-h-screen flex-col bg-white"
+    >
       <Dialog
         open={Boolean(deleteTarget)}
         onOpenChange={(open) => {
@@ -828,8 +834,8 @@ export default function SupplierPayoutPage() {
               {renderForm()}
             </div>
           </>
-        )}
+          )}
       </div>
-    </div>
+    </motion.div>
   );
 }

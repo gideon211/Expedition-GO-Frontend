@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Mail,
@@ -362,20 +363,30 @@ function SupplierSignInPage() {
     }
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-12"
+      >
         <div className="mb-8 flex justify-center">
           <Link to="/" state={{ postAuthSplash: true }} className="inline-block">
             <img src={companyLogo} alt="TravioAfrica" className="h-auto w-[220px] object-contain" />
           </Link>
         </div>
         <SupplierStatusDashboard status={supplierStatus} payoutComplete={payoutComplete} />
-      </div>
+      </motion.div>
     );
   }
 
   // Show sign-in form
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-12"
+    >
       <div className="w-full max-w-[420px]">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
@@ -533,7 +544,7 @@ function SupplierSignInPage() {
           .
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

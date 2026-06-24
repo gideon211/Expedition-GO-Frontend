@@ -221,14 +221,14 @@ export default function ReviewExperiencePage() {
         >
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
 
-        <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
           {/* ========== LEFT COLUMN ========== */}
           <aside className="shrink-0 lg:w-[340px] lg:pr-10">
             {/* Page Heading */}
             <h1 className="mb-6 text-[28px] font-black leading-[1.1] tracking-tight text-slate-900 sm:text-[34px] lg:text-[42px]">
               Tell Us, How Was Your Trip
             </h1>
-            <div className="sticky top-[calc(var(--navbar-offset)+1rem)] space-y-6 lg:border-r lg:border-slate-200 lg:-mr-10 lg:pr-10">
+            <div className="review-sidebar space-y-6 lg:border-r lg:border-slate-200 lg:-mr-10 lg:pr-10">
               {/* Tour Info Card */}
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">

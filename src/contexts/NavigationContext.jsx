@@ -38,7 +38,11 @@ export function NavigationProvider({ children }) {
 
   useEffect(() => {
     if (!isNavigating) return;
-    if (location.pathname === '/signin' || location.pathname === '/register') {
+    if (
+      location.pathname.startsWith('/supplier/') ||
+      location.pathname === '/signin' ||
+      location.pathname === '/register'
+    ) {
       if (safetyRef.current) clearTimeout(safetyRef.current);
       setIsNavigating(false);
       setNavigationTarget(null);

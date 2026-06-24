@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { LoaderCircle } from 'lucide-react';
 import { SupplierApplicationForm } from '@/components/supplier/SupplierApplicationForm';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -67,7 +68,12 @@ function SupplierRegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white px-4 py-10 sm:py-16">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="min-h-screen bg-white px-4 py-10 sm:py-16"
+    >
       <div className="mx-auto w-full max-w-[720px]">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
@@ -119,7 +125,7 @@ function SupplierRegisterPage() {
           .
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

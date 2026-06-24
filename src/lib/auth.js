@@ -63,7 +63,16 @@ export async function getAuthToken() {
   return accessToken || null;
 }
 
-export async function waitForAuthToken(_maxMs = 5000) {
+export async function waitForAuthToken(maxMs = 5000) {
+  const start = Date.now();
+  const interval = 250;
+
+  while (Date.now() - start < maxMs) {
+    const { accessToken } = getStoredAuth();
+    if (accessToken) return accessToken;
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+
   const { accessToken } = getStoredAuth();
   return accessToken || null;
 }

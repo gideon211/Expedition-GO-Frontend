@@ -37,6 +37,7 @@ import {
   MapPin,
   Upload,
   Grid3X3,
+  Image,
   MessageSquare,
   Phone,
   Mail,
@@ -1697,28 +1698,19 @@ function TourDetailContent() {
               </div>
             </header>
 
-          <div className="mt-5 grid gap-6 xl:grid-cols-[minmax(0,1fr)_370px] xl:items-stretch">
+          <div className="tour-layout-grid mt-5">
             <section className="grid min-w-0 gap-2 lg:grid-cols-[130px_minmax(0,1fr)] 2xl:grid-cols-[150px_minmax(0,1fr)]">
               <div className="hidden h-[520px] grid-rows-4 gap-2 lg:grid">
-                {thumbnailStripImages.map(({ image, index }, thumbnailIndex) => {
+                {thumbnailStripImages.map(({ image, index }) => {
                   const isSelected = index === currentImageIndex;
-                  const isLastVisibleThumbnail = thumbnailIndex === thumbnailStripImages.length - 1;
 
                   return (
                     <button
                       key={`gallery-strip-${index}`}
                       type="button"
-                      onClick={() =>
-                        isLastVisibleThumbnail
-                          ? handleOpenGallery(index, 'grid')
-                          : setCurrentImageIndex(index)
-                      }
+                      onClick={() => setCurrentImageIndex(index)}
                       className={`group relative overflow-hidden rounded-lg bg-slate-100 ring-offset-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] ${isSelected ? 'ring-2 ring-[color:var(--brand-green)]' : ''}`}
-                      aria-label={
-                        isLastVisibleThumbnail
-                          ? 'See more tour photos'
-                          : `Show tour image ${index + 1}`
-                      }
+                      aria-label={`Show tour image ${index + 1}`}
                     >
                       <img
                         src={image || fallbackTourImage}
@@ -1727,11 +1719,7 @@ function TourDetailContent() {
                         onError={handleImageError}
                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                       />
-                      {isLastVisibleThumbnail && (
-                        <span className="absolute inset-0 grid place-items-center bg-black/45 px-3 text-sm font-black text-white">
-                          See More
-                        </span>
-                      )}
+
                     </button>
                   );
                 })}
@@ -1813,9 +1801,10 @@ function TourDetailContent() {
                 <button
                   type="button"
                   onClick={() => handleOpenGallery(currentImageIndex, 'grid')}
-                  className="absolute bottom-3 right-3 rounded-md bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white shadow-sm lg:hidden"
+                  className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-md bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white shadow-sm"
                 >
-                  View all photos
+                  <Image className="size-3.5" />
+                  View All
                 </button>
                 {/* Dot pagination — mobile only */}
                 <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 lg:hidden">
@@ -1836,8 +1825,8 @@ function TourDetailContent() {
               </div>
             </section>
 
-            <aside id="booking-section" ref={pricingRef} className="flex min-h-[calc(300px+6rem+0.5rem)] flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-[0_2px_18px_rgba(15,23,42,0.08)] sm:min-h-[calc(430px+6rem+0.5rem)] lg:min-h-[520px] xl:h-full xl:sticky xl:top-36 xl:z-40">
-              <div className="flex flex-1 flex-col text-sm text-[color:var(--brand-green)]">
+            <aside id="booking-section" ref={pricingRef} className="xl:z-40">
+              <div className="tour-sidebar flex min-h-[calc(300px+6rem+0.5rem)] flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-[0_2px_18px_rgba(15,23,42,0.08)] sm:min-h-[calc(430px+6rem+0.5rem)] lg:min-h-[520px] text-sm text-[color:var(--brand-green)]">
                 <p>
                   <span className="font-black">From {convertedUnitPrice.formatted}</span> per adult{' '}
                   <span className="text-xs">(price varies by group size)</span>
@@ -2531,16 +2520,7 @@ function TourDetailContent() {
                     </section>
 
                     <section id="qa" className="pb-8">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-black text-[color:var(--brand-green)]">Q&A</h2>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenReplyDialog(qaItems[0])}
-                          className="rounded-full border border-[color:var(--brand-green)] px-5 py-2 text-sm font-bold transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
-                        >
-                          Ask a question
-                        </button>
-                      </div>
+                      <h2 className="text-lg font-black text-[color:var(--brand-green)]">Q&A</h2>
                       <div className="mt-5 space-y-8">
                         {qaItems.map((item) => (
                           <article key={item.question}>

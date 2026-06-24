@@ -714,3 +714,52 @@ body.hero--search-sticky .hero-search-wrap {
   position: relative;
   z-index: 1;
 }
+
+/* ============================================
+   Tour Layout — sticky sidebar pattern
+   ============================================ */
+
+/**
+ * Two-column grid for tour detail pages.
+ * CRITICAL: align-items: start prevents the sidebar wrapper from stretching
+ * to the full page height, which would break the sticky container boundary.
+ */
+.tour-layout-grid {
+  display: grid;
+  gap: 1.5rem; /* 24px */
+}
+
+@media (min-width: 1280px) {
+  .tour-layout-grid {
+    grid-template-columns: minmax(0, 1fr) 370px;
+  }
+}
+
+/**
+ * Sticky sidebar for the booking panel.
+ * - top: 9rem clears the fixed navbar
+ * - max-height + overflow-y: auto prevents the box from being cut off
+ *   on short viewports by adding an internal scrollbar.
+ */
+.tour-sidebar {
+  position: relative;
+}
+
+@media (min-width: 1280px) {
+  .tour-sidebar {
+    position: sticky;
+    top: 9rem;
+    max-height: calc(100vh - 10.5rem);
+    overflow-y: auto;
+  }
+}
+
+/**
+ * Sticky sidebar for review pages.
+ */
+.review-sidebar {
+  position: sticky;
+  top: calc(var(--navbar-offset) + 1rem);
+  max-height: calc(100vh - var(--navbar-offset) - 3rem);
+  overflow-y: auto;
+}
