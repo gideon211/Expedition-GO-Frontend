@@ -53,16 +53,18 @@ export function PlaceCard({
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{
-        y: -3,
-        transition: { type: 'spring', stiffness: 260, damping: 22 },
-      }}
       className={cn(
         'w-full overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900',
         className
       )}
     >
-      <div className="group relative h-64 overflow-hidden bg-slate-100">
+      <motion.div 
+        className="group relative h-64 overflow-hidden bg-slate-100"
+        whileHover={{
+          scale: 1.05,
+          transition: { type: 'spring', stiffness: 260, damping: 22 },
+        }}
+      >
         {currentImage ? (
           <AnimatePresence initial={false} custom={direction}>
             <motion.img
@@ -131,7 +133,7 @@ export function PlaceCard({
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
 
       <div className="space-y-4 p-5">
         <div className="space-y-2">

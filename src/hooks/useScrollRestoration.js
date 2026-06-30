@@ -21,6 +21,11 @@ export function useScrollRestoration() {
 
   useEffect(() => {
     if (isHomePage) {
+      if (location.state?.reviewReturnHomeSkeleton) {
+        window.scrollTo(0, 0);
+        return;
+      }
+
       // Homepage: Restore previous scroll position immediately
       const savedPosition = sessionStorage.getItem(HOMEPAGE_SCROLL_KEY);
       if (savedPosition) {
@@ -31,7 +36,7 @@ export function useScrollRestoration() {
       // All other pages: Scroll to top immediately
       window.scrollTo(0, 0);
     }
-  }, [location.pathname, isHomePage]);
+  }, [location.pathname, location.state?.reviewReturnHomeSkeleton, isHomePage]);
 
   useEffect(() => {
     if (!isHomePage) return;

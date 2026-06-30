@@ -59,6 +59,7 @@ import { useRecentlyViewedStorage } from '@/hooks/useRecentlyViewedStorage';
 
 /** Post–sign-in/register handoff: show brand splash, stay under ~1200ms. */
 const POST_AUTH_SPLASH_MS = 700;
+const REVIEW_RETURN_SKELETON_MS = 520;
 
 function LoadingCarouselSection({ title }) {
   return (
@@ -95,6 +96,7 @@ function HomePageContent() {
     Boolean(location.state?.skipHomeSkeletonDelay || location.state?.showQuickHomeSkeleton)
   );
   const [showPostAuthSplash] = useState(() => Boolean(location.state?.postAuthSplash));
+  const [showReviewReturnSkeleton] = useState(() => Boolean(location.state?.reviewReturnHomeSkeleton));
   const [authHandoffId] = useState(() =>
     typeof location.state?.handoffId === 'number' && Number.isFinite(location.state.handoffId)
       ? location.state.handoffId
@@ -102,6 +104,9 @@ function HomePageContent() {
   );
   const [splashKind] = useState(() => location.state?.splashKind ?? 'signin');
   const [splashVisible, setSplashVisible] = useState(() => Boolean(location.state?.postAuthSplash));
+  const [reviewReturnSkeletonVisible, setReviewReturnSkeletonVisible] = useState(() =>
+    Boolean(location.state?.reviewReturnHomeSkeleton)
+  );
   /** Home fetch waits until splash ends so skeleton can run after splash (not during). */
   const homeDataEnabled = !showPostAuthSplash || !splashVisible;
   const homeLoad = useHomePageData({
@@ -228,7 +233,7 @@ function HomePageContent() {
   const allCarouselSlots = [...carouselSlots, ...extraSlots];
 
   const homeReady =
-    homeDataEnabled && Boolean(homeLoad.data?.loaded);
+    homeDataEnabled && Boolean(homeLoad.data?.loaded) && !reviewReturnSkeletonVisible;
   const showLogoutToast = Boolean(location.state?.showLogoutToast);
   const { data: newToursData } = useAllTours({
     sortBy: 'createdAt',
@@ -287,7 +292,39 @@ function HomePageContent() {
   }, [showPostAuthSplash]);
 
   useEffect(() => {
-    if (!location.state?.skipHomeSkeletonDelay && !location.state?.postAuthSplash) {
+    if (!showReviewReturnSkeleton) {
+      return;
+    }
+
+    const id = window.setTimeout(
+      () => setReviewReturnSkeletonVisible(false),
+      REVIEW_RETURN_SKELETON_MS
+    );
+    return () => window.clearTimeout(id);
+  }, [showReviewReturnSkeleton]);
+
+  useEffect(() => {
+    if (!homeReady || !showReviewReturnSkeleton || !location.hash) {
+      return;
+    }
+
+    const id = window.setTimeout(() => {
+      const target = document.getElementById(location.hash.slice(1));
+      target?.scrollIntoView({ block: 'start', behavior: 'auto' });
+    }, 0);
+
+    return () => window.clearTimeout(id);
+  }, [homeReady, showReviewReturnSkeleton, location.hash]);
+
+  useEffect(() => {
+    if (
+      !location.state?.skipHomeSkeletonDelay &&
+      !location.state?.postAuthSplash &&
+      !location.state?.reviewReturnHomeSkeleton
+    ) {
+      return;
+    }
+    if (location.state?.reviewReturnHomeSkeleton && !homeReady) {
       return;
     }
 
@@ -298,6 +335,8 @@ function HomePageContent() {
   }, [
     location.state?.skipHomeSkeletonDelay,
     location.state?.postAuthSplash,
+    location.state?.reviewReturnHomeSkeleton,
+    homeReady,
     navigate,
     location.pathname,
     location.search,

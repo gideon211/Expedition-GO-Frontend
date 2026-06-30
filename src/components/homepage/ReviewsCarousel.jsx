@@ -7,6 +7,7 @@ import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { slugify } from '@/lib/slugify';
 
 export const peopleReviews = [
   {
@@ -113,7 +114,7 @@ export function ReviewsCarousel() {
     const card = el.firstElementChild;
     if (!card) return;
     const cardWidth = card.clientWidth;
-    const gap = parseFloat(getComputedStyle(el).columnGap) || 16;
+    const gap = parseFloat(window.getComputedStyle(el).columnGap) || 16;
     const scrollAmount = (cardWidth + gap) * 3;
     const target = el.scrollLeft + direction * scrollAmount;
     el.scrollTo({ left: Math.max(0, Math.min(target, el.scrollWidth - el.clientWidth)), behavior: 'smooth' });
@@ -197,7 +198,15 @@ export function ReviewsCarousel() {
                 <div className="mt-4">
                   <button
                     type="button"
-                    onClick={() => navigate(`/review/${encodeURIComponent(review.title)}`, { state: { returnTo: '/#reviews-carousel', tour: { title: review.title, image: review.image, rating: 5, reviews: 120, duration: '4h', location: 'Ghana' } } })}
+                    onClick={() => {
+                      const reviewSlug = slugify(review.title);
+                      navigate(`/review/${reviewSlug}`, {
+                        state: {
+                          returnTo: '/#reviews-carousel',
+                          tour: { title: review.title, slug: reviewSlug, image: review.image, rating: 5, reviews: 120, duration: '4h', location: 'Ghana' },
+                        },
+                      });
+                    }}
                     className="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
                   >
                     View Experience

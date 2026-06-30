@@ -2,23 +2,27 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import {
+  ChevronDown,
   ChevronRight,
   Info,
+  Sparkles,
   Camera,
   Image,
   ArrowLeft,
+  Star,
+  MapPin,
+  Clock,
   Calendar,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import '@/styles/datepicker-custom.css';
+import { AppleCalendarPicker } from '@/components/ui/apple-calendar-picker';
 import { Navbar } from '@/components/homepage/Navbar';
 import { createReview } from '@/api/reviews';
 import { getMyBookings } from '@/api/bookings';
 import { PlaceCard } from '@/components/ui/card-22';
 import { setAuthReturnTo } from '@/lib/auth';
+import { slugify } from '@/lib/slugify';
 
 const REVIEW_DRAFT_STORAGE_PREFIX = 'eg_review_draft:';
 const REVIEW_SUBMISSION_STORAGE_PREFIX = 'eg_submitted_review:';
@@ -82,6 +86,20 @@ function getBookingIdFromStateBooking(booking) {
   return null;
 }
 
+function isHomeReturnPath(path) {
+  return path === '/' || path.startsWith('/#') || path.startsWith('/?');
+}
+
+function titleFromSlug(slug) {
+  if (!slug) return '';
+  if (/\s/.test(slug)) return slug;
+  return slug
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 function StarRating({ value, onChange, count = 5 }) {
   return (
     <div className="flex items-center gap-2">
@@ -122,15 +140,29 @@ function CompanionToggle({ label, active, onClick }) {
   );
 }
 
+// Month names for date display
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 export default function ReviewExperiencePage() {
-  const { tourTitle } = useParams();
+  const { tourTitle: tourSlugParam } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const stateTour = location.state?.tour;
-  const decodedTitle = tourTitle ? decodeURIComponent(tourTitle) : 'Cape Coast Castle, Elmina Castle & Kakum National Park Day Tour';
-  const savedDraft = useMemo(() => readReviewDraft(decodedTitle), [decodedTitle]);
-  const returnTo = location.state?.returnTo || savedDraft?.returnTo || `/tour/${encodeURIComponent(decodedTitle)}#reviews`;
+  const routeSlug = tourSlugParam ? decodeURIComponent(tourSlugParam) : '';
+  const normalizedRouteSlug = routeSlug && /\s/.test(routeSlug) ? slugify(routeSlug) : routeSlug;
+  const draftKey = stateTour?.slug || normalizedRouteSlug || stateTour?.title || 'unknown-tour';
+  const savedDraft = useMemo(() => readReviewDraft(draftKey), [draftKey]);
+  const decodedTitle =
+    stateTour?.title ||
+    savedDraft?.tour?.title ||
+    titleFromSlug(routeSlug) ||
+    'Cape Coast Castle, Elmina Castle & Kakum National Park Day Tour';
+  const tourSlug = stateTour?.slug || savedDraft?.tour?.slug || normalizedRouteSlug || slugify(decodedTitle);
+  const returnTo = location.state?.returnTo || savedDraft?.returnTo || `/tour/${tourSlug}#reviews`;
   const tour = useMemo(
     () =>
       stateTour ||
@@ -143,11 +175,12 @@ export default function ReviewExperiencePage() {
         image:
           'https://images.unsplash.com/photo-1589656966895-2f33e7653819?auto=format&fit=crop&w=600&q=80',
         location: 'Accra, Ghana',
+        slug: tourSlug,
         supplierName: 'Expedition-Go Tours Ltd',
         supplierLogo:
           'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=120&q=80',
       },
-    [decodedTitle, savedDraft?.tour, stateTour],
+    [decodedTitle, savedDraft?.tour, stateTour, tourSlug],
   );
   const tourCardImages = [
     tour.image,
@@ -172,6 +205,7 @@ export default function ReviewExperiencePage() {
     meeting: savedDraft?.subRatings?.meeting || 0,
   });
   const [selectedDate, setSelectedDate] = useState(() => parseDraftDate(savedDraft?.selectedDate));
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [companions, setCompanions] = useState({
     business: Boolean(savedDraft?.companions?.business),
     couples: Boolean(savedDraft?.companions?.couples),
@@ -206,7 +240,7 @@ export default function ReviewExperiencePage() {
 
     if (!hasDraftContent) return;
 
-    writeReviewDraft(decodedTitle, {
+    writeReviewDraft(draftKey, {
       tour,
       tourId,
       resolvedBookingId,
@@ -222,6 +256,7 @@ export default function ReviewExperiencePage() {
   }, [
     certified,
     companions,
+    draftKey,
     decodedTitle,
     overallRating,
     resolvedBookingId,
@@ -273,7 +308,7 @@ export default function ReviewExperiencePage() {
     }
     if (!user) {
       const authReturnTo = window.location.pathname + window.location.search + window.location.hash;
-      writeReviewDraft(decodedTitle, {
+      writeReviewDraft(draftKey, {
         tour,
         tourId,
         resolvedBookingId,
@@ -353,6 +388,7 @@ export default function ReviewExperiencePage() {
 
       writeSubmittedReviewHandoff(decodedTitle, tourId, submittedReview);
       clearReviewDraft(decodedTitle);
+      clearReviewDraft(draftKey);
       toast.success('Review submitted successfully!');
       navigate(returnTo, {
         replace: true,
@@ -360,6 +396,12 @@ export default function ReviewExperiencePage() {
           submittedReview,
           submittedReviewTourId: tourId,
           submittedReviewTourTitle: decodedTitle,
+          ...(isHomeReturnPath(returnTo)
+            ? {
+                reviewReturnHomeSkeleton: true,
+                handoffId: Date.now(),
+              }
+            : {}),
         },
       });
     } catch (err) {
@@ -536,20 +578,27 @@ export default function ReviewExperiencePage() {
               <h2 className="mb-3 text-[17px] font-bold text-slate-900">
                 When did you go?
               </h2>
-              <div className="relative inline-block">
-                <DatePicker
-                  selected={selectedDate}
-                  onChange={(date) => setSelectedDate(date)}
-                  dateFormat="MMMM yyyy"
-                  showMonthYearPicker
-                  maxDate={new Date()}
-                  minDate={new Date(new Date().setFullYear(new Date().getFullYear() - 2))}
-                  placeholderText="Select month and year"
-                  className="appearance-none rounded-full border-2 border-blue-500 bg-white py-2.5 pl-5 pr-12 text-[14px] font-medium text-slate-800 outline-none transition focus:border-blue-600 cursor-pointer w-full sm:w-auto min-w-[200px]"
-                  wrapperClassName="w-full sm:w-auto"
-                  calendarClassName="!rounded-xl !border-2 !border-slate-200 !shadow-lg"
+              <div className="relative w-full max-w-[320px] sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                  className="review-date-input w-full cursor-pointer appearance-none rounded-lg border border-slate-300 bg-white py-3 pl-4 pr-12 text-[15px] font-semibold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-emerald-600 focus:border-emerald-700 focus:ring-4 focus:ring-emerald-700/10 sm:min-w-[260px] text-left"
+                >
+                  {selectedDate ? (
+                    `${MONTH_NAMES[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
+                  ) : (
+                    <span className="text-slate-400">Select month and year</span>
+                  )}
+                </button>
+                <Calendar className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-emerald-700" />
+                
+                {/* Apple Calendar Dropdown */}
+                <AppleCalendarPicker
+                  isOpen={isCalendarOpen}
+                  onClose={() => setIsCalendarOpen(false)}
+                  onDateSelect={(date) => setSelectedDate(date)}
+                  initialDate={selectedDate}
                 />
-                <Calendar className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               </div>
             </section>
 

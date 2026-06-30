@@ -13,6 +13,7 @@ import { setAuthReturnTo } from '@/lib/auth';
 import { Navbar } from '@/components/homepage/Navbar';
 import { Footer } from '@/components/homepage/Footer';
 import { Button } from '@/components/ui/button';
+import { slugify } from '@/lib/slugify';
 
 const statusConfig = {
   PENDING: { label: 'Pending', className: 'bg-amber-100 text-amber-800' },
@@ -200,11 +201,12 @@ export default function MyBookingsPage() {
                         <div className="mt-4 flex items-center gap-2">
                           {canReview ? (
                             <Link
-                              to={`/review/${encodeURIComponent(booking.tour.title)}`}
+                              to={`/review/${booking.tour.slug || slugify(booking.tour.title)}`}
                               state={{
                                 booking,
                                 tour: {
                                   title: booking.tour.title,
+                                  slug: booking.tour.slug || slugify(booking.tour.title),
                                   tourId: booking.tour?.id,
                                   image: tourImage,
                                   duration: '',

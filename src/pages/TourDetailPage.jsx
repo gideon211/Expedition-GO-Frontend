@@ -92,12 +92,23 @@ const EXTERNAL_FALLBACK_IMAGES = [
   'https://www.outlooktravelmag.com/media/ghana-1-1582212936.profileImage.2x-jpg-webp.webp',
 ];
 
-const normalizeImageKey = (imageUrl) =>
-  String(imageUrl || '')
-    .trim()
-    .replace(/[?#].*$/, '')
-    .replace(/\/$/, '')
-    .toLowerCase();
+const normalizeImageKey = (imageUrl) => {
+  const url = String(imageUrl || '').trim();
+  if (!url) return '';
+  
+  try {
+    // Parse URL to get base path without query params or fragments
+    const urlObj = new URL(url);
+    // Normalize: use lowercase hostname + pathname, ignore query/hash
+    return `${urlObj.hostname}${urlObj.pathname}`.toLowerCase().replace(/\/$/, '');
+  } catch {
+    // If URL parsing fails, use simple normalization
+    return url
+      .replace(/[?#].*$/, '')  // Remove query params and fragments
+      .replace(/\/$/, '')       // Remove trailing slash
+      .toLowerCase();
+  }
+};
 
 const dedupeImages = (imageUrls) => {
   const seen = new Set();
@@ -902,9 +913,15 @@ function TourDetailContent() {
     if (!tourSlug || !selectedTourTitle) return;
 
     const tourImage = tourData?.imageCover || mergedImages[0] || fallbackTourImage;
+    
+    // Ensure we have a human-readable title, not a slug
+    const displayTitle = effectiveRawTour?.title || 
+                        effectiveRawTour?.name || 
+                        effectiveRawTour?.metaTitle || 
+                        selectedTourTitle;
 
     const recentTourData = {
-      title: selectedTourTitle,
+      title: displayTitle,
       slug: tourSlug,
       duration: tourData?.duration || selectedTourDuration,
       price: tourData?.price || selectedTourPriceNumber,
@@ -914,9 +931,13 @@ function TourDetailContent() {
     };
 
     addToRecentlyViewed(recentTourData);
-  }, [id, rawTour?.slug, selectedTourTitle, addToRecentlyViewed]);
+  }, [id, rawTour?.slug, selectedTourTitle, effectiveRawTour, addToRecentlyViewed]);
 
   const isFavorited = isInWishlist(selectedTourTitle);
+  const selectedTourSlug = rawTour?.slug || effectiveRawTour?.slug || slugify(selectedTourTitle);
+  const selectedTourReviewPath = `/review/${selectedTourSlug}`;
+  const selectedTourReturnTo = `/tour/${selectedTourSlug}#reviews`;
+  const resolvedTourId = rawTour?.id || rawTour?._id || id;
 
   const handleWishlistToggle = () => {
     toggleWishlist({
@@ -1062,7 +1083,7 @@ function TourDetailContent() {
     setCheckingAvailability(true);
 
     try {
-      const result = await fetchTourAvailability(rawTour?.id, startDate, endDate);
+      const result = await fetchTourAvailability(resolvedTourId, startDate, endDate);
       const dayData = result?.calendar?.[0];
 
       if (dayData?.status === 'BLOCKED') {
@@ -1131,7 +1152,7 @@ function TourDetailContent() {
 
     const discountAmount = promoDiscount > 0 ? promoDiscount : 0;
     const cartItem = {
-      tourId: id,
+      tourId: resolvedTourId,
       title: selectedTourTitle,
       duration: selectedTourDuration,
       price: totalPrice,
@@ -1236,11 +1257,11 @@ function TourDetailContent() {
   };
 
   useEffect(() => {
-    if (!isWriteReviewOpen || !rawTour?.id || !user) return;
+    if (!isWriteReviewOpen || !resolvedTourId || !user) return;
     let cancelled = false;
     setReviewBookingId(null);
     setReviewBookingChecked(false);
-    getMyBookings({ tourId: rawTour.id, status: 'COMPLETED', reviewed: 'false', limit: 1 })
+    getMyBookings({ tourId: resolvedTourId, status: 'COMPLETED', reviewed: 'false', limit: 1 })
       .then((data) => {
         if (!cancelled) {
           if (data?.bookings?.length) setReviewBookingId(data.bookings[0].id);
@@ -1279,13 +1300,21 @@ function TourDetailContent() {
       toast.error('Please log in to submit a review.');
       return;
     }
+    if (!reviewBookingChecked) {
+      toast.info('Checking your eligible booking. Please try again in a moment.');
+      return;
+    }
+    if (!reviewBookingId) {
+      toast.error('No completed unreviewed booking was found for this tour.');
+      return;
+    }
 
     setIsSubmittingReview(true);
     try {
       const fd = new FormData();
       fd.append('rating', String(writeReviewRating));
       fd.append('tourId', rawTour.id);
-      if (reviewBookingId) fd.append('bookingId', reviewBookingId);
+      fd.append('bookingId', reviewBookingId);
       fd.append('comment', text);
       for (const file of writeReviewFiles) {
         fd.append('photos', file);
@@ -1518,7 +1547,20 @@ function TourDetailContent() {
   const travelerReqsText = rawTour?.productContent?.travelerRequirements || '';
 
   const supplierData = useMemo(
-    () => mapSupplierProfile({ tour: effectiveRawTour }),
+    () => mapSupplierProfile({ 
+      tour: effectiveRawTour,
+      fallback: {
+        name: 'Expedition-Go Tours Ltd',
+        logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=120&q=80',
+        email: 'info@expeditiongo.com',
+        phone: '+233 20 123 4567',
+        website: 'https://expeditiongo.com',
+        address: 'Accra, Ghana',
+        description: 'Expedition-Go Tours Ltd offers authentic guided experiences across Ghana, showcasing the country\'s rich culture, history, and natural beauty.',
+        rating: 4.8,
+        toursCount: 24,
+      }
+    }),
     [effectiveRawTour]
   );
 
@@ -1851,7 +1893,7 @@ function TourDetailContent() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => navigate(`/review/${encodeURIComponent(selectedTourTitle)}`, { state: { returnTo: `/tour/${encodeURIComponent(selectedTourTitle)}#reviews`, tour: { title: selectedTourTitle, rating: selectedTourRatingNumber, reviews: selectedTourReviewsNumber, duration: selectedTourDuration, price: selectedTourPriceNumber, image: mergedImages[0] || tourData?.imageCover || fallbackTourImage, location: 'Accra, Ghana', tourId: rawTour?.id } } })}
+                  onClick={() => navigate(selectedTourReviewPath, { state: { returnTo: selectedTourReturnTo, tour: { title: selectedTourTitle, slug: selectedTourSlug, rating: selectedTourRatingNumber, reviews: selectedTourReviewsNumber, duration: selectedTourDuration, price: selectedTourPriceNumber, image: mergedImages[0] || tourData?.imageCover || fallbackTourImage, images: mergedImages.slice(0, 5), location: tourData?.city || 'Accra, Ghana', tourId: rawTour?.id, supplierName: supplierData?.name || 'Expedition-Go Tours Ltd', supplierLogo: supplierData?.logo || null } } })}
                   className="shrink-0 rounded-full border border-[color:var(--brand-green)] bg-white px-5 py-2.5 text-sm font-black text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)] lg:text-base lg:px-6 lg:py-3"
                 >
                   Write a review
@@ -2659,10 +2701,10 @@ function TourDetailContent() {
                   >
                     <section id="reviews" className="pb-8">
                       <div className="flex flex-wrap items-end justify-between gap-4">
-                        <h2 className="text-xl font-black text-slate-950 sm:text-2xl lg:text-3xl">Reviews</h2>
+                        <h2 className="text-lg font-black text-slate-900 sm:text-xl lg:text-2xl">Reviews</h2>
                         <button
                           type="button"
-                          onClick={() => navigate(`/review/${encodeURIComponent(selectedTourTitle)}`, { state: { returnTo: `/tour/${encodeURIComponent(selectedTourTitle)}#reviews`, tour: { title: selectedTourTitle, rating: selectedTourRatingNumber, reviews: selectedTourReviewsNumber, duration: selectedTourDuration, price: selectedTourPriceNumber, image: mergedImages[0] || tourData?.imageCover || fallbackTourImage, location: 'Accra, Ghana', tourId: rawTour?.id } } })}
+                          onClick={() => navigate(selectedTourReviewPath, { state: { returnTo: selectedTourReturnTo, tour: { title: selectedTourTitle, slug: selectedTourSlug, rating: selectedTourRatingNumber, reviews: selectedTourReviewsNumber, duration: selectedTourDuration, price: selectedTourPriceNumber, image: mergedImages[0] || tourData?.imageCover || fallbackTourImage, images: mergedImages.slice(0, 5), location: tourData?.city || 'Accra, Ghana', tourId: rawTour?.id, supplierName: supplierData?.name || 'Expedition-Go Tours Ltd', supplierLogo: supplierData?.logo || null } } })}
                           className="rounded-full border border-[color:var(--brand-green)] bg-white px-5 py-2.5 text-sm font-black text-[color:var(--brand-green)] transition hover:bg-[color:var(--brand-mist)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-green)]"
                         >
                           Write a review

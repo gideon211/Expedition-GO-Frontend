@@ -14,7 +14,7 @@
  *   /signin, /register   Consumer auth
  *   /supplier/*          Supplier auth, payout, and external dashboard redirects
  *   /booking             Checkout flow (state passed via react-router location)
- *   /review/:tourTitle   Review submission page for completed tour experiences
+ *   /review/:tourTitle   Review submission page for completed tour experiences (slug segment)
  *   /reviews/all          All traveller reviews page with similar experiences
  *   /support, /settings  Account & help pages
  *

@@ -33,6 +33,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { Navbar } from '@/components/homepage/Navbar';
+import { slugify } from '@/lib/slugify';
 import { Footer } from '@/components/homepage/Footer';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -1557,10 +1558,11 @@ export default function BookingPage() {
               onClick={() => {
                 const data = bookingConfirmation;
                 setBookingConfirmation(null);
-                navigate(`/review/${encodeURIComponent(data?.tour?.title || '')}`, {
+                const reviewSlug = data?.tour?.slug || slugify(data?.tour?.title);
+                navigate(`/review/${reviewSlug}`, {
                   state: {
                     booking: data?.booking,
-                    tour: data?.tour,
+                    tour: { ...data?.tour, slug: reviewSlug },
                   },
                 });
               }}

@@ -139,18 +139,10 @@ function CartPage() {
           </button>
 
           <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[color:var(--brand-mist)] text-[color:var(--brand-green)] shadow-sm sm:size-14">
-                <ShoppingCart className="size-6 sm:size-7" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                  {t('nav.cart')}
-                </h1>
-                <p className="mt-0.5 text-base font-medium text-slate-500 sm:text-sm">
-                  {cart.length} {cart.length === 1 ? 'item' : 'items'} in your cart
-                </p>
-              </div>
+            <div className="min-w-0">
+              <h1 className="hidden text-2xl font-bold tracking-tight text-slate-900 sm:block sm:text-3xl">
+                {t('nav.cart')}
+              </h1>
             </div>
 
             {cart.length > 0 && (
