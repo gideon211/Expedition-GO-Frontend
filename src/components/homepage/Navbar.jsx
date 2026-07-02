@@ -11,10 +11,11 @@
 import {
   Globe,
   Heart,
-   Headset,
-   LoaderCircle,
-   Menu,
-   ShoppingCart,
+   Bell,
+  Headset,
+  LoaderCircle,
+  Menu,
+  ShoppingCart,
   Settings,
   Store,
   UserCircle2,
@@ -36,6 +37,7 @@ import { SearchAutocomplete } from './SearchAutocomplete';
 import { Input } from '@/components/ui/input';
 import { useNavigationLoader } from '@/contexts/NavigationContext';
 import { useSupplierNav } from '@/hooks/useSupplierNav';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 export function Navbar({
   sharedDateRange,
@@ -66,6 +68,7 @@ export function Navbar({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
   const supplierNav = useSupplierNav(user);
   const { navigateWithLoader } = useNavigationLoader();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -468,6 +471,25 @@ export function Navbar({
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
           </Link>
+          {!loading && user && (
+            <Link
+              to="/notifications"
+              className="group font-semibold flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 lg:p-2 xl:p-0"
+            >
+              <div className="relative">
+                <Bell className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white shadow-sm">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <span className="hidden xl:block text-xs relative font-semibold">
+                {t('nav.notifications')}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
+              </span>
+            </Link>
+          )}
           <Link
             to={supplierNav.href}
             className="group font-semibold flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 lg:p-2 xl:p-0"
@@ -525,6 +547,28 @@ export function Navbar({
                         <p className="text-xs text-slate-500">{user.email}</p>
                       </div>
                       <div className="py-2">
+                        <Link
+                          to="/notifications"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
+                        >
+                          <div className="relative">
+                            <Bell className="size-4" />
+                            {unreadCount > 0 && (
+                              <span className="absolute -right-2 -top-1.5 flex min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold leading-none text-white shadow-sm">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-1 items-center justify-between">
+                            <span>Notifications</span>
+                            {unreadCount > 0 && (
+                              <span className="rounded-full bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700">
+                                {unreadCount} new
+                              </span>
+                            )}
+                          </div>
+                        </Link>
                         <Link
                           to="/support"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -873,6 +917,14 @@ export function Navbar({
               >
                 <Heart className="size-4" />
                 <span className="text-sm">{t('nav.wishlist')}</span>
+              </Link>
+              <Link
+                to="/notifications"
+                onClick={closeMobileMenu}
+                className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950"
+              >
+                <Bell className="size-4" />
+                <span className="text-sm">{t('nav.notifications')}</span>
               </Link>
               <Link
                 to="/cart"

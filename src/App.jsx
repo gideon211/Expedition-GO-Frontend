@@ -32,6 +32,7 @@ import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import BrandLoader from '@/components/ui/BrandLoader';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { NavigationProvider } from '@/contexts/NavigationContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { CartProvider } from '@/contexts/CartContext';
@@ -61,6 +62,7 @@ import { ArticleDetailPage } from '@/pages/ArticleDetailPage';
 import ReviewExperiencePage from '@/pages/ReviewExperiencePage';
 import AllReviewsPage from '@/pages/AllReviewsPage';
 import MyBookingsPage from '@/pages/MyBookingsPage';
+import NotificationsPage from '@/pages/NotificationsPage';
 
 function AppContent() {
   useScrollRestoration();
@@ -100,6 +102,7 @@ function AppContent() {
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
           <Route path="/review/:tourTitle" element={<ReviewExperiencePage />} />
           <Route path="/reviews/all" element={<AllReviewsPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/bookings" element={<MyBookingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -143,7 +146,9 @@ function App() {
                 },
               }}
             />
-            <AppContent />
+            <NotificationProvider>
+              <AppContent />
+            </NotificationProvider>
           </AuthProvider>
         </NavigationProvider>
       </CurrencyProvider>
