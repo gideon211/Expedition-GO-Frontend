@@ -173,9 +173,9 @@ export default function NotificationsPage() {
   }, [page, loadPage]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-slate-50">
       <Navbar />
-      <main className="mx-auto max-w-[820px] px-4 pb-20 pt-24 sm:px-6 lg:px-8 lg:pt-28">
+      <main className="mx-auto w-full max-w-[820px] flex-1 px-4 pt-24 sm:px-6 lg:px-8 lg:pt-28">
         {/* Page header */}
         <div className="mb-8">
           <Link
@@ -187,12 +187,6 @@ export default function NotificationsPage() {
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">Notifications</h1>
-              <p className="mt-1 text-sm text-slate-500">
-                {unreadCount > 0
-                  ? `You have ${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}`
-                  : 'All caught up!'}
-              </p>
             </div>
             {unreadCount > 0 && (
               <button
@@ -220,15 +214,121 @@ export default function NotificationsPage() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center"
+            className="flex flex-col items-center justify-center px-6 py-16 text-center min-h-[50vh]"
           >
-            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-slate-100">
-              <Bell className="size-8 text-slate-400" />
+            <div className="relative mb-6">
+              {/* Ripple effect */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.4, 1],
+                  opacity: [0.4, 0.1, 0.4],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+                className="absolute inset-0 -m-2 rounded-full bg-emerald-200"
+              />
+              <motion.div
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.5, 0.15, 0.5],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 0.4,
+                }}
+                className="absolute inset-0 -m-1 rounded-full bg-emerald-300"
+              />
+
+              {/* Bell container with swing animation */}
+              <motion.div
+                animate={{
+                  rotate: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatDelay: 1.5,
+                  ease: 'easeInOut',
+                }}
+                style={{ transformOrigin: 'top center' }}
+                className="relative flex size-28 items-center justify-center rounded-full bg-gradient-to-br from-emerald-50 to-emerald-100 shadow-lg"
+              >
+                <motion.div
+                  animate={{
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 1.5,
+                    ease: 'easeInOut',
+                  }}
+                >
+                  <Bell className="size-16 text-emerald-600" strokeWidth={2} />
+                </motion.div>
+
+                {/* Clapper animation */}
+                <motion.div
+                  animate={{
+                    x: [0, -3, 3, -2, 2, -1, 1, 0],
+                    rotate: [0, -10, 10, -8, 8, -4, 4, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 1.5,
+                    ease: 'easeInOut',
+                  }}
+                  className="absolute bottom-[42%] left-1/2 h-3 w-0.5 -translate-x-1/2 rounded-full bg-emerald-700"
+                  style={{ transformOrigin: 'top center' }}
+                >
+                  <div className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-emerald-800" />
+                </motion.div>
+              </motion.div>
+
+              {/* Sound wave particles */}
+              {[...Array(3)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{
+                    scale: [0, 1.2, 0],
+                    opacity: [0.6, 0.3, 0],
+                    x: [0, (i - 1) * 25],
+                    y: [0, -15],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    repeatDelay: 2,
+                    delay: i * 0.2,
+                    ease: 'easeOut',
+                  }}
+                  className="absolute left-1/2 top-8 size-3 -translate-x-1/2 rounded-full bg-emerald-400"
+                />
+              ))}
             </div>
-            <h2 className="text-lg font-bold text-slate-900">No notifications yet</h2>
-            <p className="mt-1 max-w-sm text-sm text-slate-500">
+
+            <motion.h2
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-lg font-bold text-slate-900"
+            >
+              No notifications yet
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-1 max-w-sm text-sm text-slate-500"
+            >
               We'll send you updates about your bookings, reviews, and more. Check back later!
-            </p>
+            </motion.p>
           </motion.div>
         )}
 

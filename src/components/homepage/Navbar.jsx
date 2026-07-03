@@ -23,7 +23,6 @@ import {
   Search,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -232,6 +231,7 @@ export function Navbar({
     setUserIsTyping(false);
   }, [location.pathname, location.search]);
 
+
   // Keep local query synced with shared query to avoid stale input state.
   useEffect(() => {
     if (isExternalSearchMode) {
@@ -320,37 +320,34 @@ export function Navbar({
     const applySticky = (sticky) => {
       if (sticky === lastSticky) return;
       lastSticky = sticky;
+
+      if (!sticky) {
+        document.body.classList.add('hero--search-instant');
+        requestAnimationFrame(() => {
+          document.body.classList.remove('hero--search-instant');
+        });
+      }
+
       document.body.classList.toggle('hero--search-sticky', sticky);
       setSearchBarSticky(sticky);
     };
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.boundingClientRect.height === 0) return;
-
-        const topOfBar = entry.boundingClientRect.top;
-        const sticky = topOfBar <= navbarHeight + 4;
-        applySticky(sticky);
-      },
-      {
-        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-      }
-    );
-
-    observer.observe(heroSearch);
-
-    // Instant snap on fast scroll-to-top: the observer is async and can lag
-    // by several frames (or seconds under main-thread pressure). A scroll
-    // listener catches the top-of-page case synchronously.
     const handleScroll = () => {
+      // Fast-path: at the top of the page the search bar is always unstuck
       if (window.scrollY < 10) {
         applySticky(false);
+        return;
       }
+      const rect = heroSearch.getBoundingClientRect();
+      if (rect.height === 0) return;
+      const sticky = rect.top <= navbarHeight + 4;
+      applySticky(sticky);
     };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
 
     return () => {
-      observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
       document.body.classList.remove('hero--search-sticky');
     };
@@ -393,7 +390,7 @@ export function Navbar({
 
         {renderCompactSearch && (
           <div
-            className={`navbar-compact-search${forceShowCompactSearch ? ' navbar-compact-search--forced' : ''} w-full max-w-[400px] sm:max-w-[520px] lg:max-w-[600px]`}
+            className={`navbar-compact-search${forceShowCompactSearch ? ' navbar-compact-search--forced' : ''} relative w-full max-w-[400px] sm:max-w-[520px] lg:max-w-[600px]`}
           >
             <form
               onSubmit={handleCompactSearchSubmit}
@@ -445,18 +442,16 @@ export function Navbar({
               </div>
             </form>
 
-            {showNavAutocomplete &&
-              createPortal(
-                <SearchAutocomplete
-                  ref={navAutocompleteRef}
-                  results={navSearchResults}
-                  onSelect={handleNavAutocompleteSelect}
-                  isVisible={showNavAutocomplete}
-                  searchQuery={activeSearchQuery}
-                  className="fixed left-1/2 -translate-x-1/2 top-[var(--navbar-logo-height)] mt-1 w-[calc(100vw-2rem)] max-w-[640px] max-h-[400px] overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg z-50"
-                />,
-                document.body
-              )}
+            {showNavAutocomplete && (
+              <SearchAutocomplete
+                ref={navAutocompleteRef}
+                results={navSearchResults}
+                onSelect={handleNavAutocompleteSelect}
+                isVisible={showNavAutocomplete}
+                searchQuery={activeSearchQuery}
+                className="absolute left-0 right-0 top-full mt-1 max-h-[400px] overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg z-50"
+              />
+            )}
           </div>
         )}
 
@@ -471,25 +466,6 @@ export function Navbar({
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
             </span>
           </Link>
-          {!loading && user && (
-            <Link
-              to="/notifications"
-              className="group font-semibold flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 lg:p-2 xl:p-0"
-            >
-              <div className="relative">
-                <Bell className="size-5 transition group-hover:text-[color:var(--brand-green)]" />
-                {unreadCount > 0 && (
-                  <span className="absolute -right-2 -top-2 flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white shadow-sm">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </div>
-              <span className="hidden xl:block text-xs relative font-semibold">
-                {t('nav.notifications')}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-(--brand-green) transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:w-full"></span>
-              </span>
-            </Link>
-          )}
           <Link
             to={supplierNav.href}
             className="group font-semibold flex flex-col items-center gap-1 text-slate-700 transition hover:text-slate-950 lg:p-2 xl:p-0"
@@ -918,14 +894,16 @@ export function Navbar({
                 <Heart className="size-4" />
                 <span className="text-sm">{t('nav.wishlist')}</span>
               </Link>
-              <Link
-                to="/notifications"
-                onClick={closeMobileMenu}
-                className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950"
-              >
-                <Bell className="size-4" />
-                <span className="text-sm">{t('nav.notifications')}</span>
-              </Link>
+              {!loading && user && (
+                <Link
+                  to="/notifications"
+                  onClick={closeMobileMenu}
+                  className="inline-flex items-center gap-2 py-2 text-slate-700 transition hover:text-slate-950"
+                >
+                  <Bell className="size-4" />
+                  <span className="text-sm">{t('nav.notifications')}</span>
+                </Link>
+              )}
               <Link
                 to="/cart"
                 onClick={closeMobileMenu}

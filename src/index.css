@@ -91,13 +91,25 @@
 }
 
 :root {
+  /* Brand colors - consistent across themes */
   --brand-green: #01311a;
   --brand-green-2: #0b4f2b;
   --brand-green-3: #1b7f4a;
-  --brand-mist: #ffffff;
   --brand-sand: #f6f4ed;
-  --page-bg: #ffffff;
   --navbar-logo-height: 3.75rem;
+
+  /* Light mode (default) */
+  --page-bg: #ffffff;
+  --card-bg: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --brand-mist: #d4e8dc;
+  --navbar-bg: #ffffff;
+  --input-bg: #ffffff;
+  --hover-bg: #f1f5f9;
+
   --navbar-offset: var(--navbar-logo-height);
   /* Soft icon blobs (homepage palette–aligned) */
   --why-book-blob-1: color-mix(in srgb, var(--brand-sand) 72%, #fecaca 28%);
@@ -681,6 +693,12 @@ body.hero--search-sticky .hero-search-wrap {
   opacity: 0;
   transform: translateY(-6px) scale(0.96);
   pointer-events: none;
+}
+
+/* Instant snap when scrolling to top — disables CSS transitions, re-enabled next frame */
+body.hero--search-instant .navbar-compact-search,
+body.hero--search-instant .hero-search-wrap {
+  transition: none !important;
 }
 
 /* Countdown timer pulse glow for deal cards — uses opacity (works on all devices) */

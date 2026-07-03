@@ -8,6 +8,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, CheckCheck, X, LoaderCircle, Info, CalendarCheck, Star, CreditCard, MessageSquare, AlertTriangle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useNotifications } from '@/contexts/NotificationContext';
 
 const TYPE_ICONS = {
@@ -163,11 +164,54 @@ export function NotificationBell() {
               </div>
             ) : notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <Bell className="mb-2 size-10 text-slate-300" />
-                <p className="text-sm font-medium text-slate-500">No notifications yet</p>
-                <p className="mt-0.5 text-xs text-slate-400">
+                <div className="relative mb-3">
+                  {/* Pulse effect */}
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.3, 1],
+                      opacity: [0.3, 0, 0.3],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                    className="absolute inset-0 -m-1 rounded-full bg-slate-200"
+                  />
+                  
+                  {/* Bell with swing */}
+                  <motion.div
+                    animate={{
+                      rotate: [0, -10, 10, -8, 8, -5, 5, 0],
+                    }}
+                    transition={{
+                      duration: 1.8,
+                      repeat: Infinity,
+                      repeatDelay: 2,
+                      ease: 'easeInOut',
+                    }}
+                    style={{ transformOrigin: 'top center' }}
+                  >
+                    <Bell className="size-10 text-slate-300" strokeWidth={2} />
+                  </motion.div>
+                </div>
+                
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-sm font-medium text-slate-500"
+                >
+                  No notifications yet
+                </motion.p>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="mt-0.5 text-xs text-slate-400"
+                >
                   We'll notify you when something arrives
-                </p>
+                </motion.p>
               </div>
             ) : (
               <ul className="divide-y divide-slate-100">

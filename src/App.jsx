@@ -25,8 +25,10 @@
  * @see hooks/useScrollRestoration.js — scroll behavior on route changes
  */
 import { useEffect, useState } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
+
+import { AnimatePresence } from 'framer-motion';
 
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import BrandLoader from '@/components/ui/BrandLoader';
@@ -63,10 +65,13 @@ import ReviewExperiencePage from '@/pages/ReviewExperiencePage';
 import AllReviewsPage from '@/pages/AllReviewsPage';
 import MyBookingsPage from '@/pages/MyBookingsPage';
 import NotificationsPage from '@/pages/NotificationsPage';
+import HomeRedesignPreview from '@/pages/HomeRedesignPreview';
+import PageTransition from '@/components/ui/PageTransition';
 
 function AppContent() {
   useScrollRestoration();
   const { loading } = useAuth();
+  const location = useLocation();
   const [splashShown, setSplashShown] = useState(() =>
     sessionStorage.getItem('eg_splash_shown') === 'true'
   );
@@ -74,38 +79,44 @@ function AppContent() {
   const routes = (
     <WishlistProvider>
       <CartProvider>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/tours" element={<AllToursPage />} />
-          <Route path="/tour/:id" element={<TourDetailPage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/signin" element={<SignInPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/supplier/signin" element={<SupplierSignInPage />} />
-          <Route path="/supplier/register" element={<SupplierRegisterPage />} />
-          <Route path="/supplier/payout" element={<SupplierPayoutPage />} />
-          <Route path="/supplier/portal" element={<SupplierPortalRedirectPage />} />
-          <Route path="/supplier/dashboard" element={<Navigate to="/supplier/portal" replace />} />
-          <Route
-            path="/supplier/earnings"
-            element={<Navigate to={SUPPLIER_PORTAL_LOGIN_URL} replace />}
-          />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/signout" element={<SignOutPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/booking" element={<BookingPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/supplier/profile/:tourTitle" element={<SupplierPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/blog/:slug" element={<ArticleDetailPage />} />
-          <Route path="/review/:tourTitle" element={<ReviewExperiencePage />} />
-          <Route path="/reviews/all" element={<AllReviewsPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/bookings" element={<MyBookingsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <AnimatePresence mode="wait">
+          <PageTransition key={location.pathname}>
+            <Routes location={location}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/tours" element={<AllToursPage />} />
+              <Route path="/tour/:id" element={<TourDetailPage />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/signin" element={<SignInPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/supplier/signin" element={<SupplierSignInPage />} />
+              <Route path="/supplier/register" element={<SupplierRegisterPage />} />
+              <Route path="/supplier/payout" element={<SupplierPayoutPage />} />
+              <Route path="/supplier/portal" element={<SupplierPortalRedirectPage />} />
+              <Route path="/supplier/dashboard" element={<Navigate to="/supplier/portal" replace />} />
+              <Route
+                path="/supplier/earnings"
+                element={<Navigate to={SUPPLIER_PORTAL_LOGIN_URL} replace />}
+              />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/signout" element={<SignOutPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/booking" element={<BookingPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/supplier/profile/:tourTitle" element={<SupplierPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:slug" element={<ArticleDetailPage />} />
+              <Route path="/review/:tourTitle" element={<ReviewExperiencePage />} />
+              <Route path="/reviews/all" element={<AllReviewsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/bookings" element={<MyBookingsPage />} />
+              {/* Additive, isolated redesign preview — does not affect the live homepage */}
+              <Route path="/preview/home" element={<HomeRedesignPreview />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </PageTransition>
+        </AnimatePresence>
       </CartProvider>
     </WishlistProvider>
   );
@@ -140,9 +151,9 @@ function App() {
               toastOptions={{
                 duration: 4000,
                 style: {
-                  background: 'var(--brand-mist)',
-                  color: 'var(--brand-green)',
-                  border: '1px solid rgba(9, 106, 79, 0.18)',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
                 },
               }}
             />

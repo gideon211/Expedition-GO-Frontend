@@ -205,7 +205,7 @@ function MobileAllToursCard({ item, badge = 'duration' }) {
 }
 
 function AllToursPageContent() {
-  const CARDS_PER_PAGE = 8;
+  const CARDS_PER_PAGE = 24;
   const { t } = useTranslation();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -803,30 +803,32 @@ function AllToursPageContent() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-y-6 sm:gap-x-4 sm:gap-y-8 pb-2 sm:pb-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="w-full" style={{ height: 'calc(100vh - 320px)' }}>
                 {isLoading ? (
-                  <div className="col-span-full py-20 text-center text-sm text-slate-500">
+                  <div className="py-20 text-center text-sm text-slate-500">
                     Loading tours...
                   </div>
                 ) : tours.length === 0 ? (
-                  <div className="col-span-full py-20 text-center text-sm text-slate-500">
+                  <div className="py-20 text-center text-sm text-slate-500">
                     No tours found matching your criteria.
                   </div>
                 ) : (
-                  tours.map((item, index) => (
-                    <div key={`${item.slug || item.title}-${index}`} className="w-full">
-                      <div className="sm:hidden">
-                        <MobileAllToursCard item={item} badge={tourListBadge} />
+                  <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-8 lg:grid-cols-3 xl:grid-cols-4">
+                    {tours.map((item) => (
+                      <div key={item.id || item.title} className="w-full">
+                        <div className="sm:hidden">
+                          <MobileAllToursCard item={item} badge={tourListBadge} />
+                        </div>
+                        <div className="hidden sm:block">
+                          <FeaturedExperiencesCard
+                            {...item}
+                            variant="allTours"
+                            badge={tourListBadge}
+                          />
+                        </div>
                       </div>
-                      <div className="hidden sm:block">
-                        <FeaturedExperiencesCard
-                          {...item}
-                          variant="allTours"
-                          badge={tourListBadge}
-                        />
-                      </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </div>
               {totalPages > 1 && (

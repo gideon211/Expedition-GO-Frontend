@@ -1,43 +1,66 @@
 .loader-overlay {
   position: fixed;
   inset: 0;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  transition: opacity 0.4s ease;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-/* your loader */
+/* Enhanced loader with smooth animation */
 .loader {
-  width: 50px;
+  width: 56px;
   aspect-ratio: 1;
   display: grid;
+  animation: loader-pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .loader::before,
 .loader::after {
   content: '';
   grid-area: 1/1;
-  --c: no-repeat radial-gradient(farthest-side, #25b09b 92%, #0000);
+  --c: no-repeat radial-gradient(farthest-side, #25b09b 92%, transparent);
   background:
     var(--c) 50% 0,
     var(--c) 50% 100%,
     var(--c) 100% 50%,
     var(--c) 0 50%;
-  background-size: 12px 12px;
-  animation: spin 1s linear infinite;
+  background-size: 13px 13px;
+  animation: 
+    spin 0.95s cubic-bezier(0.4, 0, 0.2, 1) infinite,
+    loader-glow 1.6s ease-in-out infinite;
 }
 
 .loader::before {
-  margin: 4px;
+  margin: 5px;
   filter: hue-rotate(45deg);
-  background-size: 8px 8px;
+  background-size: 9px 9px;
+  animation-delay: -0.08s;
 }
 
 @keyframes spin {
   to {
     transform: rotate(0.5turn);
+  }
+}
+
+@keyframes loader-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes loader-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(37, 176, 155, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(37, 176, 155, 0.6));
   }
 }
